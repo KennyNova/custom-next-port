@@ -7,7 +7,7 @@ import { Github, Linkedin, Mail, ArrowLeft } from 'lucide-react'
 import { signIn, getProviders } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 
 interface Provider {
   id: string
@@ -29,7 +29,7 @@ const providerColors = {
   linkedin: 'hover:bg-blue-50 dark:hover:bg-blue-950',
 }
 
-export default function SignInPage() {
+function SignInContent() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/'
   const error = searchParams.get('error')
@@ -149,5 +149,26 @@ export default function SignInPage() {
         </motion.div>
       </motion.div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[80vh]">
+        <div className="w-full max-w-md">
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Loading...</CardTitle>
+              <CardDescription>
+                Please wait while we prepare the sign in page
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   )
 }

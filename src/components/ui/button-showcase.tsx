@@ -83,10 +83,10 @@ export function ButtonShowcase() {
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Special Effects</h3>
         <div className="flex flex-wrap gap-3">
-          <Button variant="shimmer">
+          <Button variant="gradient" animation="float">
             Shimmer Effect
           </Button>
-          <Button variant="glow">
+          <Button variant="gradient-secondary" animation="glow">
             Glow Effect
           </Button>
         </div>
@@ -190,7 +190,7 @@ export function ButtonShowcase() {
           <Button animation="float" variant="outline">
             Floating
           </Button>
-          <Button animation="glow" variant="shimmer">
+          <Button animation="glow" variant="gradient">
             Glowing
           </Button>
         </div>
