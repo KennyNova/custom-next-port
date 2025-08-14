@@ -28,11 +28,6 @@ A modern, interactive portfolio and blog website showcasing my professional work
 - 🚀 Deployed on Vercel
 - 📱 Mobile-first approach
 - 🔒 OAuth integration for signature wall
-- 🎯 **Peak UI/UX Standards:**
-  - **SVG-only icons** - Never emojis, always professional Lucide React icons
-  - **Skeleton loaders** - Every async content area has beautiful loading states
-  - **Micro-interactions** - Subtle animations enhance user engagement
-  - **Performance-first** - Optimized for Core Web Vitals and accessibility
 
 ## 🛠️ Tech Stack
 
@@ -98,15 +93,7 @@ Required environment variables:
 - `MONGODB_URI`: MongoDB connection string
 - `GITHUB_CLIENT_ID`: GitHub OAuth client ID
 - `GITHUB_CLIENT_SECRET`: GitHub OAuth client secret
-- `GITHUB_TOKEN`: GitHub personal access token for fetching repositories
-- `GOOGLE_CLIENT_ID`: Google OAuth client ID
-- `GOOGLE_CLIENT_SECRET`: Google OAuth client secret
-- `LINKEDIN_CLIENT_ID`: LinkedIn OAuth client ID
-- `LINKEDIN_CLIENT_SECRET`: LinkedIn OAuth client secret
-- `NEXTAUTH_URL`: NextAuth URL (e.g., http://localhost:3000)
-- `NEXTAUTH_SECRET`: NextAuth secret key
-- `CALCOM_API_KEY`: Cal.com API key
-- `CALCOM_BASE_URL`: Cal.com base URL
+- [Add other OAuth provider credentials]
 
 4. Run the development server
 ```bash
@@ -126,21 +113,8 @@ Blog posts are written in Markdown format and stored in MongoDB. Each post inclu
 
 ### Projects
 Project data is sourced from:
-- **GitHub API**: Automatically fetches repositories using personal access token
-  - Real-time repository data (stars, forks, languages, etc.)
-  - README content with markdown rendering
-  - Repository statistics and contribution metrics
-  - Language usage breakdown with visual charts
-- **MongoDB**: For non-GitHub projects (home lab, Gagguino, photography, etc.)
-
-#### Individual Project Pages
-Each project has a dedicated page with rich features:
-- **Live Preview**: Interactive iframe with responsive device previews (desktop/tablet/mobile)
-- **GitHub Integration**: README rendering, repository stats, language breakdowns
-- **Image Gallery**: Screenshot carousel with thumbnail navigation
-- **Interactive Elements**: Share functionality, like button, full-screen preview
-- **Repository Statistics**: Stars, forks, commits, contributors, and more
-- **Technology Visualization**: Animated language usage charts
+- GitHub API for code projects
+- MongoDB for non-GitHub projects (home lab, Gagguino, etc.)
 
 ### Quiz System
 The consultation quiz system helps potential clients understand service offerings through interactive questions. Results are stored in MongoDB for follow-up.
