@@ -3,8 +3,9 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import WhispyBackground from '@/components/layout/whispy-background'
 import Link from 'next/link'
-import { ArrowRight, Code2, PenTool, Puzzle, Calendar, Rocket, Sparkles } from 'lucide-react'
+import { ArrowRight, Code2, PenTool, Puzzle, Calendar, Rocket, Sparkles, Workflow } from 'lucide-react'
 
 export default function HomePage() {
   // Prefetch projects data when the home page loads
@@ -25,7 +26,9 @@ export default function HomePage() {
   }, [])
   
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="relative">
+      <WhispyBackground />
+      <div className="container mx-auto px-4 py-8 relative z-10">
       {/* Hero Section */}
       <section className="text-center py-20">
         <div className="pb-4">
@@ -78,7 +81,7 @@ export default function HomePage() {
           <div>
             <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/20">
               <CardHeader>
-                <Code2 className="h-8 w-8 text-primary mb-2 animate-glow" />
+                <Code2 className="h-8 w-8 text-primary mb-2" />
                 <CardTitle className="text-primary">Projects</CardTitle>
                 <CardDescription>
                   Explore my professional work, GitHub projects, and home lab setup
@@ -98,7 +101,7 @@ export default function HomePage() {
           <div>
             <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/20">
               <CardHeader>
-                <PenTool className="h-8 w-8 text-primary mb-2 animate-pulse" />
+                <PenTool className="h-8 w-8 text-primary mb-2" />
                 <CardTitle className="text-primary">Blog</CardTitle>
                 <CardDescription>
                   Read insights, experiences, and technical articles
@@ -138,17 +141,17 @@ export default function HomePage() {
           <div>
             <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/20">
               <CardHeader>
-                <Calendar className="h-8 w-8 text-primary mb-2 animate-pulse" />
-                <CardTitle className="text-primary">Book Consultation</CardTitle>
+                <Workflow className="h-8 w-8 text-primary mb-2" />
+                <CardTitle className="text-primary">n8n Templates</CardTitle>
                 <CardDescription>
-                  Schedule a meeting to discuss your project needs
+                  Ready-to-use automation workflows for common business processes
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Link href="/consultation" className="w-full">
-                  <Button variant="success" className="w-full group">
-                    <Calendar className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
-                    Book Now
+                <Link href="/templates" className="w-full">
+                  <Button variant="secondary" className="w-full group">
+                    <Workflow className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
+                    Browse Templates
                   </Button>
                 </Link>
               </CardContent>
@@ -156,6 +159,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      </div>
     </div>
   )
 }

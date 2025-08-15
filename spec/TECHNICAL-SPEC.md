@@ -254,7 +254,57 @@ interface PageMeta {
   - Subtle hover and tap effects for a futuristic feel
 - **Integration:**
   - Use Framer Motion's `motion` components for animating UI elements
-  - Combine with Tailwind for custom transitions and effects 
+  - Combine with Tailwind for custom transitions and effects
+
+## UI/UX Best Practices for Peak Performance
+
+### Icon Guidelines - ALWAYS Use SVGs
+- **NEVER use emojis** in production interfaces
+- **ALWAYS use SVG icons** from Lucide React or similar libraries
+- **Why SVGs over emojis:**
+  - Consistent rendering across all platforms and browsers
+  - Scalable and crisp at any size
+  - Customizable colors, size, and animations
+  - Professional appearance
+  - Accessibility support
+  - Performance optimization
+- **Implementation:**
+  ```tsx
+  // ❌ DON'T - Using emojis
+  <span>🚀</span>
+  
+  // ✅ DO - Using SVG icons
+  <Rocket className="h-6 w-6 text-yellow-300" />
+  ```
+
+### Loading States - ALWAYS Use Skeleton Loaders
+- **ALWAYS implement skeleton loaders** for any content that loads asynchronously
+- **Why skeleton loaders are essential:**
+  - Perceived performance improvement
+  - Reduced layout shift (CLS)
+  - Professional user experience
+  - User engagement during loading
+  - Clear content structure preview
+- **Implementation locations:**
+  - Blog post lists
+  - Project cards
+  - User profiles
+  - Comments sections
+  - Dynamic content areas
+- **Design principles:**
+  - Match the layout of the actual content
+  - Use subtle animations (pulse, shimmer)
+  - Maintain consistent spacing
+  - Show appropriate content hierarchy
+- **Example Implementation:**
+  ```tsx
+  // Skeleton for blog post card
+  <div className="animate-pulse">
+    <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
+    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+  </div>
+  ``` 
 
 ## API Integration
 - GitHub API for project showcase
