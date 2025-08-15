@@ -3,6 +3,85 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Github, Linkedin, Mail, Twitter } from 'lucide-react'
+import { useState, useEffect } from 'react'
+
+// Component for cycling random characters with sliding slot effect
+function CyclingText() {
+  const originalText = 'n8n Templates'
+  const [displayChars, setDisplayChars] = useState(
+    originalText.split('').map(char => ({ current: char, next: char, isAnimating: false }))
+  )
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?'
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDisplayChars(prev => {
+        return prev.map((charData, index) => {
+          // Randomly decide if this character should animate (30% chance)
+          if (Math.random() < 0.3) {
+            const nextChar = characters[Math.floor(Math.random() * characters.length)]
+            return {
+              current: charData.current,
+              next: nextChar,
+              isAnimating: true
+            }
+          }
+          return charData
+        })
+      })
+      
+      // Complete the animation after a short delay
+      setTimeout(() => {
+        setDisplayChars(prev => {
+          return prev.map(charData => ({
+            current: charData.isAnimating ? charData.next : charData.current,
+            next: charData.next,
+            isAnimating: false
+          }))
+        })
+      }, 200)
+    }, 300)
+    
+    return () => clearInterval(interval)
+  }, [])
+  
+  return (
+    <span className="font-mono inline-flex">
+      {displayChars.map((charData, index) => (
+        <span
+          key={index}
+          className="relative inline-block overflow-hidden"
+          style={{ width: '0.6em' }}
+        >
+          <motion.span
+            className="block"
+            animate={{
+              y: charData.isAnimating ? '-100%' : '0%'
+            }}
+            transition={{
+              duration: 0.2,
+              ease: 'easeInOut'
+            }}
+          >
+            {charData.current}
+          </motion.span>
+          <motion.span
+            className="absolute top-0 left-0 block"
+            animate={{
+              y: charData.isAnimating ? '0%' : '100%'
+            }}
+            transition={{
+              duration: 0.2,
+              ease: 'easeInOut'
+            }}
+          >
+            {charData.next}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  )
+}
 
 const socialLinks = [
   { name: 'GitHub', href: '#', icon: Github },
@@ -24,7 +103,7 @@ const footerLinks = [
   {
     title: 'Resources',
     links: [
-      { name: 'n8n Templates', href: '/templates' },
+      { name: <CyclingText />, href: '/coming-soon', key: 'templates', disabled: true },
       { name: 'Signatures', href: '/signatures' },
       { name: 'Consultation', href: '/consultation' },
     ],
@@ -85,10 +164,14 @@ export function Footer() {
               <h3 className="font-semibold mb-4">{section.title}</h3>
               <ul className="space-y-2">
                 {section.links.map((link) => (
-                  <li key={link.name}>
+                  <li key={link.key || (typeof link.name === 'string' ? link.name : 'element')}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      className={`text-sm transition-colors ${
+                        link.disabled 
+                          ? 'text-muted-foreground/50 opacity-60 hover:opacity-80' 
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
                     >
                       {link.name}
                     </Link>

@@ -5,49 +5,79 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Calendar, Clock, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import type { BlogPost } from '@/types'
 
-const blogPosts = [
-  {
-    id: '1',
-    title: 'Building a Modern Portfolio with Next.js and Framer Motion',
-    excerpt: 'Learn how to create an interactive, animated portfolio website using Next.js 14, Tailwind CSS, and Framer Motion for smooth animations.',
-    publishedAt: new Date('2024-01-15'),
-    readingTime: 8,
-    tags: ['Next.js', 'Framer Motion', 'Web Development'],
-    slug: 'building-modern-portfolio-nextjs-framer-motion',
-  },
-  {
-    id: '2',
-    title: 'Home Lab Setup: From Zero to Hero',
-    excerpt: 'A comprehensive guide to setting up your first home lab with Docker, Proxmox, and self-hosted services for learning and development.',
-    publishedAt: new Date('2024-01-10'),
-    readingTime: 12,
-    tags: ['Home Lab', 'Docker', 'Self-hosting'],
-    slug: 'home-lab-setup-zero-to-hero',
-  },
-  {
-    id: '3',
-    title: 'Automating Coffee: The Gagguino Project Journey',
-    excerpt: 'Exploring the intersection of coffee culture and technology through the Gagguino project - automating espresso machine operations.',
-    publishedAt: new Date('2024-01-05'),
-    readingTime: 10,
-    tags: ['IoT', 'Arduino', 'Coffee', 'Automation'],
-    slug: 'automating-coffee-gagguino-project-journey',
-  },
-  {
-    id: '4',
-    title: 'Creating Reusable n8n Workflows for Business Automation',
-    excerpt: 'Best practices for designing modular, reusable n8n workflows that can scale across different business processes and use cases.',
-    publishedAt: new Date('2023-12-28'),
-    readingTime: 6,
-    tags: ['n8n', 'Automation', 'Business'],
-    slug: 'creating-reusable-n8n-workflows-business-automation',
-  },
-]
-
-const tags = ['All', 'Next.js', 'Home Lab', 'IoT', 'Automation', 'Web Development', 'Coffee']
+const defaultTags = ['All', 'Next.js', 'Home Lab', 'IoT', 'Automation', 'Web Development', 'Coffee', 'n8n', 'Docker', 'Self-hosting', 'Arduino', 'ESP32', 'Proxmox', 'Business', 'Workflow', 'Integration', 'Infrastructure']
 
 export default function BlogPage() {
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
+  const [tags, setTags] = useState<string[]>(defaultTags)
+  const [selectedTag, setSelectedTag] = useState('All')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchBlogPosts = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/blog')
+        if (!response.ok) {
+          throw new Error('Failed to fetch blog posts')
+        }
+        const data = await response.json()
+        setBlogPosts(data)
+        
+        // Extract unique tags from posts
+        const allTags = data.reduce((acc: string[], post: BlogPost) => {
+          return [...acc, ...post.tags]
+        }, [] as string[])
+        const uniqueTags: string[] = ['All', ...Array.from(new Set<string>(allTags))]
+        setTags(uniqueTags)
+        
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching blog posts:', err)
+        setError('Failed to load blog posts')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBlogPosts()
+  }, [])
+
+  const filteredPosts = selectedTag === 'All' 
+    ? blogPosts 
+    : blogPosts.filter(post => post.tags.includes(selectedTag))
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading blog posts...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p className="text-red-500">{error}</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline" 
+            className="mt-4"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
@@ -74,9 +104,10 @@ export default function BlogPage() {
           {tags.map((tag) => (
             <Button
               key={tag}
-              variant={tag === 'All' ? 'default' : 'outline'}
+              variant={tag === selectedTag ? 'default' : 'outline'}
               size="sm"
               className="mb-2"
+              onClick={() => setSelectedTag(tag)}
             >
               {tag}
             </Button>
@@ -91,9 +122,9 @@ export default function BlogPage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8, delay: 0.4 }}
       >
-        {blogPosts.map((post, index) => (
+        {filteredPosts.map((post, index) => (
           <motion.div
-            key={post.id}
+            key={post._id?.toString() || post.slug}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -104,7 +135,7 @@ export default function BlogPage() {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    {post.publishedAt.toLocaleDateString()}
+                    {new Date(post.publishedAt).toLocaleDateString()}
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
@@ -121,7 +152,8 @@ export default function BlogPage() {
                   {post.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md"
+                      className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md cursor-pointer hover:bg-secondary/80"
+                      onClick={() => setSelectedTag(tag)}
                     >
                       {tag}
                     </span>

@@ -7,93 +7,78 @@ import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, ArrowLeft, Heart, Share2 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-
-// This would normally come from an API call
-const mockBlogPost = {
-  id: '1',
-  title: 'Building a Modern Portfolio with Next.js and Framer Motion',
-  content: `
-# Building a Modern Portfolio with Next.js and Framer Motion
-
-Creating a standout portfolio in today's competitive tech landscape requires more than just showcasing your projects. It demands an interactive, engaging experience that tells your story and demonstrates your technical skills simultaneously.
-
-## Why Next.js?
-
-Next.js has become the go-to framework for React applications, and for good reason:
-
-- **Performance**: Server-side rendering and static generation out of the box
-- **SEO**: Better search engine optimization with server-side rendering
-- **Developer Experience**: Hot reloading, TypeScript support, and excellent tooling
-- **Deployment**: Seamless integration with Vercel and other platforms
-
-## Adding Motion with Framer Motion
-
-Framer Motion brings your portfolio to life with smooth, professional animations:
-
-### Basic Animation Setup
-
-\`\`\`jsx
-import { motion } from 'framer-motion'
-
-const AnimatedComponent = () => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
-    >
-      <h1>Hello, World!</h1>
-    </motion.div>
-  )
-}
-\`\`\`
-
-### Advanced Interactions
-
-For more complex interactions, you can combine hover effects, page transitions, and scroll-triggered animations:
-
-\`\`\`jsx
-const ProjectCard = () => {
-  return (
-    <motion.div
-      whileHover={{ y: -10, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 300 }}
-    >
-      {/* Card content */}
-    </motion.div>
-  )
-}
-\`\`\`
-
-## Design Principles
-
-When building your portfolio, keep these principles in mind:
-
-1. **User Experience First**: Every animation should serve a purpose
-2. **Performance**: Don't sacrifice loading speed for fancy effects
-3. **Accessibility**: Ensure animations respect user preferences
-4. **Mobile Responsive**: Design for mobile-first
-
-## Conclusion
-
-A well-crafted portfolio using Next.js and Framer Motion can set you apart from the competition. The combination of performance, SEO benefits, and engaging animations creates a memorable experience for potential employers and clients.
-
-Remember to keep your content updated, showcase your best work, and let your personality shine through your design choices.
-  `,
-  excerpt: 'Learn how to create an interactive, animated portfolio website using Next.js 14, Tailwind CSS, and Framer Motion for smooth animations.',
-  publishedAt: new Date('2024-01-15'),
-  readingTime: 8,
-  tags: ['Next.js', 'Framer Motion', 'Web Development'],
-  slug: 'building-modern-portfolio-nextjs-framer-motion',
-  metadata: {
-    views: 1234,
-    likes: 89
-  }
-}
+import { useEffect, useState } from 'react'
+import type { BlogPost } from '@/types'
+// @ts-ignore
+import ReactMarkdown from 'react-markdown'
+// @ts-ignore
+import remarkGfm from 'remark-gfm'
+// @ts-ignore  
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+// @ts-ignore
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 export default function BlogPostPage() {
   const params = useParams()
+  const [blogPost, setBlogPost] = useState<BlogPost | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchBlogPost = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/blog/${params.slug}`)
+        if (!response.ok) {
+          if (response.status === 404) {
+            setError('Blog post not found')
+          } else {
+            setError('Failed to fetch blog post')
+          }
+          return
+        }
+        const data = await response.json()
+        setBlogPost(data)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching blog post:', err)
+        setError('Failed to load blog post')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (params.slug) {
+      fetchBlogPost()
+    }
+  }, [params.slug])
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading blog post...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !blogPost) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error || 'Blog post not found'}</p>
+          <Button asChild variant="outline">
+            <Link href="/blog">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Blog
+            </Link>
+          </Button>
+        </div>
+      </div>
+    )
+  }
   
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -121,25 +106,25 @@ export default function BlogPostPage() {
           transition={{ duration: 0.8 }}
         >
           <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-            {mockBlogPost.title}
+            {blogPost.title}
           </h1>
           
           <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-6">
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
-              <span>{mockBlogPost.publishedAt.toLocaleDateString()}</span>
+              <span>{new Date(blogPost.publishedAt).toLocaleDateString()}</span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              <span>{mockBlogPost.readingTime} min read</span>
+              <span>{blogPost.readingTime} min read</span>
             </div>
             <div className="flex items-center gap-1">
-              <span>{mockBlogPost.metadata.views} views</span>
+              <span>{blogPost.metadata.views} views</span>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2 mb-6">
-            {mockBlogPost.tags.map((tag) => (
+            {blogPost.tags.map((tag) => (
               <Badge key={tag} variant="secondary">
                 {tag}
               </Badge>
@@ -149,7 +134,7 @@ export default function BlogPostPage() {
           <div className="flex gap-2">
             <Button size="sm" variant="outline">
               <Heart className="mr-2 h-4 w-4" />
-              Like ({mockBlogPost.metadata.likes})
+              Like ({blogPost.metadata.likes})
             </Button>
             <Button size="sm" variant="outline">
               <Share2 className="mr-2 h-4 w-4" />
@@ -166,12 +151,32 @@ export default function BlogPostPage() {
         >
           <Card>
             <CardContent className="p-8">
-              <div 
-                className="prose prose-gray dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{ 
-                  __html: mockBlogPost.content.replace(/\n/g, '<br />') 
-                }}
-              />
+              <div className="prose prose-gray dark:prose-invert max-w-none">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    code({ node, inline, className, children, ...props }: any) {
+                      const match = /language-(\w+)/.exec(className || '')
+                      return !inline && match ? (
+                        <SyntaxHighlighter
+                          style={oneDark}
+                          language={match[1]}
+                          PreTag="div"
+                          {...props}
+                        >
+                          {String(children).replace(/\n$/, '')}
+                        </SyntaxHighlighter>
+                      ) : (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      )
+                    }
+                  }}
+                >
+                  {blogPost.content}
+                </ReactMarkdown>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
