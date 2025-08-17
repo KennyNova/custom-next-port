@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
+import { PreloadLink } from '@/components/ui/preload-link'
 import { Menu, X, Home, FolderOpen, BookOpen, Brain, PenTool, Workflow } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -109,10 +110,10 @@ export function Header() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Link href="/" className="flex items-center space-x-2">
+            <PreloadLink href="/" className="flex items-center space-x-2">
               <div className="h-8 w-8 rounded-full bg-primary" />
               <span className="font-bold text-lg">Portfolio</span>
-            </Link>
+            </PreloadLink>
           </motion.div>
 
           {/* Desktop Navigation */}
@@ -123,9 +124,10 @@ export function Header() {
             transition={{ duration: 0.5, delay: 0.1 }}
           >
             {navigation.map((item) => (
-              <Link
+              <PreloadLink
                 key={item.key || (typeof item.name === 'string' ? item.name : 'element')}
                 href={item.href}
+                disabled={item.disabled}
                 className={`text-sm font-medium transition-colors ${
                   item.disabled 
                     ? 'text-muted-foreground/50 opacity-60 hover:opacity-80' 
@@ -133,7 +135,7 @@ export function Header() {
                 }`}
               >
                 {item.name}
-              </Link>
+              </PreloadLink>
             ))}
           </motion.nav>
 
@@ -235,8 +237,9 @@ export function Header() {
                             ease: "easeOut"
                           }}
                         >
-                          <Link
+                          <PreloadLink
                             href={item.href}
+                            disabled={item.disabled}
                             className={`group flex items-center space-x-4 p-4 rounded-xl transition-all duration-300 ${
                               item.disabled 
                                 ? 'text-muted-foreground/50 opacity-60 hover:opacity-80 cursor-not-allowed' 
@@ -275,7 +278,7 @@ export function Header() {
                                 </svg>
                               </motion.div>
                             )}
-                          </Link>
+                          </PreloadLink>
                         </motion.div>
                       )
                     })}

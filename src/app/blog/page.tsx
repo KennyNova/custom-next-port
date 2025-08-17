@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { BlogPostGridSkeleton } from '@/components/ui/blog-skeleton'
+import { PreloadLink } from '@/components/ui/preload-link'
 import { Calendar, Clock, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -26,10 +28,11 @@ export default function BlogPage() {
           throw new Error('Failed to fetch blog posts')
         }
         const data = await response.json()
-        setBlogPosts(data)
+        const posts = data.posts || data // Handle both array and object response formats
+        setBlogPosts(posts)
         
         // Extract unique tags from posts
-        const allTags = data.reduce((acc: string[], post: BlogPost) => {
+        const allTags = posts.reduce((acc: string[], post: BlogPost) => {
           return [...acc, ...post.tags]
         }, [] as string[])
         const uniqueTags: string[] = ['All', ...Array.from(new Set<string>(allTags))]
@@ -54,10 +57,55 @@ export default function BlogPage() {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading blog posts...</p>
-        </div>
+        {/* Header */}
+        <motion.div
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+        >
+          <h1 className="text-4xl font-bold mb-4">Blog</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Insights, experiences, and technical articles about web development, home labs, automation, and creative projects.
+          </p>
+        </motion.div>
+
+        {/* Tags Filter Skeleton */}
+        <motion.div
+          className="mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <div className="flex flex-wrap gap-2 justify-center">
+            {defaultTags.slice(0, 8).map((tag, i) => (
+              <div
+                key={tag}
+                className="h-8 bg-muted animate-pulse rounded-md mb-2"
+                style={{ width: `${tag.length * 8 + 24}px` }}
+              />
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Blog Posts Grid Skeleton */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        >
+          <BlogPostGridSkeleton count={6} />
+        </motion.div>
+
+        {/* Load More Skeleton */}
+        <motion.div
+          className="text-center mt-12"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+        >
+          <div className="h-10 w-48 bg-muted animate-pulse rounded mx-auto" />
+        </motion.div>
       </div>
     )
   }
@@ -130,41 +178,55 @@ export default function BlogPage() {
             transition={{ duration: 0.5, delay: index * 0.1 }}
             whileHover={{ y: -5 }}
           >
-            <Card className="h-full hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(post.publishedAt).toLocaleDateString()}
+            <Card className="h-full hover:shadow-lg transition-all duration-300 cursor-pointer group">
+              <PreloadLink 
+                href={`/blog/${post.slug}`} 
+                className="block h-full"
+                preloadBlogMetadata={true}
+                blogSlug={post.slug}
+                onMetadataPreloaded={(metadata) => {
+                  console.log(`✨ Metadata preloaded for ${post.slug}:`, metadata)
+                }}
+              >
+                <CardHeader className="hover:bg-accent/50 transition-colors duration-300 rounded-t-lg">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      {new Date(post.publishedAt).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      {post.readingTime} min read
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {post.readingTime} min read
+                  <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors duration-300">
+                    {post.title}
+                  </CardTitle>
+                  <CardDescription className="line-clamp-3">
+                    {post.excerpt}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="hover:bg-accent/50 transition-colors duration-300 rounded-b-lg">
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {post.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md hover:bg-secondary/80 transition-colors duration-200"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          setSelectedTag(tag)
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
                   </div>
-                </div>
-                <CardTitle className="line-clamp-2">{post.title}</CardTitle>
-                <CardDescription className="line-clamp-3">
-                  {post.excerpt}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {post.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md cursor-pointer hover:bg-secondary/80"
-                      onClick={() => setSelectedTag(tag)}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-                <Button asChild variant="ghost" className="p-0 h-auto">
-                  <Link href={`/blog/${post.slug}`} className="flex items-center gap-2">
-                    Read more <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </CardContent>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-md transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground">
+                    Read more <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  </div>
+                </CardContent>
+              </PreloadLink>
             </Card>
           </motion.div>
         ))}

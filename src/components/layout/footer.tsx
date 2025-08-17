@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Github, Linkedin, Mail, Twitter } from 'lucide-react'
+import { PreloadLink } from '@/components/ui/preload-link'
 import { useState, useEffect } from 'react'
 
 // Component for cycling random characters with sliding slot effect
@@ -165,8 +166,9 @@ export function Footer() {
               <ul className="space-y-2">
                 {section.links.map((link) => (
                   <li key={link.key || (typeof link.name === 'string' ? link.name : 'element')}>
-                    <Link
+                    <PreloadLink
                       href={link.href}
+                      disabled={link.disabled}
                       className={`text-sm transition-colors ${
                         link.disabled 
                           ? 'text-muted-foreground/50 opacity-60 hover:opacity-80' 
@@ -174,7 +176,7 @@ export function Footer() {
                       }`}
                     >
                       {link.name}
-                    </Link>
+                    </PreloadLink>
                   </li>
                 ))}
               </ul>

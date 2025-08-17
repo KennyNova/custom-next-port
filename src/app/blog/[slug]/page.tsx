@@ -4,6 +4,13 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { 
+  BlogPostDetailSkeleton, 
+  BlogMetadataSkeleton, 
+  BlogContentSkeleton, 
+  BlogProgressiveLoadingSkeleton 
+} from '@/components/ui/blog-skeleton'
+import { usePreload } from '@/lib/hooks/use-preload'
 import { Calendar, Clock, ArrowLeft, Heart, Share2 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -20,55 +27,84 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 export default function BlogPostPage() {
   const params = useParams()
-  const [blogPost, setBlogPost] = useState<BlogPost | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { getCachedMetadata, loadBlogContent } = usePreload()
+  
+  // Progressive loading states
+  const [metadata, setMetadata] = useState<any>(null)
+  const [content, setContent] = useState<any>(null)
+  const [loadingMetadata, setLoadingMetadata] = useState(true)
+  const [loadingContent, setLoadingContent] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchBlogPost = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch(`/api/blog/${params.slug}`)
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError('Blog post not found')
-          } else {
-            setError('Failed to fetch blog post')
-          }
-          return
+    if (!params.slug) return
+
+    // 1. Check for cached metadata first (from hover preload)
+    const cachedMetadata = getCachedMetadata(params.slug as string)
+    if (cachedMetadata) {
+      setMetadata(cachedMetadata)
+      setLoadingMetadata(false)
+      console.log(`⚡ Using preloaded metadata for: ${params.slug}`)
+    }
+
+    // 2. Load metadata if not cached
+    if (!cachedMetadata) {
+      loadMetadata()
+    }
+
+    // 3. Always load content (happens in parallel)
+    loadContent()
+  }, [params.slug, getCachedMetadata])
+
+  const loadMetadata = async () => {
+    try {
+      const response = await fetch(`/api/blog/${params.slug}/metadata`)
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('Blog post not found')
+        } else {
+          setError('Failed to fetch blog post metadata')
         }
-        const data = await response.json()
-        setBlogPost(data)
-        setError(null)
-      } catch (err) {
-        console.error('Error fetching blog post:', err)
-        setError('Failed to load blog post')
-      } finally {
-        setLoading(false)
+        return
       }
+      const data = await response.json()
+      setMetadata(data)
+      setError(null)
+    } catch (err) {
+      console.error('Error fetching blog metadata:', err)
+      setError('Failed to load blog post metadata')
+    } finally {
+      setLoadingMetadata(false)
     }
-
-    if (params.slug) {
-      fetchBlogPost()
-    }
-  }, [params.slug])
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading blog post...</p>
-        </div>
-      </div>
-    )
   }
 
-  if (error || !blogPost) {
+  const loadContent = async () => {
+    try {
+      const contentData = await loadBlogContent(params.slug as string)
+      if (contentData) {
+        setContent(contentData)
+        setError(null)
+      } else {
+        setError('Failed to load blog post content')
+      }
+    } catch (err) {
+      console.error('Error loading blog content:', err)
+      setError('Failed to load blog post content')
+    } finally {
+      setLoadingContent(false)
+    }
+  }
+
+  // Progressive loading states
+  if (loadingMetadata) {
+    return <BlogMetadataSkeleton />
+  }
+
+  if (error) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="text-center">
-          <p className="text-red-500 mb-4">{error || 'Blog post not found'}</p>
+          <p className="text-red-500 mb-4">{error}</p>
           <Button asChild variant="outline">
             <Link href="/blog">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -78,6 +114,16 @@ export default function BlogPostPage() {
         </div>
       </div>
     )
+  }
+
+  // If we have metadata but content is still loading, show progressive skeleton
+  if (metadata && loadingContent) {
+    return <BlogProgressiveLoadingSkeleton metadata={metadata} />
+  }
+
+  // Both metadata and content are loaded
+  if (!metadata || !content) {
+    return <BlogPostDetailSkeleton />
   }
   
   return (
@@ -106,25 +152,25 @@ export default function BlogPostPage() {
           transition={{ duration: 0.8 }}
         >
           <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-            {blogPost.title}
+            {metadata.title}
           </h1>
           
           <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-6">
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
-              <span>{new Date(blogPost.publishedAt).toLocaleDateString()}</span>
+              <span>{new Date(metadata.publishedAt).toLocaleDateString()}</span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              <span>{blogPost.readingTime} min read</span>
+              <span>{metadata.readingTime} min read</span>
             </div>
             <div className="flex items-center gap-1">
-              <span>{blogPost.metadata.views} views</span>
+              <span>{metadata.metadata?.views || 0} views</span>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2 mb-6">
-            {blogPost.tags.map((tag) => (
+            {metadata.tags?.map((tag: string) => (
               <Badge key={tag} variant="secondary">
                 {tag}
               </Badge>
@@ -134,7 +180,7 @@ export default function BlogPostPage() {
           <div className="flex gap-2">
             <Button size="sm" variant="outline">
               <Heart className="mr-2 h-4 w-4" />
-              Like ({blogPost.metadata.likes})
+              Like ({metadata.metadata?.likes || 0})
             </Button>
             <Button size="sm" variant="outline">
               <Share2 className="mr-2 h-4 w-4" />
@@ -174,7 +220,7 @@ export default function BlogPostPage() {
                     }
                   }}
                 >
-                  {blogPost.content}
+                  {content.content}
                 </ReactMarkdown>
               </div>
             </CardContent>

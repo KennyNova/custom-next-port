@@ -1,29 +1,50 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { HomepageSkeleton } from '@/components/ui/homepage-skeleton'
+import { PreloadLink } from '@/components/ui/preload-link'
 import WhispyBackground from '@/components/layout/whispy-background'
 import Link from 'next/link'
 import { ArrowRight, Code2, PenTool, Puzzle, Calendar, Rocket, Sparkles, Workflow } from 'lucide-react'
 
 export default function HomePage() {
+  const [isLoading, setIsLoading] = useState(true)
+
   // Prefetch projects data when the home page loads
   useEffect(() => {
     const prefetchProjects = async () => {
       try {
+        // Show loading state briefly
+        setIsLoading(true)
+        
         // Prefetch featured projects specifically for better performance
         await fetch('/api/projects?featured=true')
         // Also prefetch all projects for when users navigate to projects page
         await fetch('/api/projects')
+        
+        // Small delay to show skeleton briefly for better UX
+        await new Promise(resolve => setTimeout(resolve, 800))
       } catch (error) {
         // Silently fail - prefetching is not critical
         console.log('Projects prefetch failed:', error)
+      } finally {
+        setIsLoading(false)
       }
     }
 
     prefetchProjects()
   }, [])
+  
+  if (isLoading) {
+    return (
+      <div className="relative">
+        <WhispyBackground />
+        <HomepageSkeleton />
+      </div>
+    )
+  }
   
   return (
     <div className="relative">
@@ -96,12 +117,12 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Link href="/projects" className="w-full" prefetch={true}>
+                <PreloadLink href="/projects" className="w-full">
                   <Button variant="default" className="w-full group">
                     <Code2 className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
                     View Projects
                   </Button>
-                </Link>
+                </PreloadLink>
               </CardContent>
             </Card>
           </div>
@@ -116,12 +137,12 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Link href="/blog" className="w-full">
+                <PreloadLink href="/blog" className="w-full">
                   <Button variant="default" className="w-full group">
                     <PenTool className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
                     Read Blog
                   </Button>
-                </Link>
+                </PreloadLink>
               </CardContent>
             </Card>
           </div>
@@ -136,12 +157,12 @@ export default function HomePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Link href="/quiz" className="w-full">
+                <PreloadLink href="/quiz" className="w-full">
                   <Button variant="info" className="w-full group">
                     <Puzzle className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
                     Take Quiz
                   </Button>
-                </Link>
+                </PreloadLink>
               </CardContent>
             </Card>
           </div>

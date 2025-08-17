@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ProjectGridSkeleton } from '@/components/ui/project-card-skeleton'
+import { usePreload } from '@/lib/hooks/use-preload'
 import { Github, ExternalLink, Code2, Home, Camera, Wrench, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import type { Project } from '@/types'
@@ -17,6 +18,82 @@ const projectTypes = [
   { id: 'photography', name: 'Photography', icon: Camera },
   { id: 'other', name: 'Other Projects', icon: Wrench },
 ]
+
+// Project Card Component with Preloading
+function ProjectCard({ project, index }: { project: Project; index: number }) {
+  const router = useRouter()
+  const { startPreload, cancelPreload, cancelAllPreloads } = usePreload()
+
+  const handleMouseEnter = () => {
+    startPreload(`/projects/${project.slug}`)
+  }
+
+  const handleMouseLeave = () => {
+    cancelPreload(`/projects/${project.slug}`)
+  }
+
+  const handleClick = () => {
+    cancelAllPreloads()
+    router.push(`/projects/${project.slug}`)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      whileHover={{ y: -5 }}
+    >
+      <Card 
+        className="h-full hover:shadow-lg transition-shadow cursor-pointer" 
+        onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {project.type === 'github' && <Github className="h-5 w-5" />}
+            {project.type === 'homelab' && <Home className="h-5 w-5" />}
+            {project.type === 'photography' && <Camera className="h-5 w-5" />}
+            {project.type === 'other' && <Wrench className="h-5 w-5" />}
+            {project.title}
+          </CardTitle>
+          <CardDescription>{project.description}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {project.technologies.map((tech) => (
+              <span
+                key={tech}
+                className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md"
+              >
+                {tech}
+              </span>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            {project.links.github && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={project.links.github} target="_blank">
+                  <Github className="h-4 w-4 mr-2" />
+                  Code
+                </Link>
+              </Button>
+            )}
+            {project.links.live && (
+              <Button size="sm" asChild>
+                <Link href={project.links.live} target="_blank">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Live Demo
+                </Link>
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+}
 
 export default function ProjectsPage() {
   const router = useRouter()
@@ -163,56 +240,7 @@ export default function ProjectsPage() {
           <h2 className="text-2xl font-bold mb-6">Featured Projects</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredProjects.map((project, index) => (
-              <motion.div
-                key={project._id.toString()}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-              >
-                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push(`/projects/${project.slug}`)}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {project.type === 'github' && <Github className="h-5 w-5" />}
-                      {project.type === 'homelab' && <Home className="h-5 w-5" />}
-                      {project.type === 'photography' && <Camera className="h-5 w-5" />}
-                      {project.type === 'other' && <Wrench className="h-5 w-5" />}
-                      {project.title}
-                    </CardTitle>
-                    <CardDescription>{project.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {project.technologies.map((tech) => (
-                        <span
-                          key={tech}
-                          className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      {project.links.github && (
-                        <Button variant="outline" size="sm" asChild>
-                          <Link href={project.links.github} target="_blank">
-                            <Github className="h-4 w-4 mr-2" />
-                            Code
-                          </Link>
-                        </Button>
-                      )}
-                      {project.links.live && (
-                        <Button size="sm" asChild>
-                          <Link href={project.links.live} target="_blank">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Live Demo
-                          </Link>
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+              <ProjectCard key={project._id.toString()} project={project} index={index} />
             ))}
           </div>
         </motion.section>
@@ -235,56 +263,7 @@ export default function ProjectsPage() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProjects.map((project, index) => (
-                <motion.div
-                  key={project._id.toString()}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  whileHover={{ y: -5 }}
-                >
-                  <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push(`/projects/${project.slug}`)}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        {project.type === 'github' && <Github className="h-5 w-5" />}
-                        {project.type === 'homelab' && <Home className="h-5 w-5" />}
-                        {project.type === 'photography' && <Camera className="h-5 w-5" />}
-                        {project.type === 'other' && <Wrench className="h-5 w-5" />}
-                        {project.title}
-                      </CardTitle>
-                      <CardDescription>{project.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {project.technologies.map((tech) => (
-                          <span
-                            key={tech}
-                            className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md"
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        {project.links.github && (
-                          <Button variant="outline" size="sm" asChild>
-                            <Link href={project.links.github} target="_blank">
-                              <Github className="h-4 w-4 mr-2" />
-                              Code
-                            </Link>
-                          </Button>
-                        )}
-                        {project.links.live && (
-                          <Button size="sm" asChild>
-                            <Link href={project.links.live} target="_blank">
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Live Demo
-                            </Link>
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                <ProjectCard key={project._id.toString()} project={project} index={index} />
               ))}
             </div>
           )}

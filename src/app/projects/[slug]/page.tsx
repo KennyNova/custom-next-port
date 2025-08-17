@@ -33,6 +33,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { ProjectDetailSkeleton } from '@/components/ui/project-detail-skeleton'
 import type { Project } from '@/types'
 
 interface GitHubStats {
@@ -158,14 +159,7 @@ export default function ProjectPage() {
   }
 
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center min-h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Loading project...</span>
-        </div>
-      </div>
-    )
+    return <ProjectDetailSkeleton />
   }
 
   if (error || !project) {

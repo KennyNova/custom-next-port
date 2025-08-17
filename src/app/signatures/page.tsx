@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { SignaturesPageSkeleton } from '@/components/ui/signatures-skeleton'
 import { Github, Linkedin, Mail, Heart } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useSession, signIn, signOut } from 'next-auth/react'
@@ -57,6 +58,7 @@ export default function SignaturesPage() {
   const [message, setMessage] = useState('')
   const [signatures, setSignatures] = useState(mockSignatures)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   const handleSignWall = () => {
     if (session) {
@@ -128,18 +130,27 @@ export default function SignaturesPage() {
   useEffect(() => {
     const loadSignatures = async () => {
       try {
+        setIsLoading(true)
         const response = await fetch('/api/signatures')
         if (response.ok) {
           const data = await response.json()
           setSignatures(data.signatures || [])
         }
+        // Small delay to show skeleton briefly for better UX
+        await new Promise(resolve => setTimeout(resolve, 600))
       } catch (error) {
         console.error('Error loading signatures:', error)
+      } finally {
+        setIsLoading(false)
       }
     }
 
     loadSignatures()
   }, [])
+
+  if (isLoading) {
+    return <SignaturesPageSkeleton />
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
