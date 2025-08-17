@@ -4,7 +4,7 @@ if (!process.env.MONGODB_URI) {
   console.warn('MONGODB_URI environment variable is missing. Database operations will fail.')
 }
 
-const uri = process.env.MONGODB_URI
+const uri = process.env.MONGODB_URI!
 const options = {}
 
 let client: MongoClient
