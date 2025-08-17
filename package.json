@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "migrate-db": "node scripts/migrate-db.js",
+    "check-db": "node scripts/check-databases.js",
+    "test-prod": "node scripts/test-prod-connection.js",
+    "verify-setup": "node verify-setup.js"
   },
   "dependencies": {
     "@next-auth/mongodb-adapter": "^1.1.3",

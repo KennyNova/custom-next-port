@@ -1,7 +1,7 @@
 import { MongoClient, Db } from 'mongodb'
 
 if (!process.env.MONGODB_URI) {
-  throw new Error('Invalid/Missing environment variable: "MONGODB_URI"')
+  console.warn('MONGODB_URI environment variable is missing. Database operations will fail.')
 }
 
 const uri = process.env.MONGODB_URI
@@ -29,6 +29,9 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 export async function getDatabase(): Promise<Db> {
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI environment variable is not configured. Please add it to your Vercel environment variables.')
+  }
   const client = await clientPromise
   return client.db('portfolio-blog')
 }

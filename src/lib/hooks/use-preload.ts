@@ -48,7 +48,6 @@ class PreloadManager {
       if (!this.activePreloads.has(href)) {
         this.activePreloads.add(href)
         router.prefetch(href)
-        console.log(`🚀 Preloading: ${href}`)
       }
     }, delay)
 
@@ -67,7 +66,6 @@ class PreloadManager {
 
     this.activePreloads.delete(href)
     this.preloadControllers.delete(href)
-    console.log(`⏹️ Cancelled preload: ${href}`)
   }
 
   cancelAll(): void {

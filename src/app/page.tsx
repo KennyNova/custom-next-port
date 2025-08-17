@@ -20,9 +20,12 @@ export default function HomePage() {
         setIsLoading(true)
         
         // Prefetch featured projects specifically for better performance
-        await fetch('/api/projects?featured=true')
-        // Also prefetch all projects for when users navigate to projects page
-        await fetch('/api/projects')
+        // Use Promise.allSettled to prevent failures from blocking the page
+        await Promise.allSettled([
+          fetch('/api/projects?featured=true'),
+          fetch('/api/projects'),
+          fetch('/api/blog')
+        ])
         
         // Small delay to show skeleton briefly for better UX
         await new Promise(resolve => setTimeout(resolve, 800))
