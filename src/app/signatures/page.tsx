@@ -135,9 +135,9 @@ export default function SignaturesPage() {
         if (response.ok) {
           const data = await response.json()
           setSignatures(data.signatures || [])
+        } else {
+          console.log('Signatures API returned:', response.status)
         }
-        // Small delay to show skeleton briefly for better UX
-        await new Promise(resolve => setTimeout(resolve, 600))
       } catch (error) {
         console.error('Error loading signatures:', error)
       } finally {

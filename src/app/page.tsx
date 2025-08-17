@@ -10,48 +10,57 @@ import Link from 'next/link'
 import { ArrowRight, Code2, PenTool, Puzzle, Calendar, Rocket, Sparkles, Workflow } from 'lucide-react'
 
 export default function HomePage() {
-  const [isLoading, setIsLoading] = useState(true)
+  const [isPrefetching, setIsPrefetching] = useState(false)
 
-  // Prefetch projects data when the home page loads
+  // Prefetch projects data in background after page loads (non-blocking)
   useEffect(() => {
     const prefetchProjects = async () => {
       try {
-        // Show loading state briefly
-        setIsLoading(true)
+        setIsPrefetching(true)
         
-        // Prefetch featured projects specifically for better performance
-        // Use Promise.allSettled to prevent failures from blocking the page
-        await Promise.allSettled([
+        // Prefetch in background - don't block page rendering
+        const results = await Promise.allSettled([
           fetch('/api/projects?featured=true'),
           fetch('/api/projects'),
           fetch('/api/blog')
         ])
         
-        // Small delay to show skeleton briefly for better UX
-        await new Promise(resolve => setTimeout(resolve, 800))
+        // Log any failed requests for debugging
+        results.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            const endpoints = ['/api/projects?featured=true', '/api/projects', '/api/blog']
+            console.log(`Background prefetch failed for ${endpoints[index]}:`, result.reason)
+          } else {
+            const endpoints = ['/api/projects?featured=true', '/api/projects', '/api/blog']
+            console.log(`✅ Background prefetch successful for ${endpoints[index]}`)
+          }
+        })
       } catch (error) {
-        // Silently fail - prefetching is not critical
-        console.log('Projects prefetch failed:', error)
+        console.log('Background prefetch failed:', error)
       } finally {
-        setIsLoading(false)
+        setIsPrefetching(false)
       }
     }
 
-    prefetchProjects()
+    // Start prefetching after a short delay to allow page to render first
+    const timer = setTimeout(prefetchProjects, 100)
+    return () => clearTimeout(timer)
   }, [])
-  
-  if (isLoading) {
-    return (
-      <div className="relative">
-        <WhispyBackground />
-        <HomepageSkeleton />
-      </div>
-    )
-  }
   
   return (
     <div className="relative">
       <WhispyBackground />
+      
+      {/* Optional: Small loading indicator for background prefetching */}
+      {isPrefetching && (
+        <div className="fixed top-4 right-4 z-50 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 border shadow-lg">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-primary/60 rounded-full animate-pulse"></div>
+            <span className="text-xs text-muted-foreground">Preloading...</span>
+          </div>
+        </div>
+      )}
+      
       <div className="container mx-auto px-4 py-8 relative z-10">
       {/* Hero Section */}
       <section className="text-center py-20">
