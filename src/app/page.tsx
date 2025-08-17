@@ -32,12 +32,20 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="text-center py-20">
         <div className="pb-4">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-pastel-rose via-pastel-lavender to-pastel-mint bg-clip-text text-transparent animate-float leading-tight py-2">
-            Welcome to My World
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-float leading-tight py-2 bg-gradient-to-r bg-clip-text text-transparent
+            /* Light theme gradient */
+            from-blue-600 via-purple-600 to-blue-800
+            /* Dark theme gradient */
+            dark:from-blue-400 dark:via-purple-400 dark:to-cyan-400
+            /* Pastel theme gradient with better contrast */
+            pastel:from-pink-600 pastel:via-purple-500 pastel:to-teal-600
+            /* Fallback for non-gradient support */
+            [&:not(.bg-clip-text)]:text-foreground">
+            The Practical Cinematic Engineer
           </h1>
         </div>
         <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-scale-in">
-          Discover my professional work, personal projects, and creative journey through technology and innovation.
+          A blend of technical rigor and visual craft for makers who enjoy both.
         </p>
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-scale-in">
           {/* Main CTA Button - Explore My Work */}

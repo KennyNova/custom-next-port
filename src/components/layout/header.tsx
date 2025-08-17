@@ -58,7 +58,8 @@ function CyclingText() {
           <motion.span
             className="block"
             animate={{
-              y: charData.isAnimating ? '-100%' : '0%'
+              y: charData.isAnimating ? '-100%' : '0%',
+              filter: charData.isAnimating ? 'blur(2px)' : 'blur(0px)'
             }}
             transition={{
               duration: 0.2,
@@ -70,7 +71,8 @@ function CyclingText() {
           <motion.span
             className="absolute top-0 left-0 block"
             animate={{
-              y: charData.isAnimating ? '0%' : '100%'
+              y: charData.isAnimating ? '0%' : '100%',
+              filter: charData.isAnimating ? 'blur(2px)' : 'blur(0px)'
             }}
             transition={{
               duration: 0.2,

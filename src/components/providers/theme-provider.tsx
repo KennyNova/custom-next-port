@@ -34,6 +34,14 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme)
 
+  // Load theme from localStorage on mount
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('theme') as Theme
+    if (storedTheme && (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'pastel' || storedTheme === 'system')) {
+      setTheme(storedTheme)
+    }
+  }, [])
+
   useEffect(() => {
     const root = window.document.documentElement
     root.classList.remove('light', 'dark', 'pastel')
