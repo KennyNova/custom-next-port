@@ -108,9 +108,55 @@
 @layer base {
   * {
     @apply border-border;
+    /* Smooth color transitions for theme changes */
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
   }
+  
+  /* Additional transition coverage for pseudo-elements */
+  *::before,
+  *::after {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+  }
+  
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Ensure smooth transitions for commonly changing elements */
+  button, input, textarea, select, a, div, span, p, h1, h2, h3, h4, h5, h6 {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow, opacity;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+  }
+  
+  /* Special handling for SVG elements */
+  svg, svg * {
+    transition-property: fill, stroke, color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+  }
+  
+  /* Preserve existing animations - exclude elements with active animations */
+  .animate-float,
+  .animate-glow,
+  .animate-pulse-glow,
+  .animate-pastel-flow,
+  .animate-pastel-glow,
+  .animate-mobile-slide-in,
+  .animate-mobile-backdrop,
+  .animate-icon-glow {
+    transition: none !important;
+  }
+  
+  /* Faster transitions for interactive elements */
+  button:hover,
+  a:hover,
+  [role="button"]:hover {
+    transition-duration: 150ms;
   }
 }
 
@@ -333,6 +379,7 @@ html {
 .blog-content a:focus,
 .blog-content button:focus {
   @apply outline-2 outline-primary outline-offset-2;
+  transition: outline-color 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Reading progress bar styles */
@@ -343,7 +390,7 @@ html {
     hsl(var(--primary) / 0.8) 100%
   );
   border-radius: 9999px;
-  transition: width 0.2s ease-out;
+  transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Enhanced selection styles */
@@ -370,7 +417,7 @@ html {
 
 /* Enhanced table of contents styles */
 .toc-item {
-  @apply transition-all duration-200 hover:translate-x-1;
+  @apply transition-all duration-300 hover:translate-x-1;
 }
 
 .toc-item.active {
@@ -478,5 +525,42 @@ html {
 
 .animate-pastel-glow {
   animation: pastel-glow 4s ease-in-out infinite;
+}
+
+/* Custom scrollbar styles for Table of Contents */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border) / 0.5) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border) / 0.5);
+  border-radius: 3px;
+  transition: background-color 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--border) / 0.8);
+}
+
+.scrollbar-thumb-border\/50::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border) / 0.5);
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hover\:scrollbar-thumb-border:hover::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--border));
 }
 

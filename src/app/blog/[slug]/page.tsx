@@ -17,7 +17,7 @@ import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { BlogPost } from '@/types'
 import { MarkdownContent } from '@/components/ui/markdown-content'
-import { TableOfContents, MobileTableOfContents } from '@/components/ui/table-of-contents'
+import { ReadingProgress } from '@/components/ui/reading-progress'
 import { FloatingActionBar, AuthorBio, RelatedArticles } from '@/components/ui/blog-enhancements'
 
 export default function BlogPostPage() {
@@ -144,14 +144,14 @@ export default function BlogPostPage() {
   
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile TOC */}
-      <MobileTableOfContents content={content.content} />
+      {/* Reading Progress Bar */}
+      <ReadingProgress content={content.content} />
       
       {/* Main Container */}
       <div className="container mx-auto px-4 py-8">
-        <div className="flex gap-8 max-w-7xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           {/* Main Content */}
-          <div className="flex-1 max-w-4xl">
+          <div className="w-full">
             {/* Back Button */}
             <motion.div
               className="mb-8"
@@ -308,11 +308,6 @@ export default function BlogPostPage() {
               </motion.footer>
             </article>
           </div>
-
-          {/* Desktop Table of Contents */}
-          <aside className="hidden xl:block flex-shrink-0">
-            <TableOfContents content={content.content} />
-          </aside>
         </div>
       </div>
 
