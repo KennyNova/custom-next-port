@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -11,19 +11,14 @@ import {
   BlogProgressiveLoadingSkeleton 
 } from '@/components/ui/blog-skeleton'
 import { usePreload } from '@/lib/hooks/use-preload'
-import { Calendar, Clock, ArrowLeft, Heart, Share2 } from 'lucide-react'
+import { Calendar, Clock, ArrowLeft, Heart, Share2, Eye, User, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { BlogPost } from '@/types'
-// @ts-ignore
-import ReactMarkdown from 'react-markdown'
-// @ts-ignore
-import remarkGfm from 'remark-gfm'
-// @ts-ignore  
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-// @ts-ignore
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { MarkdownContent } from '@/components/ui/markdown-content'
+import { TableOfContents, MobileTableOfContents } from '@/components/ui/table-of-contents'
+import { FloatingActionBar, AuthorBio, RelatedArticles } from '@/components/ui/blog-enhancements'
 
 export default function BlogPostPage() {
   const params = useParams()
@@ -35,6 +30,9 @@ export default function BlogPostPage() {
   const [loadingMetadata, setLoadingMetadata] = useState(true)
   const [loadingContent, setLoadingContent] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isLiked, setIsLiked] = useState(false)
+  const [isBookmarked, setIsBookmarked] = useState(false)
+  const [likes, setLikes] = useState(0)
 
   useEffect(() => {
     if (!params.slug) return
@@ -95,6 +93,24 @@ export default function BlogPostPage() {
     }
   }
 
+  // Initialize likes from metadata
+  useEffect(() => {
+    if (metadata?.metadata?.likes) {
+      setLikes(metadata.metadata.likes)
+    }
+  }, [metadata])
+
+  const handleLike = () => {
+    setIsLiked(!isLiked)
+    setLikes(prev => isLiked ? prev - 1 : prev + 1)
+    // Here you would typically make an API call to update the like count
+  }
+
+  const handleBookmark = () => {
+    setIsBookmarked(!isBookmarked)
+    // Here you would typically make an API call to save/remove bookmark
+  }
+
   // Progressive loading states
   if (loadingMetadata) {
     return <BlogMetadataSkeleton />
@@ -127,131 +143,189 @@ export default function BlogPostPage() {
   }
   
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Back Button */}
-      <motion.div
-        className="mb-8"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Button variant="ghost" asChild>
-          <Link href="/blog">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Blog
-          </Link>
-        </Button>
-      </motion.div>
-
-      <article>
-        {/* Header */}
-        <motion.header
-          className="mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-            {metadata.title}
-          </h1>
-          
-          <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-6">
-            <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              <span>{new Date(metadata.publishedAt).toLocaleDateString()}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              <span>{metadata.readingTime} min read</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <span>{metadata.metadata?.views || 0} views</span>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2 mb-6">
-            {metadata.tags?.map((tag: string) => (
-              <Badge key={tag} variant="secondary">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline">
-              <Heart className="mr-2 h-4 w-4" />
-              Like ({metadata.metadata?.likes || 0})
-            </Button>
-            <Button size="sm" variant="outline">
-              <Share2 className="mr-2 h-4 w-4" />
-              Share
-            </Button>
-          </div>
-        </motion.header>
-
-        {/* Content */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <Card>
-            <CardContent className="p-8">
-              <div className="prose prose-gray dark:prose-invert max-w-none">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    code({ node, inline, className, children, ...props }: any) {
-                      const match = /language-(\w+)/.exec(className || '')
-                      return !inline && match ? (
-                        <SyntaxHighlighter
-                          style={oneDark}
-                          language={match[1]}
-                          PreTag="div"
-                          {...props}
-                        >
-                          {String(children).replace(/\n$/, '')}
-                        </SyntaxHighlighter>
-                      ) : (
-                        <code className={className} {...props}>
-                          {children}
-                        </code>
-                      )
-                    }
-                  }}
-                >
-                  {content.content}
-                </ReactMarkdown>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Footer */}
-        <motion.footer
-          className="mt-12 pt-8 border-t"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h3 className="font-semibold mb-2">Enjoyed this article?</h3>
-              <p className="text-muted-foreground">
-                Follow me for more insights on web development and technology.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline">
-                Previous Post
+    <div className="min-h-screen bg-background">
+      {/* Mobile TOC */}
+      <MobileTableOfContents content={content.content} />
+      
+      {/* Main Container */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex gap-8 max-w-7xl mx-auto">
+          {/* Main Content */}
+          <div className="flex-1 max-w-4xl">
+            {/* Back Button */}
+            <motion.div
+              className="mb-8"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <Button variant="ghost" asChild className="group">
+                <Link href="/blog">
+                  <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+                  Back to Blog
+                </Link>
               </Button>
-              <Button variant="outline">
-                Next Post
-              </Button>
-            </div>
+            </motion.div>
+
+            <article className="space-y-8">
+              {/* Enhanced Header */}
+              <motion.header
+                className="space-y-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+              >
+                <div className="space-y-4">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                    {metadata.title}
+                  </h1>
+                  
+                  {metadata.excerpt && (
+                    <p className="text-xl text-muted-foreground leading-relaxed max-w-3xl">
+                      {metadata.excerpt}
+                    </p>
+                  )}
+                </div>
+                
+                {/* Article Meta */}
+                <div className="flex flex-wrap items-center gap-6 py-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <User className="h-4 w-4" />
+                    <span className="font-medium">Nav Chaganti</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>{new Date(metadata.publishedAt).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>{metadata.readingTime} min read</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Eye className="h-4 w-4" />
+                    <span>{metadata.metadata?.views || 0} views</span>
+                  </div>
+                </div>
+
+                {/* Tags */}
+                {metadata.tags && metadata.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {metadata.tags.map((tag: string) => (
+                      <Badge key={tag} variant="secondary" className="hover:bg-primary/10 transition-colors">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex flex-wrap gap-3 pt-4">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className={`group ${isLiked ? 'text-red-500 border-red-200' : ''}`}
+                    onClick={handleLike}
+                  >
+                    <Heart className={`mr-2 h-4 w-4 group-hover:text-red-500 transition-colors ${isLiked ? 'fill-current' : ''}`} />
+                    Like ({likes})
+                  </Button>
+                  <Button size="sm" variant="outline" className="group">
+                    <Share2 className="mr-2 h-4 w-4 group-hover:text-blue-500 transition-colors" />
+                    Share
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className={`group ${isBookmarked ? 'text-yellow-500 border-yellow-200' : ''}`}
+                    onClick={handleBookmark}
+                  >
+                    <BookOpen className={`mr-2 h-4 w-4 group-hover:text-green-500 transition-colors ${isBookmarked ? 'fill-current' : ''}`} />
+                    Save for Later
+                  </Button>
+                </div>
+              </motion.header>
+
+              {/* Enhanced Content */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="relative"
+              >
+                <Card className="overflow-hidden border-0 shadow-lg bg-card/80 backdrop-blur-sm">
+                  <CardContent className="p-8 lg:p-12">
+                    <MarkdownContent content={content.content} />
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Author Bio */}
+              <AuthorBio />
+
+              {/* Related Articles - You can populate this with actual related articles */}
+              <RelatedArticles articles={[]} />
+
+              {/* Enhanced Footer */}
+              <motion.footer
+                className="mt-16 pt-8 border-t border-border/50"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                <div className="grid md:grid-cols-2 gap-8 items-start">
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold">Enjoyed this article?</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      Follow me for more insights on web development, technology, and building amazing user experiences.
+                    </p>
+                    <div className="flex gap-3">
+                      <Button variant="default" size="sm">
+                        Follow for More
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        Subscribe to Newsletter
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h4 className="font-semibold">Navigation</h4>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button variant="outline" size="sm" className="justify-start">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Previous Post
+                      </Button>
+                      <Button variant="outline" size="sm" className="justify-start">
+                        Next Post
+                        <ArrowLeft className="ml-2 h-4 w-4 rotate-180" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </motion.footer>
+            </article>
           </div>
-        </motion.footer>
-      </article>
+
+          {/* Desktop Table of Contents */}
+          <aside className="hidden xl:block flex-shrink-0">
+            <TableOfContents content={content.content} />
+          </aside>
+        </div>
+      </div>
+
+      {/* Floating Action Bar for Mobile */}
+      <FloatingActionBar
+        title={metadata.title}
+        url={`/blog/${params.slug}`}
+        onLike={handleLike}
+        onBookmark={handleBookmark}
+        likes={likes}
+        isLiked={isLiked}
+        isBookmarked={isBookmarked}
+      />
     </div>
   )
 }
