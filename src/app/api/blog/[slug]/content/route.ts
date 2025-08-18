@@ -20,11 +20,16 @@ export async function GET(
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 })
     }
     
-    // Increment view count (only when content is actually loaded)
-    await collection.updateOne(
-      { slug },
-      { $inc: { 'metadata.views': 1 } }
-    )
+    // Try to increment view count (only when content is actually loaded)
+    // This may fail with read-only users, but that's okay
+    try {
+      await collection.updateOne(
+        { slug },
+        { $inc: { 'metadata.views': 1 } }
+      )
+    } catch (viewCountError) {
+      console.warn('Could not update view count (read-only permissions):', viewCountError.message)
+    }
     
     // Add cache headers for content
     const response = NextResponse.json({ 
@@ -37,6 +42,20 @@ export async function GET(
     return response
   } catch (error) {
     console.error('Error fetching blog content:', error)
-    return NextResponse.json({ error: 'Failed to fetch content' }, { status: 500 })
+    
+    // Provide more specific error information for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const isConnectionError = errorMessage.includes('MongoServer') || 
+                             errorMessage.includes('connection') || 
+                             errorMessage.includes('timeout')
+    
+    if (isConnectionError) {
+      console.error('MongoDB connection issue detected:', errorMessage)
+    }
+    
+    return NextResponse.json({ 
+      error: 'Failed to fetch content',
+      debug: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    }, { status: 500 })
   }
 }

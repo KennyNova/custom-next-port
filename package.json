@@ -11,6 +11,7 @@
     "migrate-db": "node scripts/migrate-db.js",
     "check-db": "node scripts/check-databases.js",
     "test-prod": "node scripts/test-prod-connection.js",
+    "test-mongodb": "node scripts/test-mongodb-connections.js",
     "verify-setup": "node verify-setup.js"
   },
   "dependencies": {

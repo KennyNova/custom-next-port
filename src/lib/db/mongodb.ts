@@ -5,7 +5,20 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI!
-const options = {}
+const options = {
+  // Enhanced options for better Vercel compatibility
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000, // Increased timeout for serverless
+  socketTimeoutMS: 45000,
+  family: 4, // Force IPv4 (helps with some Vercel networking issues)
+  maxPoolSize: 10,
+  retryWrites: true,
+  // SSL options that work better with Vercel's infrastructure
+  ssl: true,
+  tlsAllowInvalidCertificates: false,
+  tlsAllowInvalidHostnames: false,
+}
 
 let client: MongoClient
 let clientPromise: Promise<MongoClient>
