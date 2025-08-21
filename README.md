@@ -1,4 +1,4 @@
-# Personal Portfolio & Blog
+# Personal Portfolio & Blog by Navid Madani
 
 A modern, interactive portfolio and blog website showcasing my professional work, personal projects, and hobbies. Built with Next.js and featuring interactive elements to help potential clients discover how we can work together.
 

@@ -11,7 +11,7 @@ import {
   BlogProgressiveLoadingSkeleton 
 } from '@/components/ui/blog-skeleton'
 import { usePreload } from '@/lib/hooks/use-preload'
-import { Calendar, Clock, ArrowLeft, Heart, Share2, Eye, User, BookOpen } from 'lucide-react'
+import { Calendar, Clock, ArrowLeft, Heart, Share2, Eye, User, Check } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -31,8 +31,8 @@ export default function BlogPostPage() {
   const [loadingContent, setLoadingContent] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isLiked, setIsLiked] = useState(false)
-  const [isBookmarked, setIsBookmarked] = useState(false)
   const [likes, setLikes] = useState(0)
+  const [copiedLink, setCopiedLink] = useState(false)
 
   useEffect(() => {
     if (!params.slug) return
@@ -100,16 +100,38 @@ export default function BlogPostPage() {
     }
   }, [metadata])
 
-  const handleLike = () => {
+  const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // e.stopImmediatePropagation() - not available on React events
+    console.log('Like button clicked - preventing refresh')
     setIsLiked(!isLiked)
     setLikes(prev => isLiked ? prev - 1 : prev + 1)
     // Here you would typically make an API call to update the like count
+    // return false
   }
 
-  const handleBookmark = () => {
-    setIsBookmarked(!isBookmarked)
-    // Here you would typically make an API call to save/remove bookmark
+  const sharePost = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // e.stopImmediatePropagation() - not available on React events
+    console.log('Share button clicked - preventing refresh')
+    try {
+      await navigator.share({
+        title: metadata?.title,
+        text: metadata?.excerpt,
+        url: window.location.href,
+      })
+    } catch (err) {
+      // Fallback to clipboard
+      navigator.clipboard.writeText(window.location.href)
+      setCopiedLink(true)
+      setTimeout(() => setCopiedLink(false), 2000)
+    }
+    // return false
   }
+
+
 
   // Progressive loading states
   if (loadingMetadata) {
@@ -167,7 +189,7 @@ export default function BlogPostPage() {
               </Button>
             </motion.div>
 
-            <article className="space-y-8">
+            <article className="space-y-8" onClick={(e) => e.stopPropagation()}>
               {/* Enhanced Header */}
               <motion.header
                 className="space-y-6"
@@ -191,7 +213,7 @@ export default function BlogPostPage() {
                 <div className="flex flex-wrap items-center gap-6 py-4">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <User className="h-4 w-4" />
-                    <span className="font-medium">Nav Chaganti</span>
+                    <span className="font-medium">Navid Madani</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="h-4 w-4" />
@@ -223,29 +245,40 @@ export default function BlogPostPage() {
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap gap-3 pt-4">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className={`group ${isLiked ? 'text-red-500 border-red-200' : ''}`}
+                <div className="flex flex-wrap gap-3 pt-4" onClick={(e) => e.stopPropagation()}>
+                  <button 
+                    className={`inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 group ${isLiked ? 'text-red-500 border-red-200' : ''}`}
                     onClick={handleLike}
+                    onMouseDown={(e) => e.preventDefault()}
+                    type="button"
                   >
-                    <Heart className={`mr-2 h-4 w-4 group-hover:text-red-500 transition-colors ${isLiked ? 'fill-current' : ''}`} />
+                    <motion.div
+                      animate={isLiked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      <Heart className={`mr-2 h-4 w-4 group-hover:text-red-500 transition-all duration-300 ${isLiked ? 'fill-current text-red-500' : ''}`} />
+                    </motion.div>
                     Like ({likes})
-                  </Button>
-                  <Button size="sm" variant="outline" className="group">
-                    <Share2 className="mr-2 h-4 w-4 group-hover:text-blue-500 transition-colors" />
-                    Share
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className={`group ${isBookmarked ? 'text-yellow-500 border-yellow-200' : ''}`}
-                    onClick={handleBookmark}
+                  </button>
+                  <button 
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 group" 
+                    onClick={sharePost} 
+                    onMouseDown={(e) => e.preventDefault()}
+                    type="button"
                   >
-                    <BookOpen className={`mr-2 h-4 w-4 group-hover:text-green-500 transition-colors ${isBookmarked ? 'fill-current' : ''}`} />
-                    Save for Later
-                  </Button>
+                    <motion.div
+                      animate={copiedLink ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                    >
+                      {copiedLink ? (
+                        <Check className="mr-2 h-4 w-4 text-green-500" />
+                      ) : (
+                        <Share2 className="mr-2 h-4 w-4 group-hover:text-blue-500 transition-colors" />
+                      )}
+                    </motion.div>
+                    {copiedLink ? 'Copied!' : 'Share'}
+                  </button>
+
                 </div>
               </motion.header>
 
@@ -315,11 +348,10 @@ export default function BlogPostPage() {
       <FloatingActionBar
         title={metadata.title}
         url={`/blog/${params.slug}`}
-        onLike={handleLike}
-        onBookmark={handleBookmark}
+        onLike={() => handleLike(new MouseEvent('click') as any)}
+        onShare={() => sharePost(new MouseEvent('click') as any)}
         likes={likes}
         isLiked={isLiked}
-        isBookmarked={isBookmarked}
       />
     </div>
   )

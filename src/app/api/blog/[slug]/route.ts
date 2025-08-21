@@ -24,16 +24,11 @@ export async function GET(
       )
     }
     
-    // Try to increment view count
-    // This may fail with read-only users, but that's okay
-    try {
-      await collection.updateOne(
-        { _id: post._id },
-        { $inc: { 'metadata.views': 1 } }
-      )
-    } catch (viewCountError) {
-      console.warn('Could not update view count (read-only permissions):', viewCountError.message)
-    }
+    // Increment view count
+    await collection.updateOne(
+      { _id: post._id },
+      { $inc: { 'metadata.views': 1 } }
+    )
     
     return NextResponse.json(post)
   } catch (error) {

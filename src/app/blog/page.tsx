@@ -77,7 +77,7 @@ export default function BlogPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-2 justify-center ">
             {defaultTags.slice(0, 8).map((tag, i) => (
               <div
                 key={tag}
@@ -188,7 +188,7 @@ export default function BlogPage() {
                   console.log(`✨ Metadata preloaded for ${post.slug}:`, metadata)
                 }}
               >
-                <CardHeader className="hover:bg-accent/50 transition-colors duration-300 rounded-t-lg">
+                <CardHeader className="relative overflow-hidden hover:bg-gradient-to-b hover:from-accent/50 hover:to-transparent transition-all duration-300 rounded-t-lg group/header">
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
@@ -206,7 +206,7 @@ export default function BlogPage() {
                     {post.excerpt}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="hover:bg-accent/50 transition-colors duration-300 rounded-b-lg">
+                <CardContent className="relative overflow-hidden hover:bg-gradient-to-t hover:from-accent/50 hover:to-transparent transition-all duration-300 rounded-b-lg group/content">
                   <div className="flex flex-wrap gap-2 mb-4">
                     {post.tags.map((tag) => (
                       <span

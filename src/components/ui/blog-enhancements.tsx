@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowUp, Share2, Heart, Bookmark, MessageCircle, Facebook, Linkedin, User } from 'lucide-react'
+import { ArrowUp, Share2, Heart, MessageCircle, Facebook, Linkedin, User, Check } from 'lucide-react'
 import { Button } from './button'
 import { cn } from '@/lib/utils'
 
@@ -11,21 +11,20 @@ export function FloatingActionBar({
   title, 
   url, 
   onLike, 
-  onBookmark, 
+  onShare,
   likes = 0,
-  isLiked = false,
-  isBookmarked = false 
+  isLiked = false
 }: {
   title: string
   url: string
   onLike?: () => void
-  onBookmark?: () => void
+  onShare?: () => void
   likes?: number
   isLiked?: boolean
-  isBookmarked?: boolean
 }) {
   const [isVisible, setIsVisible] = useState(false)
   const [showShareMenu, setShowShareMenu] = useState(false)
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false)
 
   useEffect(() => {
     const toggleVisibility = () => {
@@ -58,9 +57,18 @@ export function FloatingActionBar({
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl)
-      // You could add a toast notification here
+      setCopiedToClipboard(true)
+      setTimeout(() => setCopiedToClipboard(false), 2000)
     } catch (err) {
       console.error('Failed to copy URL:', err)
+    }
+  }
+
+  const handleMainShare = () => {
+    if (onShare) {
+      onShare()
+    } else {
+      setShowShareMenu(!showShareMenu)
     }
   }
 
@@ -107,9 +115,19 @@ export function FloatingActionBar({
                       size="sm"
                       onClick={copyToClipboard}
                       className="justify-start"
+                      type="button"
                     >
-                      <Share2 className="h-4 w-4 mr-2" />
-                      Copy Link
+                      {copiedToClipboard ? (
+                        <>
+                          <Check className="h-4 w-4 mr-2 text-green-500" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Share2 className="h-4 w-4 mr-2" />
+                          Copy Link
+                        </>
+                      )}
                     </Button>
                   </div>
                 </motion.div>
@@ -121,35 +139,42 @@ export function FloatingActionBar({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onLike}
+                onClick={(e) => {
+                  e?.preventDefault()
+                  e?.stopPropagation()
+                  onLike?.()
+                }}
                 className={cn(
                   "relative",
                   isLiked && "text-red-500"
                 )}
+                type="button"
               >
-                <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
+                <motion.div
+                  animate={isLiked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
+                </motion.div>
                 {likes > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  <motion.span 
+                    className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
                     {likes > 99 ? '99+' : likes}
-                  </span>
+                  </motion.span>
                 )}
               </Button>
+              
+
               
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={onBookmark}
-                className={cn(
-                  isBookmarked && "text-yellow-500"
-                )}
-              >
-                <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-current")} />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowShareMenu(!showShareMenu)}
+                onClick={handleMainShare}
+                type="button"
               >
                 <Share2 className="h-4 w-4" />
               </Button>
@@ -157,7 +182,12 @@ export function FloatingActionBar({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={scrollToTop}
+                onClick={(e) => {
+                  e?.preventDefault()
+                  e?.stopPropagation()
+                  scrollToTop()
+                }}
+                type="button"
               >
                 <ArrowUp className="h-4 w-4" />
               </Button>
