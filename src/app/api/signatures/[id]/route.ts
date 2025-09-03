@@ -4,6 +4,9 @@ import { auth } from '@clerk/nextjs/server'
 import type { Signature } from '@/types'
 import { ObjectId } from 'mongodb'
 
+// Force dynamic rendering for this route since it uses auth headers
+export const dynamic = 'force-dynamic'
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }

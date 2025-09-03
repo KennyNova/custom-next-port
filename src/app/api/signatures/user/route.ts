@@ -3,6 +3,9 @@ import { getDatabase } from '@/lib/db/mongodb'
 import { auth } from '@clerk/nextjs/server'
 import type { Signature } from '@/types'
 
+// Force dynamic rendering for this route since it uses auth headers
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     if (!process.env.MONGODB_URI) {
