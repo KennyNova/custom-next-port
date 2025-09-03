@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { ProjectGridSkeleton } from '@/components/ui/project-card-skeleton'
 import { usePreload } from '@/lib/hooks/use-preload'
-import { Github, ExternalLink, Code2, Home, Camera, Wrench, Loader2 } from 'lucide-react'
+import { Github, ExternalLink, Code2, Home, Camera, Wrench, Loader2, Video } from 'lucide-react'
 import Link from 'next/link'
 import type { Project } from '@/types'
 
@@ -16,7 +16,14 @@ const projectTypes = [
   { id: 'github', name: 'GitHub Projects', icon: Github },
   { id: 'homelab', name: 'Home Lab', icon: Home },
   { id: 'photography', name: 'Photography', icon: Camera },
+  { id: 'videography', name: 'Videography', icon: Video },
   { id: 'other', name: 'Other Projects', icon: Wrench },
+]
+
+const orientationOptions = [
+  { id: 'all', name: 'All Orientations' },
+  { id: 'vertical', name: 'Vertical' },
+  { id: 'horizontal', name: 'Horizontal' },
 ]
 
 // Project Card Component with Preloading
@@ -55,6 +62,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
             {project.type === 'github' && <Github className="h-5 w-5" />}
             {project.type === 'homelab' && <Home className="h-5 w-5" />}
             {project.type === 'photography' && <Camera className="h-5 w-5" />}
+            {project.type === 'videography' && <Video className="h-5 w-5" />}
             {project.type === 'other' && <Wrench className="h-5 w-5" />}
             {project.title}
           </CardTitle>
@@ -62,6 +70,13 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2 mb-4">
+            {project.type === 'videography' && project.orientation && (
+              <span
+                className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-md"
+              >
+                {project.orientation === 'vertical' ? 'Vertical' : 'Horizontal'}
+              </span>
+            )}
             {project.technologies.map((tech) => (
               <span
                 key={tech}
@@ -101,6 +116,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedType, setSelectedType] = useState<string>('all')
+  const [selectedOrientation, setSelectedOrientation] = useState<'all' | 'vertical' | 'horizontal'>('all')
   const [projectCounts, setProjectCounts] = useState<Record<string, number>>({})
 
   // Fetch projects from API
@@ -137,10 +153,14 @@ export default function ProjectsPage() {
     fetchProjects()
   }, [])
 
-  // Filter projects based on selected type
-  const filteredProjects = selectedType === 'all' 
+  // Filter projects based on selected type and orientation (when videography)
+  const filteredByType = selectedType === 'all' 
     ? projects 
     : projects.filter(project => project.type === selectedType)
+
+  const filteredProjects = selectedType === 'videography' && selectedOrientation !== 'all'
+    ? filteredByType.filter(project => project.orientation === selectedOrientation)
+    : filteredByType
 
   const featuredProjects = filteredProjects.filter(project => project.featured)
 
@@ -173,7 +193,7 @@ export default function ProjectsPage() {
         </p>
       </motion.div>
 
-      {/* Project Types */}
+      {/* Project Types Carousel */}
       <motion.section
         className="mb-12"
         initial={{ opacity: 0 }}
@@ -181,36 +201,76 @@ export default function ProjectsPage() {
         transition={{ duration: 0.8, delay: 0.2 }}
       >
         <h2 className="text-2xl font-bold mb-6">Project Categories</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {projectTypes.map((type, index) => (
-            <motion.div
-              key={type.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ y: -5 }}
-            >
-              <Card 
-                className={`text-center cursor-pointer hover:shadow-lg transition-shadow ${
-                  selectedType === type.id ? 'ring-2 ring-primary' : ''
-                }`}
-                onClick={() => setSelectedType(type.id)}
-              >
-                <CardHeader>
-                  <type.icon className="h-8 w-8 mx-auto text-primary mb-2" />
-                  <CardTitle className="text-lg">{type.name}</CardTitle>
-                  <CardDescription>
-                    {loading ? (
-                      <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                    ) : (
-                      `${projectCounts[type.id] || 0} projects`
-                    )}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </motion.div>
-          ))}
+        
+        {/* Horizontal scrollable carousel with blur edges */}
+        <div className="relative">
+          {/* Left blur gradient */}
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background via-background/80 to-transparent z-10 pointer-events-none" />
+          
+          {/* Right blur gradient */}
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background via-background/80 to-transparent z-10 pointer-events-none" />
+          
+          {/* Scrollable container with extra padding for hover animations */}
+          <div className="overflow-x-auto scrollbar-hide py-2">
+            <div className="flex gap-4 pb-2 min-w-max px-2">
+              {projectTypes.map((type, index) => (
+                <motion.div
+                  key={type.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ y: -8, scale: 1.02 }}
+                  className="flex-shrink-0"
+                >
+                  <Card 
+                    className={`w-48 text-center cursor-pointer hover:shadow-lg transition-all duration-300 ${
+                      selectedType === type.id ? 'ring-2 ring-primary' : ''
+                    }`}
+                    onClick={() => {
+                      setSelectedType(type.id)
+                      if (type.id !== 'videography') {
+                        setSelectedOrientation('all')
+                      }
+                    }}
+                  >
+                    <CardHeader className="pb-4">
+                      <type.icon className="h-8 w-8 mx-auto text-primary mb-2" />
+                      <CardTitle className="text-lg">{type.name}</CardTitle>
+                      <CardDescription>
+                        {loading ? (
+                          <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                        ) : (
+                          `${projectCounts[type.id] || 0} projects`
+                        )}
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </div>
+        
+        {/* Orientation filter for videography */}
+        {selectedType === 'videography' && (
+          <motion.div 
+            className="mt-6 flex flex-wrap gap-2"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {orientationOptions.map(option => (
+              <Button
+                key={option.id}
+                variant={selectedOrientation === (option.id as any) ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedOrientation(option.id as any)}
+              >
+                {option.name}
+              </Button>
+            ))}
+          </motion.div>
+        )}
       </motion.section>
 
       {/* Loading State */}

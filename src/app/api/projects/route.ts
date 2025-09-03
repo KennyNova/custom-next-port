@@ -74,6 +74,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type')
     const featured = searchParams.get('featured')
+    const orientation = searchParams.get('orientation') // 'vertical' | 'horizontal'
     const includeGithub = searchParams.get('includeGithub') !== 'false'
     
     let allProjects: Project[] = []
@@ -97,6 +98,9 @@ export async function GET(request: NextRequest) {
       if (featured === 'true') {
         query.featured = true
       }
+      if (orientation) {
+        query.orientation = orientation
+      }
       
       // Get projects sorted by order and creation date
       const dbProjects = await collection
@@ -114,6 +118,9 @@ export async function GET(request: NextRequest) {
     }
     if (featured === 'true') {
       filteredProjects = filteredProjects.filter(project => project.featured)
+    }
+    if (orientation) {
+      filteredProjects = filteredProjects.filter(project => project.orientation === orientation)
     }
     
     // Sort by featured first, then by order, then by creation date
@@ -145,7 +152,8 @@ export async function POST(request: NextRequest) {
       technologies, 
       links, 
       featured = false,
-      order = 0
+      order = 0,
+      orientation
     } = body
     
     if (!title || !description || !type) {
@@ -169,6 +177,7 @@ export async function POST(request: NextRequest) {
       links: links || {},
       featured,
       order,
+      orientation,
       createdAt: now,
       updatedAt: now
     }

@@ -564,3 +564,13 @@ html {
   background-color: hsl(var(--border));
 }
 
+/* Hide scrollbars utility for carousel */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
+

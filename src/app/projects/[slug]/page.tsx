@@ -13,6 +13,7 @@ import {
   Star, 
   GitFork, 
   Eye, 
+  Video,
   Calendar,
   Code2,
   Download,
@@ -206,6 +207,7 @@ export default function ProjectPage() {
                   {project.type === 'github' && <Github className="h-8 w-8 text-primary" />}
                   {project.type === 'homelab' && <Code2 className="h-8 w-8 text-primary" />}
                   {project.type === 'photography' && <Eye className="h-8 w-8 text-primary" />}
+                  {project.type === 'videography' && <Video className="h-8 w-8 text-primary" />}
                   {project.type === 'other' && <Zap className="h-8 w-8 text-primary" />}
                 </div>
                 <div>

@@ -25,7 +25,7 @@ export interface Project {
   title: string;
   slug: string;
   description: string;
-  type: 'github' | 'homelab' | 'photography' | 'other';
+  type: 'github' | 'homelab' | 'photography' | 'videography' | 'other';
   images: string[]; // URLs
   technologies: string[];
   links: {
@@ -37,6 +37,7 @@ export interface Project {
   order: number;
   createdAt: Date;
   updatedAt: Date;
+  orientation?: 'vertical' | 'horizontal';
 }
 
 // Quiz Types
