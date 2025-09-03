@@ -24,7 +24,8 @@ import { useUser, useAuth, SignInButton, SignOutButton } from '@clerk/nextjs'
 
 const mockSignatures = [
   {
-    id: '1',
+    _id: '1' as any,
+    userId: 'mock-user-1',
     name: 'John Doe',
     message: 'Amazing work! Your portfolio inspired me to start my own coding journey.',
     provider: 'github' as const,
@@ -34,7 +35,8 @@ const mockSignatures = [
     createdAt: new Date('2024-01-15')
   },
   {
-    id: '2',
+    _id: '2' as any,
+    userId: 'mock-user-2',
     name: 'Sarah Wilson',
     message: 'Love the clean design and smooth animations. Great job!',
     provider: 'linkedin' as const,
@@ -44,7 +46,8 @@ const mockSignatures = [
     createdAt: new Date('2024-01-14')
   },
   {
-    id: '3',
+    _id: '3' as any,
+    userId: 'mock-user-3',
     name: 'Mike Chen',
     message: 'The Gagguino project is incredible! Coffee and code - perfect combination.',
     provider: 'google' as const,
@@ -465,7 +468,7 @@ export default function SignaturesPage() {
 
           return (
             <motion.div
-              key={signature._id?.toString() || signature.id || index}
+              key={signature._id?.toString() || index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}

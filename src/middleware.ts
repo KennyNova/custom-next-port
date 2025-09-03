@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
 // Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -24,7 +25,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhook/(.*)', // Webhook routes should be public
 ]);
 
-export default clerkMiddleware((auth, request) => {
+export default clerkMiddleware(async (auth, request) => {
   // Don't protect the signatures API in middleware - let the API route handle it
   if (request.nextUrl.pathname.startsWith('/api/signatures')) {
     return;
@@ -32,7 +33,12 @@ export default clerkMiddleware((auth, request) => {
   
   // Only protect routes that are not public
   if (!isPublicRoute(request)) {
-    auth().protect();
+    const { userId } = await auth();
+    if (!userId) {
+      const signInUrl = new URL('/sign-in', request.url);
+      signInUrl.searchParams.set('redirect_url', request.url);
+      return NextResponse.redirect(signInUrl);
+    }
   }
 });
 
