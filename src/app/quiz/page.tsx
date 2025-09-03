@@ -9,6 +9,84 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ChevronLeft, ChevronRight, CheckCircle, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
 
+// Cal.com integration hook with quiz results support
+const useCalComBooking = () => {
+  const [isLoading, setIsLoading] = useState(false)
+
+  const openBookingWithQuizResults = (
+    eventType: string, 
+    quizResults?: {
+      primaryService: string
+      servicePercentages: Array<{service: string, percentage: number}>
+      answers: Record<string, string | string[]>
+      summary?: string
+      details?: string
+      metadata?: string
+    }
+  ) => {
+    setIsLoading(true)
+    
+    // Cal.com embed configuration
+    const calComUrl = process.env.NEXT_PUBLIC_CALCOM_BASE_URL || 'https://cal.com'
+    let bookingUrl = `${calComUrl}/${eventType}`
+    
+    // Add quiz results as URL parameters if provided
+    if (quizResults) {
+      const params = new URLSearchParams()
+      
+      // Add primary service recommendation
+      params.append('primaryService', quizResults.primaryService)
+      
+      // Add service match percentages (top 3)
+      const topServices = quizResults.servicePercentages
+        .slice(0, 3)
+        .map(s => `${s.service}:${Math.round(s.percentage)}%`)
+        .join(',')
+      if (topServices) {
+        params.append('serviceMatches', topServices)
+      }
+      
+      // Add key quiz answers for context
+      const keyAnswers = {
+        challenge: quizResults.answers['1'] || '',
+        business: quizResults.answers['2'] || '',
+        budget: quizResults.answers['7'] || '',
+        timeline: quizResults.answers['8'] || ''
+      }
+      
+      Object.entries(keyAnswers).forEach(([key, value]) => {
+        if (value) {
+          params.append(key, Array.isArray(value) ? value.join(',') : value)
+        }
+      })
+      
+      // Add formatted summary data
+      if (quizResults.summary) {
+        params.append('summary', quizResults.summary)
+      }
+      if (quizResults.details) {
+        params.append('details', quizResults.details)
+      }
+      if (quizResults.metadata) {
+        params.append('metadata', quizResults.metadata)
+      }
+      
+      // Add quiz completion indicator
+      params.append('quizCompleted', 'true')
+      params.append('quizTimestamp', new Date().toISOString())
+      
+      bookingUrl += `?${params.toString()}`
+    }
+    
+    // Open in a modal or new window
+    window.open(bookingUrl, '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes')
+    
+    setIsLoading(false)
+  }
+
+  return { openBookingWithQuizResults, isLoading }
+}
+
 // Animated counter component
 const AnimatedCounter = ({ value, duration = 1000 }: { value: number; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0)
@@ -338,6 +416,7 @@ const quizResults = {
 }
 
 export default function QuizPage() {
+  const { openBookingWithQuizResults, isLoading: calIsLoading } = useCalComBooking()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
   const [showResults, setShowResults] = useState(false)
@@ -568,6 +647,71 @@ export default function QuizPage() {
     setShowBreakdown(false)
   }
 
+  // Helper function to format quiz answers for Cal.com
+  const formatQuizAnswersForCal = () => {
+    const serviceNames: Record<string, string> = {
+      web: 'Web Development',
+      photo: 'Photography', 
+      cinema: 'Video Production',
+      automation: 'Automation',
+      ai: 'AI Solutions',
+      tech: 'Tech Consulting'
+    }
+
+    const answerLabels: Record<string, string> = {
+      '1': 'Primary Challenge',
+      '2': 'Business Type',
+      '3': 'Website Situation',
+      '4': 'Visual Content',
+      '5': 'Time-consuming Tasks',
+      '6': 'Tech Frustrations',
+      '7': 'Budget Range',
+      '8': 'Timeline'
+    }
+
+    // Create a summary of quiz results
+    const topRecommendations = servicePercentages
+      .slice(0, 3)
+      .map(sp => `${serviceNames[sp.service]}: ${Math.round(sp.percentage)}%`)
+      .join(' | ')
+
+    // Format key answers
+    const keyAnswers = Object.entries(answers)
+      .filter(([key]) => ['1', '2', '7', '8'].includes(key))
+      .map(([key, value]) => {
+        const label = answerLabels[key]
+        const answer = Array.isArray(value) ? value.join(', ') : value
+        return `${label}: ${answer}`
+      })
+      .join(' | ')
+
+    return {
+      recommendedServices: topRecommendations,
+      keyAnswers,
+      totalQuestions: Object.keys(answers).length,
+      completedAt: new Date().toLocaleString()
+    }
+  }
+
+  const handleBookQuizConsultation = () => {
+    const formattedData = formatQuizAnswersForCal()
+    
+    const quizResultsData = {
+      primaryService: result,
+      servicePercentages: servicePercentages.map(sp => ({
+        service: sp.service,
+        percentage: sp.percentage
+      })),
+      answers,
+      // Add formatted summary for Cal.com
+      summary: formattedData.recommendedServices,
+      details: formattedData.keyAnswers,
+      metadata: `Completed ${formattedData.totalQuestions} questions on ${formattedData.completedAt}`
+    }
+    
+    openBookingWithQuizResults('quiz', quizResultsData)
+  }
+
   if (showResults) {
     const serviceNames: Record<string, string> = {
       web: 'Web Development',
@@ -708,24 +852,34 @@ export default function QuizPage() {
                   </p>
                 </div>
                 
-                <div className="flex gap-4">
-                  <Button variant="outline" size="sm" onClick={prevQuestion}>
-                    <ChevronLeft className="h-4 w-4 mr-2" />
-                    Previous
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={resetQuiz}>
-                    Retake Quiz
-                  </Button>
+                <div className="flex flex-col gap-4">
+                  {/* Primary CTA - Quiz-based Consultation */}
                   <Button
-                    asChild
+                    onClick={handleBookQuizConsultation}
+                    disabled={calIsLoading}
                     size="lg"
-                    className="flex-1 group bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg hover:shadow-xl hover:from-primary/90 hover:to-blue-500 transition-all"
+                    className="w-full group bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:shadow-xl hover:from-green-600 hover:to-emerald-700 transition-all"
                   >
-                    <a href="/consultation" className="inline-flex items-center justify-center gap-2">
-                      Schedule Your Consultation
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                    </a>
+                    {calIsLoading ? (
+                      'Opening Booking...'
+                    ) : (
+                      <>
+                        Book Quiz-Based Consultation
+                        <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-0.5" />
+                      </>
+                    )}
                   </Button>
+                  
+                  {/* Secondary actions */}
+                  <div className="flex gap-4 justify-center">
+                    <Button variant="outline" size="sm" onClick={prevQuestion}>
+                      <ChevronLeft className="h-4 w-4 mr-2" />
+                      Previous
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={resetQuiz}>
+                      Retake Quiz
+                    </Button>
+                  </div>
                 </div>
               </div>
             </CardContent>

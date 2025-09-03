@@ -69,10 +69,12 @@ export interface Signature {
   userId: string;
   name: string;
   message: string;
-  provider: 'google' | 'github' | 'linkedin';
+  provider: 'google' | 'github' | 'linkedin' | 'clerk';
   profileUrl: string;
   avatarUrl: string;
+  useRandomIcon?: boolean;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 // Theme Types

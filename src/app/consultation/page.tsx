@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -21,7 +21,9 @@ import {
   Globe,
   Camera,
   Settings,
-  Brain
+  Brain,
+  Target,
+  X
 } from 'lucide-react'
 
 // Cal.com integration hook
@@ -44,7 +46,161 @@ const useCalComBooking = () => {
   return { openBooking, isLoading }
 }
 
+// Quiz popup component
+const QuizPopup = ({ isOpen, onClose, onStartQuiz }: {
+  isOpen: boolean
+  onClose: () => void
+  onStartQuiz: () => void
+}) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ 
+              opacity: 0, 
+              scale: 0.9, 
+              y: 20,
+              x: 0 // Mobile: center
+            }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1, 
+              y: 0,
+              x: 0
+            }}
+            exit={{ 
+              opacity: 0, 
+              scale: 0.9, 
+              y: 20,
+              x: 0
+            }}
+            transition={{ type: "spring", duration: 0.5 }}
+            className="fixed z-50 inset-4
+              /* Mobile: centered with safe margins */
+              flex items-center justify-center pointer-events-none
+              /* Desktop: bottom-right corner */
+              md:inset-auto md:bottom-6 md:right-6 md:flex-none 
+              md:items-start md:justify-start"
+          >
+            <Card className="pointer-events-auto relative border-2 border-primary/20 bg-background/95 backdrop-blur-xl shadow-2xl w-full max-w-md md:max-w-sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-2 right-2 h-8 w-8 p-0"
+                onClick={onClose}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+              <CardHeader className="text-center pb-4">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-primary to-blue-600 rounded-full flex items-center justify-center">
+                  <HelpCircle className="h-8 w-8 text-primary-foreground" />
+                </div>
+                <CardTitle className="text-xl">Not Sure What You Need?</CardTitle>
+                <CardDescription>
+                  Take our quick quiz to discover the perfect solution for your business
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span>Takes just 2-3 minutes</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <Target className="h-4 w-4 text-primary" />
+                    <span>Get personalized recommendations</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span>Discover services you might not know you need</span>
+                  </div>
+                  <div className="flex gap-2 pt-4">
+                    <Button variant="outline" onClick={onClose} className="flex-1">
+                      Maybe Later
+                    </Button>
+                    <Button onClick={onStartQuiz} className="flex-1">
+                      <Zap className="mr-2 h-4 w-4" />
+                      Start Quiz
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
+}
 
+// Floating Quiz Icon component
+const FloatingQuizIcon = ({ isVisible, onClick }: {
+  isVisible: boolean
+  onClick: () => void
+}) => {
+  const [showTooltip, setShowTooltip] = useState(true)
+
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        setShowTooltip(false)
+      }, 7000)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [isVisible])
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.8, y: 20 }}
+          transition={{ type: "spring", duration: 0.5 }}
+          className="fixed bottom-6 right-6 z-40"
+        >
+          <Button
+            onClick={onClick}
+            size="icon"
+            className="group relative h-12 w-12 rounded-full border border-white/15 bg-white/10 backdrop-blur-md shadow-lg hover:bg-white/15 transition-colors"
+          >
+            {/* subtle inner ring */}
+            <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-white/20" />
+            {/* theme-aware subtle gradient */}
+            <div className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 via-primary/10 to-primary/20 dark:from-white/10 dark:via-white/5 dark:to-white/10" />
+            {/* center icon */}
+            <HelpCircle className="h-5 w-5 text-black dark:text-white pastel:text-pink-600 transition-transform group-hover:scale-110" />
+            {/* soft highlight */}
+            <div className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-b from-white/15 to-transparent opacity-70" />
+          </Button>
+          
+          {/* Tooltip */}
+          {showTooltip && (
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ delay: 0.5, duration: 0.3 }}
+              className="absolute right-16 top-1/2 transform -translate-y-1/2 bg-background/95 backdrop-blur-sm border rounded-lg px-3 py-2 text-sm font-medium shadow-lg whitespace-nowrap"
+            >
+              Need help choosing? Take our quiz!
+              <div className="absolute right-0 top-1/2 transform translate-x-full -translate-y-1/2 w-0 h-0 border-l-4 border-l-background/95 border-y-4 border-y-transparent"></div>
+            </motion.div>
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
 
 const consultationTypes = [
   // Free consultation - always first
@@ -239,13 +395,77 @@ const socialProof = [
 
 export default function ConsultationPage() {
   const { openBooking, isLoading } = useCalComBooking()
+  const [showQuizPopup, setShowQuizPopup] = useState(false)
+  const [showQuizIcon, setShowQuizIcon] = useState(false)
+  const [hasScrolled, setHasScrolled] = useState(false)
+  const [popupHasBeenShown, setPopupHasBeenShown] = useState(false)
+  const [timeTriggered, setTimeTriggered] = useState(false)
+
+
+
+  // Scroll detection
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 200 && !hasScrolled) {
+        setHasScrolled(true)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [hasScrolled])
+
+  // Show quiz popup/icon after 3 seconds of scrolling OR 7 seconds without scrolling
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+
+    if (hasScrolled && !popupHasBeenShown) {
+      // User scrolled - show popup after 3 seconds
+      timer = setTimeout(() => {
+        setShowQuizPopup(true)
+        setPopupHasBeenShown(true)
+      }, 3000)
+    } else if (!hasScrolled && !timeTriggered && !popupHasBeenShown) {
+      // User hasn't scrolled - show icon after 7 seconds
+      timer = setTimeout(() => {
+        setShowQuizIcon(true)
+        setTimeTriggered(true)
+      }, 7000)
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer)
+    }
+  }, [hasScrolled, popupHasBeenShown, timeTriggered])
+
+  // Show icon when popup is closed or when time trigger activates
+  useEffect(() => {
+    if (popupHasBeenShown && !showQuizPopup) {
+      setShowQuizIcon(true)
+    }
+  }, [popupHasBeenShown, showQuizPopup])
+
+  const handleStartQuiz = () => {
+    setShowQuizPopup(false)
+    window.location.href = '/quiz'
+  }
+
+  const handleClosePopup = () => {
+    setShowQuizPopup(false)
+    setPopupHasBeenShown(true)
+    setShowQuizIcon(true)
+  }
+
+  const handleOpenPopup = () => {
+    setShowQuizPopup(true)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Hero Section */}
         <motion.div
-          className="text-center mb-16"
+          className="text-center mb-8 sm:mb-12 lg:mb-16"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -260,14 +480,14 @@ export default function ConsultationPage() {
             <span className="text-sm font-medium text-primary">Your Success Starts Here</span>
           </motion.div>
           
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
             Let's Build Something
             <span className="block bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
               Extraordinary
             </span>
           </h1>
           
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed">
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed px-4">
             Turn your vision into reality with expert guidance. Get personalized solutions that drive real results for your business.
           </p>
 
@@ -282,11 +502,11 @@ export default function ConsultationPage() {
               <Button
                 size="lg"
                 variant="outline"
-                className="text-lg px-8 py-6 border-2 border-primary/30 hover:border-primary bg-background/50 backdrop-blur-sm"
+                className="text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 border-2 border-primary/30 hover:border-primary bg-background/50 backdrop-blur-sm max-w-[90vw] mx-auto"
               >
-                <HelpCircle className="mr-2 h-5 w-5" />
-                Not Sure What You Need? Take Our Quiz
-                <Sparkles className="ml-2 h-5 w-5" />
+                <HelpCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                <span className="text-center">Not Sure What You Need? Take Our Quiz</span>
+                <Sparkles className="ml-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
               </Button>
             </Link>
             <p className="text-sm text-muted-foreground mt-2">
@@ -296,7 +516,7 @@ export default function ConsultationPage() {
 
           {/* Social Proof */}
           <motion.div
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto mb-12"
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-2xl mx-auto mb-8 sm:mb-12"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
@@ -312,7 +532,7 @@ export default function ConsultationPage() {
 
         {/* Service Packages */}
         <motion.div
-          className="grid md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 mb-16"
+          className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 mb-16"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.3 }}
@@ -414,13 +634,13 @@ export default function ConsultationPage() {
 
         {/* Value Proposition */}
         <motion.section
-          className="mb-16 text-center"
+          className="mb-8 sm:mb-12 lg:mb-16 text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
         >
-          <h2 className="text-3xl font-bold mb-6">Why Choose Our Services?</h2>
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Why Choose Our Services?</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-4xl mx-auto">
             {[
               {
                 icon: Award,
@@ -469,18 +689,31 @@ export default function ConsultationPage() {
           </p>
           <Button
             size="lg"
-            className="text-lg px-8 py-6 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90"
+            className="text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 max-w-[90vw] mx-auto"
             onClick={() => openBooking('discovery-call')}
           >
-            <Calendar className="mr-2 h-5 w-5" />
-            Book Your FREE Discovery Call
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <Calendar className="mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+            <span className="text-center">Book Your FREE Discovery Call</span>
+            <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
           </Button>
           <p className="text-sm text-muted-foreground mt-4">
             No commitment required • 30 minutes • Completely free
           </p>
         </motion.section>
       </div>
+      
+      {/* Quiz Popup */}
+      <QuizPopup
+        isOpen={showQuizPopup}
+        onClose={handleClosePopup}
+        onStartQuiz={handleStartQuiz}
+      />
+      
+      {/* Floating Quiz Icon */}
+      <FloatingQuizIcon
+        isVisible={showQuizIcon && !showQuizPopup}
+        onClick={handleOpenPopup}
+      />
     </div>
   )
 }

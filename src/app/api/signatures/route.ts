@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/db/mongodb'
+import { auth } from '@clerk/nextjs/server'
 import type { Signature } from '@/types'
 
 export async function GET(request: NextRequest) {
@@ -47,20 +48,32 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { userId, name, message, provider, profileUrl, avatarUrl } = body
+    const { userId: clerkUserId } = await auth()
     
-    if (!userId || !name || !message || !provider) {
+    console.log('POST /api/signatures - User ID:', clerkUserId)
+    
+    if (!clerkUserId) {
+      console.log('POST /api/signatures - No user ID found, returning 401')
       return NextResponse.json(
-        { error: 'UserId, name, message, and provider are required' },
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+    
+    const body = await request.json()
+    const { name, message, provider, profileUrl, avatarUrl, useRandomIcon } = body
+    
+    if (!name || !message || !provider) {
+      return NextResponse.json(
+        { error: 'Name, message, and provider are required' },
         { status: 400 }
       )
     }
     
-    // Validate provider
-    if (!['google', 'github', 'linkedin'].includes(provider)) {
+    // Validate provider - allow clerk as well
+    if (!['google', 'github', 'linkedin', 'clerk'].includes(provider)) {
       return NextResponse.json(
-        { error: 'Invalid provider. Must be google, github, or linkedin' },
+        { error: 'Invalid provider. Must be google, github, linkedin, or clerk' },
         { status: 400 }
       )
     }
@@ -69,21 +82,22 @@ export async function POST(request: NextRequest) {
     const collection = db.collection<Omit<Signature, '_id'>>('signatures')
     
     // Check if user has already signed
-    const existingSignature = await collection.findOne({ userId })
+    const existingSignature = await collection.findOne({ userId: clerkUserId })
     if (existingSignature) {
       return NextResponse.json(
-        { error: 'User has already signed the wall' },
+        { error: 'User has already signed the wall. Use PUT method to update.' },
         { status: 409 }
       )
     }
     
     const newSignature = {
-      userId,
+      userId: clerkUserId,
       name,
       message,
       provider: provider as Signature['provider'],
       profileUrl: profileUrl || '',
       avatarUrl: avatarUrl || '',
+      useRandomIcon: useRandomIcon || false,
       createdAt: new Date()
     }
     
@@ -101,6 +115,15 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const { userId: clerkUserId } = await auth()
+    
+    if (!clerkUserId) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+    
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
     
@@ -114,11 +137,15 @@ export async function DELETE(request: NextRequest) {
     const db = await getDatabase()
     const collection = db.collection<Signature>('signatures')
     
-    const result = await collection.deleteOne({ _id: id as any })
+    // Only allow users to delete their own signatures (or add admin check here)
+    const result = await collection.deleteOne({ 
+      _id: id as any,
+      userId: clerkUserId
+    })
     
     if (result.deletedCount === 0) {
       return NextResponse.json(
-        { error: 'Signature not found' },
+        { error: 'Signature not found or unauthorized' },
         { status: 404 }
       )
     }

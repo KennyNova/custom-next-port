@@ -14,8 +14,7 @@
    
    Fill in your environment variables in `.env.local`:
    - MongoDB connection string
-   - OAuth provider credentials (GitHub, Google, LinkedIn)
-   - NextAuth secret
+   - Clerk authentication keys
    - Cal.com API details
    - GitHub personal access token
 
@@ -30,24 +29,14 @@
 
 ### MongoDB
 - Set up a MongoDB database (local or cloud)
-- Create collections: `blogPosts`, `projects`, `signatures`, `users`, `accounts`, `sessions`
+- Create collections: `blogPosts`, `projects`, `signatures`
 
-### OAuth Providers
-
-#### GitHub
-1. Go to GitHub Settings > Developer settings > OAuth Apps
-2. Create a new OAuth App
-3. Set Authorization callback URL to: `http://localhost:3000/api/auth/callback/github`
-
-#### Google
-1. Go to Google Cloud Console
-2. Create credentials > OAuth 2.0 Client ID
-3. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
-
-#### LinkedIn
-1. Go to LinkedIn Developer Portal
-2. Create a new app
-3. Add redirect URL: `http://localhost:3000/api/auth/callback/linkedin`
+### Clerk Authentication
+1. Sign up for a Clerk account at [clerk.com](https://clerk.com)
+2. Create a new application
+3. Configure OAuth providers (GitHub, Google, LinkedIn) in the Clerk dashboard
+4. Copy your publishable key and secret key to your `.env.local` file
+5. Clerk handles all OAuth redirects and user management automatically
 
 ### Cal.com Integration
 1. Set up your self-hosted Cal.com instance
@@ -81,7 +70,7 @@ src/
 │   └── providers/        # Context providers
 ├── lib/                  # Utility functions
 │   ├── db/              # Database utilities
-│   ├── auth/            # Authentication config
+│   ├── hooks/           # Custom React hooks
 │   └── utils.ts         # General utilities
 ├── types/               # TypeScript definitions
 └── styles/              # Global styles
@@ -93,7 +82,7 @@ src/
 ✅ Tailwind CSS + shadcn/ui components
 ✅ Framer Motion animations
 ✅ MongoDB integration
-✅ OAuth authentication (GitHub, Google, LinkedIn)
+✅ Clerk authentication with OAuth providers (GitHub, Google, LinkedIn)
 ✅ Blog system with Markdown support
 ✅ Project showcase
 ✅ Interactive consultation quiz
@@ -135,4 +124,4 @@ For additional customization or features, refer to the documentation of the indi
 - [Tailwind CSS](https://tailwindcss.com/docs)
 - [Framer Motion](https://www.framer.com/motion/)
 - [shadcn/ui](https://ui.shadcn.com/)
-- [NextAuth.js](https://next-auth.js.org/)
+- [Clerk](https://clerk.com/docs)
