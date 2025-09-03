@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -118,6 +118,9 @@ export default function ProjectsPage() {
   const [selectedType, setSelectedType] = useState<string>('all')
   const [selectedOrientation, setSelectedOrientation] = useState<'all' | 'vertical' | 'horizontal'>('all')
   const [projectCounts, setProjectCounts] = useState<Record<string, number>>({})
+  const [showLeftBlur, setShowLeftBlur] = useState(false)
+  const [showRightBlur, setShowRightBlur] = useState(true)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   // Fetch projects from API
   useEffect(() => {
@@ -152,6 +155,41 @@ export default function ProjectsPage() {
 
     fetchProjects()
   }, [])
+
+  // Handle scroll position to show/hide blur gradients
+  const handleScroll = () => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const { scrollLeft, scrollWidth, clientWidth } = container
+    const isAtStart = scrollLeft <= 5 // Small threshold for precision
+    const isAtEnd = scrollLeft >= scrollWidth - clientWidth - 5 // Small threshold for precision
+
+    setShowLeftBlur(!isAtStart)
+    setShowRightBlur(!isAtEnd)
+  }
+
+  // Set up scroll and resize listeners
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    // Initial check
+    handleScroll()
+
+    container.addEventListener('scroll', handleScroll, { passive: true })
+
+    const handleResize = () => {
+      // Recompute after resize
+      handleScroll()
+    }
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      container.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [projects])
 
   // Filter projects based on selected type and orientation (when videography)
   const filteredByType = selectedType === 'all' 
@@ -205,13 +243,24 @@ export default function ProjectsPage() {
         {/* Horizontal scrollable carousel with blur edges */}
         <div className="relative">
           {/* Left blur gradient */}
-          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background via-background/80 to-transparent z-10 pointer-events-none" />
+          <div 
+            className={`absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background via-background/80 to-transparent z-10 pointer-events-none transition-opacity duration-300 ${
+              showLeftBlur ? 'opacity-100' : 'opacity-0'
+            }`} 
+          />
           
           {/* Right blur gradient */}
-          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background via-background/80 to-transparent z-10 pointer-events-none" />
+          <div 
+            className={`absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background via-background/80 to-transparent z-10 pointer-events-none transition-opacity duration-300 ${
+              showRightBlur ? 'opacity-100' : 'opacity-0'
+            }`} 
+          />
           
           {/* Scrollable container with extra padding for hover animations */}
-          <div className="overflow-x-auto scrollbar-hide py-2">
+          <div 
+            ref={scrollContainerRef}
+            className="overflow-x-auto scrollbar-hide py-2"
+          >
             <div className="flex gap-4 pb-2 min-w-max px-2">
               {projectTypes.map((type, index) => (
                 <motion.div
