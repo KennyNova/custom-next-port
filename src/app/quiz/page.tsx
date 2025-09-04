@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -436,6 +436,25 @@ export default function QuizPage() {
     percentage: number
   }>>([])
   const [showBreakdown, setShowBreakdown] = useState(false)
+  const ctaAnchorRef = useRef<HTMLDivElement | null>(null)
+  const [ctaStuck, setCtaStuck] = useState(false)
+
+  useEffect(() => {
+    if (!showResults) return
+    const anchorEl = ctaAnchorRef.current
+    if (!anchorEl) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0]
+        setCtaStuck(!entry.isIntersecting)
+      },
+      { threshold: 0 }
+    )
+
+    observer.observe(anchorEl)
+    return () => observer.disconnect()
+  }, [showResults])
 
   // Filter questions based on conditions
   const getAvailableQuestions = () => {
@@ -852,35 +871,42 @@ export default function QuizPage() {
                   </p>
                 </div>
                 
-                <div className="flex flex-col gap-4">
-                  {/* Primary CTA - Quiz-based Consultation */}
-                  <Button
-                    onClick={handleBookQuizConsultation}
-                    disabled={calIsLoading}
-                    size="lg"
-                    className="w-full group bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg hover:shadow-xl hover:from-green-600 hover:to-emerald-700 transition-all"
-                  >
-                    {calIsLoading ? (
-                      'Opening Booking...'
-                    ) : (
-                      <>
-                        Book Quiz-Based Consultation
-                        <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-0.5" />
-                      </>
-                    )}
-                  </Button>
-                  
-                  {/* Secondary actions */}
-                  <div className="flex gap-4 justify-center">
-                    <Button variant="outline" size="sm" onClick={prevQuestion}>
-                      <ChevronLeft className="h-4 w-4 mr-2" />
-                      Previous
+                <div ref={ctaAnchorRef} className="h-0" />
+                <motion.div
+                  className="sticky bottom-4 z-40"
+                  initial={{ y: 16, opacity: 0 }}
+                  animate={{ y: ctaStuck ? 0 : 8, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className={`flex flex-col gap-4 rounded-xl border bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur p-4 ${ctaStuck ? 'shadow-lg ring-1 ring-border' : 'shadow-sm'}`}>
+                    {/* Primary CTA - Quiz-based Consultation */}
+                    <Button
+                      onClick={handleBookQuizConsultation}
+                      disabled={calIsLoading}
+                      size="lg"
+                      className="relative w-full overflow-hidden group bg-gradient-to-r from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-teal-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 hover:-translate-y-0.5 ring-1 ring-emerald-400/40 dark:ring-emerald-300/30 hover:ring-emerald-400/70 dark:hover:ring-emerald-300/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background after:absolute after:inset-0 after:-translate-x-full after:bg-gradient-to-r after:from-transparent after:via-white/30 after:to-transparent group-hover:after:translate-x-full after:transition-transform after:duration-700"
+                    >
+                      {calIsLoading ? (
+                        'Opening Booking...'
+                      ) : (
+                        <>
+                          Book Quiz-Based Consultation
+                          <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-0.5" />
+                        </>
+                      )}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={resetQuiz}>
-                      Retake Quiz
-                    </Button>
+                    {/* Secondary actions */}
+                    <div className="flex gap-4 justify-center">
+                      <Button variant="outline" size="sm" onClick={prevQuestion}>
+                        <ChevronLeft className="h-4 w-4 mr-2" />
+                        Previous
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={resetQuiz}>
+                        Retake Quiz
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </CardContent>
           </Card>
