@@ -26,7 +26,19 @@ export interface Project {
   slug: string;
   description: string;
   type: 'github' | 'homelab' | 'photography' | 'videography' | 'other';
-  images: string[]; // URLs
+  images: string[]; // URLs for thumbnails/photos
+  
+  // Mux video fields
+  videos?: {
+    muxAssetId: string;
+    muxPlaybackId: string;
+    thumbnailUrl?: string;
+    duration?: number;
+    status: 'uploading' | 'preparing' | 'ready' | 'error';
+    aspectRatio?: string; // e.g., "16:9", "9:16"
+    createdAt: Date;
+  }[];
+  
   technologies: string[];
   links: {
     github?: string;
@@ -115,4 +127,30 @@ export interface N8nTemplate {
   downloadUrl: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Mux Types
+export interface MuxAsset {
+  id: string;
+  status: 'preparing' | 'ready' | 'error';
+  playback_ids: Array<{
+    id: string;
+    policy: 'public' | 'signed';
+  }>;
+  duration?: number;
+  aspect_ratio?: string;
+  tracks: Array<{
+    type: 'video' | 'audio';
+    max_width?: number;
+    max_height?: number;
+  }>;
+}
+
+export interface MuxUpload {
+  id: string;
+  url: string;
+  status: 'waiting' | 'asset_created' | 'error' | 'cancelled';
+  new_asset_settings: {
+    playback_policy: 'public' | 'signed';
+  };
 }

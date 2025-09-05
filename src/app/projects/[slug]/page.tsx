@@ -30,11 +30,14 @@ import {
   ChevronRight,
   Maximize,
   Copy,
-  Check
+  Check,
+  AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ProjectDetailSkeleton } from '@/components/ui/project-detail-skeleton'
+import { MuxVideoPlayer, MuxVideoPlayerSkeleton } from '@/components/ui/mux-video-player'
+import { MuxService } from '@/lib/mux/services'
 import type { Project } from '@/types'
 
 interface GitHubStats {
@@ -468,6 +471,96 @@ export default function ProjectPage() {
                     </div>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Video Section */}
+        {project.videos && project.videos.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mb-8"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="h-5 w-5" />
+                  Videos
+                  {project.orientation && (
+                    <Badge variant="outline" className="ml-2">
+                      {project.orientation}
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  {project.videos.length === 1 
+                    ? 'Watch the project video' 
+                    : `${project.videos.length} videos available`}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className={`grid gap-6 ${
+                  project.orientation === 'vertical' 
+                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+                    : 'grid-cols-1 lg:grid-cols-2'
+                }`}>
+                  {project.videos
+                    .filter(video => video.status === 'ready')
+                    .map((video, index) => (
+                      <div key={video.muxAssetId} className="space-y-3">
+                        <MuxVideoPlayer
+                          playbackId={video.muxPlaybackId}
+                          orientation={project.orientation || 'horizontal'}
+                          title={project.title}
+                          poster={video.thumbnailUrl}
+                          autoPlay={false}
+                          muted={true}
+                          className="rounded-lg overflow-hidden"
+                        />
+                        <div className="space-y-1">
+                          {video.duration && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Calendar className="h-4 w-4" />
+                              Duration: {MuxService.formatDuration(video.duration)}
+                            </div>
+                          )}
+                          {video.aspectRatio && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Monitor className="h-4 w-4" />
+                              Aspect Ratio: {video.aspectRatio}
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Video className="h-4 w-4" />
+                            Added: {new Date(video.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+                
+                {/* Loading videos */}
+                {project.videos.some(video => video.status === 'preparing') && (
+                  <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Some videos are still processing and will appear once ready.</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Error videos */}
+                {project.videos.some(video => video.status === 'error') && (
+                  <div className="mt-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                    <div className="flex items-center gap-3 text-sm text-destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>Some videos failed to process. Please try uploading them again.</span>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
