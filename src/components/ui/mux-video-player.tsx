@@ -1,7 +1,7 @@
 'use client';
 
 import MuxPlayer from '@mux/mux-player-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -26,13 +26,15 @@ export function MuxVideoPlayer({
   className = '',
   showControls = true,
 }: MuxVideoPlayerProps) {
+  const playerRef = useRef<any>(null);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [isMuted, setIsMuted] = useState(muted);
   const [showCustomControls, setShowCustomControls] = useState(false);
 
-  const aspectRatioClass = orientation === 'vertical' 
+  // Use aspect ratio class only if no custom className is provided that might override sizing
+  const aspectRatioClass = className.includes('w-full h-full') ? '' : (orientation === 'vertical' 
     ? 'aspect-[9/16]' 
-    : 'aspect-video';
+    : 'aspect-video');
 
   return (
     <motion.div 
@@ -54,12 +56,13 @@ export function MuxVideoPlayer({
         style={{
           width: '100%',
           height: '100%',
-          objectFit: 'cover',
+          objectFit: orientation === 'vertical' ? 'contain' : 'cover',
         }}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onEnded={() => setIsPlaying(false)}
         className="w-full h-full"
+        ref={playerRef}
       />
       
       {/* Custom overlay controls (optional) */}
@@ -72,13 +75,21 @@ export function MuxVideoPlayer({
           animate={{ opacity: showCustomControls || !isPlaying ? 1 : 0 }}
         >
           {!isPlaying && (
-            <motion.div
+            <motion.button
+              type="button"
               className="bg-white/90 backdrop-blur-sm rounded-full p-4 cursor-pointer hover:bg-white transition-colors"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                try {
+                  if (playerRef.current) {
+                    playerRef.current.play?.();
+                  }
+                } catch {}
+              }}
             >
               <Play className="h-8 w-8 text-black ml-1" />
-            </motion.div>
+            </motion.button>
           )}
         </motion.div>
       )}
@@ -94,16 +105,17 @@ export function MuxVideoPlayer({
       </motion.div>
       
       {/* Muted indicator */}
-      {isMuted && (
-        <motion.div 
-          className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm rounded-full p-2 text-white"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.2 }}
-        >
-          <VolumeX className="h-4 w-4" />
-        </motion.div>
-      )}
+      <motion.button
+        type="button"
+        className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm rounded-full p-2 text-white"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.2 }}
+        onClick={() => setIsMuted(m => !m)}
+        aria-label={isMuted ? 'Unmute' : 'Mute'}
+      >
+        {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+      </motion.button>
     </motion.div>
   );
 }

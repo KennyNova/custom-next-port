@@ -14,7 +14,8 @@
     "test-mongodb": "node scripts/test-mongodb-connections.js",
     "verify-setup": "node verify-setup.js",
     "sync-mux": "node scripts/sync-mux-assets.js",
-    "assign-video": "node scripts/assign-video.js"
+    "assign-video": "node scripts/assign-video.js",
+    "create-project": "node scripts/create-test-project.js"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.31.6",

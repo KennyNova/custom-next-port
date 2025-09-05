@@ -63,11 +63,11 @@ async function assignVideoToProject(assetId, projectSlug, orientation) {
       console.warn(`⚠️  Asset status is "${asset.status}" - it may not be ready for playback yet.`);
     }
     
-    if (!asset.playbook_ids || asset.playbook_ids.length === 0) {
+    if (!asset.playback_ids || asset.playback_ids.length === 0) {
       throw new Error(`Asset ${assetId} has no playback IDs`);
     }
     
-    const playbackId = asset.playbook_ids[0].id;
+    const playbackId = asset.playback_ids[0].id;
     console.log(`✅ Asset found - Status: ${asset.status}, Playback ID: ${playbackId}\n`);
     
     // Connect to MongoDB

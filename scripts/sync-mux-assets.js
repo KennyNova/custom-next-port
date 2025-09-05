@@ -97,8 +97,8 @@ async function syncMuxAssets() {
       console.log(`   Aspect Ratio: ${asset.aspect_ratio || 'Unknown'}`);
       console.log(`   Orientation: ${orientation || 'Unknown'}`);
       
-      if (asset.playbook_ids && asset.playbook_ids.length > 0) {
-        console.log(`   Playback ID: ${asset.playbook_ids[0].id}`);
+      if (asset.playback_ids && asset.playback_ids.length > 0) {
+        console.log(`   Playback ID: ${asset.playback_ids[0].id}`);
       }
       
       console.log(`   To assign: node scripts/assign-video.js ${asset.id} PROJECT_SLUG ${orientation || 'horizontal'}\n`);

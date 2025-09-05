@@ -154,3 +154,33 @@ export interface MuxUpload {
     playback_policy: 'public' | 'signed';
   };
 }
+
+// Homelab Types
+export interface HomelabTechnologyLink {
+  label: string;
+  url: string;
+}
+
+export type HomelabTechnologyKind = 'hypervisor' | 'os' | 'cpu' | 'container' | 'driver' | 'distro' | 'service' | 'other';
+
+export interface HomelabTechnology {
+  slug: string;
+  name: string;
+  kind: HomelabTechnologyKind;
+  shortDescription: string;
+  whatItIs: string;
+  whyChosen: string;
+  howItFits: string;
+  keyDetails?: string[];
+  links?: HomelabTechnologyLink[];
+  iconKey: string; // maps to a UI icon
+  brandColor?: string; // hex color for accent
+}
+
+export interface HomelabHardwareSpec {
+  cpu: string;
+  memory: string;
+  storage: string;
+  motherboard: string;
+  gpu?: string;
+}

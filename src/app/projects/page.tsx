@@ -1,23 +1,29 @@
-'use client'
+	'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ProjectGridSkeleton } from '@/components/ui/project-card-skeleton'
+import { VideoCard, VideoGridSkeleton } from '@/components/ui/video-card'
+import { VideoModal } from '@/components/ui/video-modal'
 import { usePreload } from '@/lib/hooks/use-preload'
-import { Github, ExternalLink, Code2, Home, Camera, Wrench, Loader2, Video } from 'lucide-react'
+import { Github, ExternalLink, Code2, Home, Camera, Wrench, Loader2, Video, Cpu, MemoryStick, HardDrive, Server } from 'lucide-react'
 import Link from 'next/link'
 import type { Project } from '@/types'
+import { HomelabGrid } from '@/components/ui/homelab-grid'
+import { HomelabModal } from '@/components/ui/homelab-modal'
+import { HomelabArchitecture } from '@/components/ui/homelab-architecture'
+import { getHomelabTechnologies, getHomelabHardware } from '@/lib/homelab-data'
 
 const projectTypes = [
   { id: 'all', name: 'All Projects', icon: Code2 },
-  { id: 'github', name: 'GitHub Projects', icon: Github },
+  { id: 'github', name: 'GitHub', icon: Github },
   { id: 'homelab', name: 'Home Lab', icon: Home },
   { id: 'photography', name: 'Photography', icon: Camera },
   { id: 'videography', name: 'Videography', icon: Video },
-  { id: 'other', name: 'Other Projects', icon: Wrench },
+  // { id: 'other', name: 'Other Projects', icon: Wrench },
 ]
 
 const orientationOptions = [
@@ -27,21 +33,33 @@ const orientationOptions = [
 ]
 
 // Project Card Component with Preloading
-function ProjectCard({ project, index }: { project: Project; index: number }) {
+function ProjectCard({ project, index, onVideoPlay }: { 
+  project: Project; 
+  index: number; 
+  onVideoPlay?: (project: Project) => void;
+}) {
   const router = useRouter()
   const { startPreload, cancelPreload, cancelAllPreloads } = usePreload()
 
   const handleMouseEnter = () => {
-    startPreload(`/projects/${project.slug}`)
+    if (project.type !== 'videography') {
+      startPreload(`/projects/${project.slug}`)
+    }
   }
 
   const handleMouseLeave = () => {
-    cancelPreload(`/projects/${project.slug}`)
+    if (project.type !== 'videography') {
+      cancelPreload(`/projects/${project.slug}`)
+    }
   }
 
   const handleClick = () => {
     cancelAllPreloads()
-    router.push(`/projects/${project.slug}`)
+    if (project.type === 'videography' && onVideoPlay) {
+      onVideoPlay(project)
+    } else {
+      router.push(`/projects/${project.slug}`)
+    }
   }
 
   return (
@@ -57,18 +75,18 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {project.type === 'github' && <Github className="h-5 w-5" />}
-            {project.type === 'homelab' && <Home className="h-5 w-5" />}
-            {project.type === 'photography' && <Camera className="h-5 w-5" />}
-            {project.type === 'videography' && <Video className="h-5 w-5" />}
-            {project.type === 'other' && <Wrench className="h-5 w-5" />}
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            {project.type === 'github' && <Github className="h-4 w-4" />}
+            {project.type === 'homelab' && <Home className="h-4 w-4" />}
+            {project.type === 'photography' && <Camera className="h-4 w-4" />}
+            {project.type === 'videography' && <Video className="h-4 w-4" />}
+            {project.type === 'other' && <Wrench className="h-4 w-4" />}
             {project.title}
           </CardTitle>
-          <CardDescription>{project.description}</CardDescription>
+          <CardDescription className="text-xs line-clamp-2">{project.description}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           <div className="flex flex-wrap gap-2 mb-4">
             {project.type === 'videography' && project.orientation && (
               <span
@@ -112,6 +130,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 
 export default function ProjectsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -121,6 +140,17 @@ export default function ProjectsPage() {
   const [showLeftBlur, setShowLeftBlur] = useState(false)
   const [showRightBlur, setShowRightBlur] = useState(true)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  
+  // Video modal state
+  const [selectedVideoProject, setSelectedVideoProject] = useState<Project | null>(null)
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
+  const [initialVideoIndex, setInitialVideoIndex] = useState(0)
+
+  // Homelab modal state
+  const [homelabOpenSlug, setHomelabOpenSlug] = useState<string | null>(null)
+  const homelabTechnologies = getHomelabTechnologies()
+  const homelabSpecs = getHomelabHardware()
+  const activeHomelabTech = homelabOpenSlug ? (homelabTechnologies.find(t => t.slug === homelabOpenSlug) || null) : null
 
   // Fetch projects from API
   useEffect(() => {
@@ -190,6 +220,36 @@ export default function ProjectsPage() {
       window.removeEventListener('resize', handleResize)
     }
   }, [projects])
+
+  // Handle URL-based video modal
+  useEffect(() => {
+    const videoSlug = searchParams.get('video')
+    const videoIndex = searchParams.get('index')
+    
+    if (videoSlug && projects.length > 0) {
+      const project = projects.find(p => p.slug === videoSlug && p.type === 'videography')
+      if (project) {
+        setSelectedVideoProject(project)
+        setInitialVideoIndex(videoIndex ? parseInt(videoIndex, 10) : 0)
+        setIsVideoModalOpen(true)
+      }
+    } else {
+      setIsVideoModalOpen(false)
+      setSelectedVideoProject(null)
+    }
+  }, [searchParams, projects])
+
+  // Video modal handlers
+  const handleVideoPlay = (project: Project, videoIndex: number = 0) => {
+    setSelectedVideoProject(project)
+    setInitialVideoIndex(videoIndex)
+    setIsVideoModalOpen(true)
+  }
+
+  const handleVideoModalClose = () => {
+    setIsVideoModalOpen(false)
+    setSelectedVideoProject(null)
+  }
 
   // Filter projects based on selected type and orientation (when videography)
   const filteredByType = selectedType === 'all' 
@@ -286,11 +346,7 @@ export default function ProjectsPage() {
                       <type.icon className="h-8 w-8 mx-auto text-primary mb-2" />
                       <CardTitle className="text-lg">{type.name}</CardTitle>
                       <CardDescription>
-                        {loading ? (
-                          <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                        ) : (
-                          `${projectCounts[type.id] || 0} projects`
-                        )}
+                        
                       </CardDescription>
                     </CardHeader>
                   </Card>
@@ -330,16 +386,29 @@ export default function ProjectsPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          <h2 className="text-2xl font-bold mb-6">Featured Projects</h2>
-          <ProjectGridSkeleton count={3} />
+          {selectedType !== 'videography' && (
+            <>
+              <h2 className="text-2xl font-bold mb-6">Featured Projects</h2>
+              <ProjectGridSkeleton count={3} />
+            </>
+          )}
           
-          <h2 className="text-2xl font-bold mb-6 mt-12">All Projects</h2>
-          <ProjectGridSkeleton count={6} />
+          <h2 className="text-2xl font-bold mb-6 mt-12">
+            {selectedType === 'videography' ? 'Video Projects' : 'All Projects'}
+          </h2>
+          {selectedType === 'videography' ? (
+            <VideoGridSkeleton 
+              count={6} 
+              orientation={selectedOrientation === 'all' ? 'horizontal' : selectedOrientation}
+            />
+          ) : (
+            <ProjectGridSkeleton count={6} />
+          )}
         </motion.section>
       )}
 
       {/* Featured Projects */}
-      {!loading && featuredProjects.length > 0 && (
+      {!loading && featuredProjects.length > 0 && selectedType !== 'videography' && selectedType !== 'homelab' && (
         <motion.section
           className="mb-12"
           initial={{ opacity: 0 }}
@@ -347,9 +416,14 @@ export default function ProjectsPage() {
           transition={{ duration: 0.8, delay: 0.4 }}
         >
           <h2 className="text-2xl font-bold mb-6">Featured Projects</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {featuredProjects.map((project, index) => (
-              <ProjectCard key={project._id.toString()} project={project} index={index} />
+              <ProjectCard 
+                key={project._id.toString()} 
+                project={project} 
+                index={index}
+                onVideoPlay={handleVideoPlay}
+              />
             ))}
           </div>
         </motion.section>
@@ -362,22 +436,156 @@ export default function ProjectsPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
         >
-          <h2 className="text-2xl font-bold mb-6">
-            {selectedType === 'all' ? 'All Projects' : `${projectTypes.find(t => t.id === selectedType)?.name || 'Projects'}`}
-          </h2>
-          {filteredProjects.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No projects found in this category.</p>
+          {selectedType === 'homelab' ? (
+            <div className="space-y-10">
+              <div className="text-center mb-2">
+                <h2 className="text-2xl font-bold">Home Lab</h2>
+                <p className="text-muted-foreground">Proxmox host → CasaOS → Docker apps</p>
+              </div>
+
+              {/* Technologies */}
+              <section>
+                <h3 className="text-xl font-semibold mb-4">Technologies</h3>
+                <HomelabGrid
+                  items={homelabTechnologies}
+                  onSelect={(item) => setHomelabOpenSlug(item.slug)}
+                />
+              </section>
+
+              {/* Server Specifications */}
+              <section>
+                <h3 className="text-xl font-semibold mb-4">Server Specifications</h3>
+                <Card>
+                  <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <Cpu className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">CPU</p>
+                        <p className="font-medium">{homelabSpecs.cpu}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <MemoryStick className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">RAM</p>
+                        <p className="font-medium">{homelabSpecs.memory}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <HardDrive className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Storage</p>
+                        <p className="font-medium">{homelabSpecs.storage}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-primary/10">
+                        <Server className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Motherboard</p>
+                        <p className="font-medium">{homelabSpecs.motherboard}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Architecture Overview */}
+              <section>
+                <h3 className="text-xl font-semibold mb-4">Architecture Overview</h3>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base text-muted-foreground">Proxmox VE → CasaOS → Docker Apps</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <HomelabArchitecture />
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Homelab Modal */}
+              <HomelabModal
+                technology={activeHomelabTech}
+                isOpen={Boolean(activeHomelabTech)}
+                onClose={() => setHomelabOpenSlug(null)}
+              />
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProjects.map((project, index) => (
-                <ProjectCard key={project._id.toString()} project={project} index={index} />
-              ))}
-            </div>
+            <>
+              <h2 className="text-2xl font-bold mb-6">
+                {selectedType === 'all' ? 'All Projects' : `${projectTypes.find(t => t.id === selectedType)?.name || 'Projects'}`}
+              </h2>
+              {filteredProjects.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No projects found in this category.</p>
+                </div>
+              ) : selectedType === 'videography' ? (
+                <motion.div 
+                  className={`grid gap-4 ${
+                  selectedOrientation === 'vertical' 
+                    ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' 
+                    : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                }`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ staggerChildren: 0.05, duration: 0.3 }}
+                  layout
+                >
+                  {filteredProjects.map((project, index) => (
+                    <div key={project._id.toString()}>
+                      <VideoCard 
+                        project={project} 
+                        onPlay={handleVideoPlay} 
+                        index={index} 
+                      />
+                    </div>
+                  ))}
+                </motion.div>
+              ) : (
+                <motion.div 
+                  className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ staggerChildren: 0.05, duration: 0.3 }}
+                  layout
+                >
+                  {filteredProjects.map((project, index) => (
+                    <div key={project._id.toString()}>
+                      <ProjectCard 
+                        project={project} 
+                        index={index}
+                        onVideoPlay={handleVideoPlay}
+                      />
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+            </>
           )}
         </motion.section>
       )}
+
+      {/* Video Modal */}
+      <VideoModal
+        project={selectedVideoProject}
+        isOpen={isVideoModalOpen}
+        onClose={handleVideoModalClose}
+        initialVideoIndex={initialVideoIndex}
+      />
+
+      {/* Homelab Modal duplication safeguard for SSR hydration order */}
+      <HomelabModal
+        technology={activeHomelabTech}
+        isOpen={Boolean(activeHomelabTech)}
+        onClose={() => setHomelabOpenSlug(null)}
+      />
     </div>
   )
 }

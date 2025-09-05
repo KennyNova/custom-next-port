@@ -4,6 +4,11 @@ import type { MuxAsset } from '@/types';
 export class MuxService {
   // Get all assets from Mux
   static async getAllAssets(): Promise<MuxAsset[]> {
+    if (!mux) {
+      console.warn('Mux client not available. Returning empty assets list.');
+      return [];
+    }
+    
     try {
       const response = await mux.video.assets.list();
       return response.data.map(asset => ({
@@ -22,6 +27,10 @@ export class MuxService {
 
   // Get asset details by ID
   static async getAsset(assetId: string): Promise<MuxAsset> {
+    if (!mux) {
+      throw new Error('Mux client not available');
+    }
+    
     try {
       const asset = await mux.video.assets.retrieve(assetId);
       return {
