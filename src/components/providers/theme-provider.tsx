@@ -37,14 +37,14 @@ export function ThemeProvider({
   // Load theme from localStorage on mount
   useEffect(() => {
     const storedTheme = localStorage.getItem('theme') as Theme
-    if (storedTheme && (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'pastel' || storedTheme === 'system')) {
+    if (storedTheme && (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'pastel' || storedTheme === 'coffee' || storedTheme === 'developer' || storedTheme === 'system')) {
       setTheme(storedTheme)
     }
   }, [])
 
   useEffect(() => {
     const root = window.document.documentElement
-    root.classList.remove('light', 'dark', 'pastel')
+    root.classList.remove('light', 'dark', 'pastel', 'coffee', 'developer')
 
     if (theme === 'system' && enableSystem) {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches

@@ -79,7 +79,7 @@ export interface Signature {
 }
 
 // Theme Types
-export type Theme = 'light' | 'dark' | 'pastel' | 'system';
+export type Theme = 'light' | 'dark' | 'pastel' | 'coffee' | 'developer' | 'system';
 
 export interface ThemeConfig {
   name: Theme;

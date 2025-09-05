@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Moon, Sun, Palette } from 'lucide-react'
+import { Moon, Sun, Palette, Coffee, Terminal } from 'lucide-react'
 import { useTheme } from '@/components/providers/theme-provider'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,6 +35,14 @@ export function ThemeToggle() {
         <DropdownMenuItem onClick={() => setTheme('pastel')}>
           <Palette className="mr-2 h-4 w-4" />
           Pastel
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('coffee')}>
+          <Coffee className="mr-2 h-4 w-4" />
+          Coffee
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('developer')}>
+          <Terminal className="mr-2 h-4 w-4" />
+          Developer
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

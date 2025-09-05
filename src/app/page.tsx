@@ -7,11 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { HomepageSkeleton } from '@/components/ui/homepage-skeleton'
 import { PreloadLink } from '@/components/ui/preload-link'
 import WhispyBackground from '@/components/layout/whispy-background'
+import { useTheme } from '@/components/providers/theme-provider'
 import Link from 'next/link'
 import { ArrowRight, Code2, PenTool, Puzzle, Calendar, Rocket, Sparkles, Workflow } from 'lucide-react'
 
 export default function HomePage() {
   const [isPrefetching, setIsPrefetching] = useState(false)
+  const { theme } = useTheme()
 
   // Prefetch projects data in background after page loads (non-blocking)
   useEffect(() => {
@@ -54,7 +56,7 @@ export default function HomePage() {
       
       {/* Optional: Small loading indicator for background prefetching */}
       {isPrefetching && (
-        <div className="fixed top-4 right-4 z-50 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 border shadow-lg">
+        <div className="fixed bottom-4 left-4 z-50 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 border shadow-lg">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-primary/60 rounded-full animate-pulse"></div>
             <span className="text-xs text-muted-foreground">Preloading...</span>
@@ -66,15 +68,23 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="text-center py-20">
         <div className="pb-4">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-float leading-tight py-2 bg-gradient-to-r bg-clip-text text-transparent
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight py-2 bg-gradient-to-r bg-clip-text text-transparent
             /* Light theme gradient */
             from-blue-600 via-purple-600 to-blue-800
             /* Dark theme gradient */
             dark:from-blue-400 dark:via-purple-400 dark:to-cyan-400
             /* Pastel theme gradient with better contrast */
             pastel:from-pink-600 pastel:via-purple-500 pastel:to-teal-600
+            /* Coffee theme gradient */
+            coffee:from-coffee-espresso coffee:via-coffee-cinnamon coffee:to-coffee-caramel
+            /* Developer theme gradient */
+            developer:from-matrix-green developer:via-matrix-bright developer:to-matrix-glow
             /* Fallback for non-gradient support */
-            [&:not(.bg-clip-text)]:text-foreground">
+            [&:not(.bg-clip-text)]:text-foreground
+            /* Theme-specific animations */
+            animate-float
+            developer:animate-matrix-flicker
+            coffee:animate-coffee-aroma">
             The Practical Cinematic Engineer
           </h1>
         </div>
@@ -82,6 +92,24 @@ export default function HomePage() {
           A blend of technical rigor and visual craft 
         </p>
         <p className="text-lg italic md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-scale-in">for makers who enjoy both</p>
+        
+        
+        {theme === 'coffee' && (
+          <div className="absolute inset-0 pointer-events-none flex justify-center">
+            <div className="relative">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-2 h-8 bg-coffee-caramel/30 rounded-full animate-coffee-steam"
+                  style={{
+                    left: `${-10 + i * 10}px`,
+                    animationDelay: `${i * 0.5}s`
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-scale-in">
           {/* Main CTA Button - Explore My Work */}
           <Link href="/projects" prefetch={true}>

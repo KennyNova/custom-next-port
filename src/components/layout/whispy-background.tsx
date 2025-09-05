@@ -40,6 +40,20 @@ const WhispyBackground = () => {
           accent: 'rgba(175, 238, 238, 0.3)',
           glow: 'rgba(255, 182, 193, 0.6)'
         }
+      case 'coffee':
+        return {
+          primary: 'rgba(139, 83, 61, 0.4)',    // coffee-cinnamon
+          secondary: 'rgba(101, 67, 33, 0.3)',  // coffee-espresso  
+          accent: 'rgba(160, 113, 92, 0.2)',    // coffee-mocha
+          glow: 'rgba(184, 123, 88, 0.5)'       // coffee-caramel
+        }
+      case 'developer':
+        return {
+          primary: 'rgba(0, 255, 65, 0.6)',     // matrix-green
+          secondary: 'rgba(0, 255, 65, 0.4)',   // matrix-bright
+          accent: 'rgba(0, 255, 65, 0.2)',      // matrix-dim
+          glow: 'rgba(0, 255, 95, 0.8)'         // matrix-glow
+        }
       default: // light
         return {
           primary: 'rgba(59, 130, 246, 0.3)',
@@ -206,6 +220,28 @@ const WhispyBackground = () => {
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
           </filter>
+
+          {/* Matrix-style glow for hacker theme */}
+          <filter id="matrix-glow">
+            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+            <feFlood flood-color="#00ff41" flood-opacity="0.8" result="flood"/>
+            <feComposite in="flood" in2="coloredBlur" operator="in" result="compositeBlur"/>
+            <feMerge> 
+              <feMergeNode in="compositeBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+
+          {/* Coffee steam effect */}
+          <filter id="coffee-glow">
+            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+            <feFlood flood-color="#d2691e" flood-opacity="0.6" result="flood"/>
+            <feComposite in="flood" in2="coloredBlur" operator="in" result="compositeBlur"/>
+            <feMerge> 
+              <feMergeNode in="compositeBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
 
         {lines.map((line, index) => {
@@ -223,6 +259,23 @@ const WhispyBackground = () => {
           // Combine both effects with the base opacity
           const finalOpacity = line.opacity * fadeInOpacity * fadeOutOpacity
           
+          // Theme-specific effects
+          const getFilterEffect = () => {
+            switch (theme) {
+              case 'developer':
+                return 'url(#matrix-glow)'
+              case 'coffee':
+                return 'url(#coffee-glow)'
+              default:
+                return 'url(#glow)'
+            }
+          }
+
+          // Developer theme: smooth opacity transitions
+          const getOpacity = () => {
+            return finalOpacity
+          }
+          
           return (
             <line
               key={line.id}
@@ -232,9 +285,9 @@ const WhispyBackground = () => {
               y2={line.endY}
               stroke={`url(#${gradientId})`}
               strokeWidth={line.strokeWidth}
-              opacity={finalOpacity}
+              opacity={getOpacity()}
               strokeLinecap="round"
-              filter="url(#glow)"
+              filter={getFilterEffect()}
               className="transition-all duration-100 ease-in-out"
             />
           )
