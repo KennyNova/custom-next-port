@@ -9,7 +9,7 @@ export class MuxService {
       return response.data.map(asset => ({
         id: asset.id!,
         status: asset.status as any,
-        playback_ids: asset.playbook_ids as any,
+        playback_ids: asset.playback_ids as any,
         duration: asset.duration,
         aspect_ratio: asset.aspect_ratio,
         tracks: asset.tracks as any,
@@ -27,7 +27,7 @@ export class MuxService {
       return {
         id: asset.id!,
         status: asset.status as any,
-        playback_ids: asset.playbook_ids as any,
+        playback_ids: asset.playback_ids as any,
         duration: asset.duration,
         aspect_ratio: asset.aspect_ratio,
         tracks: asset.tracks as any,

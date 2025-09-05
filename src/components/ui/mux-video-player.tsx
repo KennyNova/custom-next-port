@@ -51,7 +51,6 @@ export function MuxVideoPlayer({
         autoPlay={autoPlay ? 'muted' : false}
         muted={isMuted}
         poster={poster}
-        controls={showControls}
         style={{
           width: '100%',
           height: '100%',
