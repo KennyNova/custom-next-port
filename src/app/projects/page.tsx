@@ -1,6 +1,6 @@
 	'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,13 +9,13 @@ import { ProjectGridSkeleton } from '@/components/ui/project-card-skeleton'
 import { VideoCard, VideoGridSkeleton } from '@/components/ui/video-card'
 import { VideoModal } from '@/components/ui/video-modal'
 import { usePreload } from '@/lib/hooks/use-preload'
-import { Github, ExternalLink, Code2, Home, Camera, Wrench, Loader2, Video, Cpu, MemoryStick, HardDrive, Server } from 'lucide-react'
+import { Github, ExternalLink, Code2, Home, Camera, Wrench, Loader2, Video, Cpu, MemoryStick, HardDrive, Server, Monitor } from 'lucide-react'
 import Link from 'next/link'
 import type { Project } from '@/types'
 import { HomelabGrid } from '@/components/ui/homelab-grid'
 import { HomelabModal } from '@/components/ui/homelab-modal'
-import { HomelabArchitecture } from '@/components/ui/homelab-architecture'
-import { getHomelabTechnologies, getHomelabHardware } from '@/lib/homelab-data'
+import { InteractiveHomelabFlowchart } from '@/components/ui/interactive-homelab-flowchart'
+import { getHomelabTechnologies, getHomelabHardware, getHomelabNodes } from '@/lib/homelab-data'
 
 const projectTypes = [
   { id: 'all', name: 'All Projects', icon: Code2 },
@@ -128,7 +128,7 @@ function ProjectCard({ project, index, onVideoPlay }: {
   )
 }
 
-export default function ProjectsPage() {
+function ProjectsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [projects, setProjects] = useState<Project[]>([])
@@ -150,7 +150,8 @@ export default function ProjectsPage() {
   const [homelabOpenSlug, setHomelabOpenSlug] = useState<string | null>(null)
   const homelabTechnologies = getHomelabTechnologies()
   const homelabSpecs = getHomelabHardware()
-  const activeHomelabTech = homelabOpenSlug ? (homelabTechnologies.find(t => t.slug === homelabOpenSlug) || null) : null
+  const homelabNodes = getHomelabNodes()
+  const activeHomelabTech = homelabOpenSlug ? (homelabTechnologies.find((t: any) => t.slug === homelabOpenSlug) || null) : null
 
   // Fetch projects from API
   useEffect(() => {
@@ -437,77 +438,158 @@ export default function ProjectsPage() {
           transition={{ duration: 0.8, delay: 0.6 }}
         >
           {selectedType === 'homelab' ? (
-            <div className="space-y-10">
-              <div className="text-center mb-2">
+            <div className="space-y-8">
+              <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold">Home Lab</h2>
-                <p className="text-muted-foreground">Proxmox host → CasaOS → Docker apps</p>
+                <p className="text-muted-foreground">Hardware → Proxmox VE → CasaOS, Coolify, Home Assistant & More</p>
               </div>
-
-              {/* Technologies */}
-              <section>
-                <h3 className="text-xl font-semibold mb-4">Technologies</h3>
-                <HomelabGrid
-                  items={homelabTechnologies}
-                  onSelect={(item) => setHomelabOpenSlug(item.slug)}
-                />
-              </section>
 
               {/* Server Specifications */}
               <section>
                 <h3 className="text-xl font-semibold mb-4">Server Specifications</h3>
                 <Card>
-                  <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <Cpu className="h-5 w-5 text-primary" />
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {/* CPU */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-red-500/10">
+                            <Cpu className="h-5 w-5 text-red-500" />
+                          </div>
+                          <h4 className="font-semibold text-red-500">Processor</h4>
+                        </div>
+                        <div className="space-y-1 pl-10">
+                          <p className="font-medium">{homelabSpecs.cpu}</p>
+                          <p className="text-sm text-muted-foreground">{homelabSpecs.cores}</p>
+                          <p className="text-xs text-muted-foreground">{homelabSpecs.baseClockPowerSpecStorage}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">CPU</p>
-                        <p className="font-medium">{homelabSpecs.cpu}</p>
+
+                      {/* Memory */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-blue-500/10">
+                            <MemoryStick className="h-5 w-5 text-blue-500" />
+                          </div>
+                          <h4 className="font-semibold text-blue-500">Memory</h4>
+                        </div>
+                        <div className="space-y-1 pl-10">
+                          <p className="font-medium">{homelabSpecs.memory}</p>
+                          <p className="text-sm text-muted-foreground">DDR4 DIMM</p>
+                          <p className="text-xs text-muted-foreground">ECC Support</p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <MemoryStick className="h-5 w-5 text-primary" />
+
+                      {/* Storage */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-green-500/10">
+                            <HardDrive className="h-5 w-5 text-green-500" />
+                          </div>
+                          <h4 className="font-semibold text-green-500">Storage</h4>
+                        </div>
+                        <div className="space-y-1 pl-10">
+                          <p className="font-medium">{homelabSpecs.storage}</p>
+                          <p className="text-sm text-muted-foreground">NVMe + SATA</p>
+                          <p className="text-xs text-muted-foreground">ZFS RAID-1</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">RAM</p>
-                        <p className="font-medium">{homelabSpecs.memory}</p>
+
+                      {/* Motherboard */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-purple-500/10">
+                            <Server className="h-5 w-5 text-purple-500" />
+                          </div>
+                          <h4 className="font-semibold text-purple-500">Motherboard</h4>
+                        </div>
+                        <div className="space-y-1 pl-10">
+                          <p className="font-medium">{homelabSpecs.motherboard}</p>
+                          <p className="text-sm text-muted-foreground">AMD B550 Chipset</p>
+                          <p className="text-xs text-muted-foreground">PCIe 4.0 Support</p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <HardDrive className="h-5 w-5 text-primary" />
+
+                      {/* Graphics */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-orange-500/10">
+                            <Monitor className="h-5 w-5 text-orange-500" />
+                          </div>
+                          <h4 className="font-semibold text-orange-500">Graphics</h4>
+                        </div>
+                        <div className="space-y-1 pl-10">
+                          <p className="font-medium">{homelabSpecs.gpu}</p>
+                          <p className="text-sm text-muted-foreground">Hardware Acceleration</p>
+                          <p className="text-xs text-muted-foreground">Media Transcoding</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Storage</p>
-                        <p className="font-medium">{homelabSpecs.storage}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <Server className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Motherboard</p>
-                        <p className="font-medium">{homelabSpecs.motherboard}</p>
+
+                      {/* Operating System */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-slate-500/10">
+                            <Server className="h-5 w-5 text-slate-500" />
+                          </div>
+                          <h4 className="font-semibold text-slate-500">Base OS</h4>
+                        </div>
+                        <div className="space-y-1 pl-10">
+                          <p className="font-medium">Debian 12 (Bookworm)</p>
+                          <p className="text-sm text-muted-foreground">Stable Branch</p>
+                          <p className="text-xs text-muted-foreground">All VMs & Containers</p>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </section>
 
-              {/* Architecture Overview */}
+              {/* Interactive Architecture Flowchart */}
               <section>
-                <h3 className="text-xl font-semibold mb-4">Architecture Overview</h3>
+                <h3 className="text-xl font-semibold mb-4">Interactive Architecture</h3>
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base text-muted-foreground">Proxmox VE → CasaOS → Docker Apps</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <HomelabArchitecture />
+                  <CardContent className="p-6">
+                    <div className="mb-4">
+                      <p className="text-sm text-muted-foreground">
+                        Explore the complete homelab setup. Pan the canvas to navigate, scroll to zoom, and click nodes for detailed information.
+                      </p>
+                    </div>
+                    <InteractiveHomelabFlowchart
+                      nodes={homelabNodes}
+                    />
                   </CardContent>
                 </Card>
+              </section>
+
+              {/* Quick Stats */}
+              <section>
+                <h3 className="text-xl font-semibold mb-4">Services Overview</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-blue-500">50+</div>
+                      <div className="text-sm text-muted-foreground">Docker Containers</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-green-500">5</div>
+                      <div className="text-sm text-muted-foreground">Core Services</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-purple-500">1</div>
+                      <div className="text-sm text-muted-foreground">Physical Server</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-orange-500">24/7</div>
+                      <div className="text-sm text-muted-foreground">Uptime</div>
+                    </CardContent>
+                  </Card>
+                </div>
               </section>
 
               {/* Homelab Modal */}
@@ -587,5 +669,23 @@ export default function ProjectsPage() {
         onClose={() => setHomelabOpenSlug(null)}
       />
     </div>
+  )
+}
+
+export default function ProjectsPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold mb-4">Projects</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Explore my professional work, personal projects, and creative endeavors across different technologies and domains.
+          </p>
+        </div>
+        <ProjectGridSkeleton count={6} />
+      </div>
+    }>
+      <ProjectsPageContent />
+    </Suspense>
   )
 }

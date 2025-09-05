@@ -1,4 +1,5 @@
-import { Metadata } from 'next'
+'use client'
+
 import { useState } from 'react'
 import { getHomelabHardware, getHomelabTechnologies, getDefaultHomelabOgImage } from '@/lib/homelab-data'
 import { HomelabGrid } from '@/components/ui/homelab-grid'
@@ -7,15 +8,7 @@ import { HomelabArchitecture } from '@/components/ui/homelab-architecture'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Cpu, HardDrive, Server, MemoryStick } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: 'Homelab – Interactive Stack and Specs',
-  description: 'Explore my self-hosted homelab: Proxmox VE, CasaOS, Docker apps, and hardware specs.',
-  openGraph: {
-    title: 'Homelab – Interactive Stack and Specs',
-    description: 'Explore my self-hosted homelab: Proxmox VE, CasaOS, Docker apps, and hardware specs.',
-    images: [{ url: getDefaultHomelabOgImage() }],
-  },
-}
+// Note: Metadata moved to layout.tsx since this is now a client component
 
 export default function HomelabPage() {
   const technologies = getHomelabTechnologies()

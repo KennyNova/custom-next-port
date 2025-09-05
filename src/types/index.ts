@@ -175,6 +175,7 @@ export interface HomelabTechnology {
   links?: HomelabTechnologyLink[];
   iconKey: string; // maps to a UI icon
   brandColor?: string; // hex color for accent
+  replaces?: string; // what technologies/services this replaces
 }
 
 export interface HomelabHardwareSpec {
@@ -183,4 +184,20 @@ export interface HomelabHardwareSpec {
   storage: string;
   motherboard: string;
   gpu?: string;
+  cores?: string;
+  baseClockPowerSpecStorage?: string;
+}
+
+export interface HomelabNode {
+  id: string;
+  name: string;
+  type: 'hardware' | 'hypervisor' | 'vm' | 'service' | 'app';
+  description: string;
+  icon: string;
+  color: string;
+  position: { x: number; y: number };
+  parentId?: string;
+  children?: string[];
+  url?: string;
+  category?: string;
 }
