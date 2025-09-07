@@ -18,10 +18,13 @@ const isPublicRoute = createRouteMatcher([
   '/terms',
   '/sign-in',
   '/sign-up',
+  '/admin/photos', // Admin photo management
   '/api/blog',
   '/api/blog/(.*)',
   '/api/projects',
   '/api/projects/(.*)',
+  '/api/photos',
+  '/api/photos/(.*)',
   '/api/webhook/(.*)', // Webhook routes should be public
 ]);
 

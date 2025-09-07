@@ -12,14 +12,21 @@ Create this file in your project root:
 MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@port.ca4zksq.mongodb.net/portfolio-blog?retryWrites=true&w=majority
 
 # Replace YOUR_USERNAME and YOUR_PASSWORD with the credentials you just created in MongoDB Atlas
+
+# Vercel Blob Storage for Photos
+BLOB_READ_WRITE_TOKEN=your_vercel_blob_token
 ```
 
 ### **2. Vercel Production Environment**
-Add this in Vercel Dashboard → Settings → Environment Variables:
+Add these in Vercel Dashboard → Settings → Environment Variables:
 
 ```
 Name: MONGODB_URI
 Value: mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@port.ca4zksq.mongodb.net/portfolio-blog?retryWrites=true&w=majority
+Environments: ✅ Production, ✅ Preview, ✅ Development
+
+Name: BLOB_READ_WRITE_TOKEN
+Value: your_vercel_blob_token
 Environments: ✅ Production, ✅ Preview, ✅ Development
 ```
 

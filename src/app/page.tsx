@@ -15,6 +15,26 @@ export default function HomePage() {
   const [isPrefetching, setIsPrefetching] = useState(false)
   const { theme } = useTheme()
 
+  // Get the appropriate gradient class for the current theme
+  const getHeroGradientClass = () => {
+    switch (theme) {
+      case 'dark':
+        return 'hero-gradient--dark'
+      case 'light':
+        return 'hero-gradient--light'
+      case 'pastel':
+        return 'hero-gradient--pastel'
+      case 'coffee':
+        return 'hero-gradient--coffee'
+      case 'developer':
+        return 'hero-gradient--developer'
+      case 'system':
+        return 'hero-gradient--light' // fallback for system
+      default:
+        return 'hero-gradient--light'
+    }
+  }
+
   // Prefetch projects data in background after page loads (non-blocking)
   useEffect(() => {
     const prefetchProjects = async () => {
@@ -68,23 +88,9 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="text-center py-20">
         <div className="pb-4">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight py-2 bg-gradient-to-r bg-clip-text text-transparent
-            /* Light theme gradient */
-            from-blue-600 via-purple-600 to-blue-800
-            /* Dark theme gradient */
-            dark:from-blue-400 dark:via-purple-400 dark:to-cyan-400
-            /* Pastel theme gradient with better contrast */
-            pastel:from-pink-600 pastel:via-purple-500 pastel:to-teal-600
-            /* Coffee theme gradient */
-            coffee:from-coffee-espresso coffee:via-coffee-cinnamon coffee:to-coffee-caramel
-            /* Developer theme gradient */
-            developer:from-matrix-green developer:via-matrix-bright developer:to-matrix-glow
-            /* Fallback for non-gradient support */
-            [&:not(.bg-clip-text)]:text-foreground
+          <h1 className={`text-5xl md:text-7xl font-bold mb-6 leading-tight py-2 ${getHeroGradientClass()}
             /* Theme-specific animations */
-            animate-float
-            developer:animate-matrix-flicker
-            coffee:animate-coffee-aroma">
+            animate-float developer:animate-matrix-flicker coffee:animate-coffee-aroma`}>
             The Practical Cinematic Engineer
           </h1>
         </div>

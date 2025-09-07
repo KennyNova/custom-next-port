@@ -15,7 +15,10 @@ import type { Project } from '@/types'
 import { HomelabGrid } from '@/components/ui/homelab-grid'
 import { HomelabModal } from '@/components/ui/homelab-modal'
 import { InteractiveHomelabFlowchart } from '@/components/ui/interactive-homelab-flowchart'
+import { PhotoGrid, PhotoGridSkeleton } from '@/components/ui/photo-grid'
+import { PhotoModal } from '@/components/ui/photo-modal'
 import { getHomelabTechnologies, getHomelabHardware, getHomelabNodes } from '@/lib/homelab-data'
+import type { Photo } from '@/types'
 
 const projectTypes = [
   { id: 'all', name: 'All Projects', icon: Code2 },
@@ -146,6 +149,13 @@ function ProjectsPageContent() {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
   const [initialVideoIndex, setInitialVideoIndex] = useState(0)
 
+  // Photo state
+  const [photos, setPhotos] = useState<Photo[]>([])
+  const [photosLoading, setPhotosLoading] = useState(false)
+  const [photosError, setPhotosError] = useState<string | null>(null)
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false)
+
   // Homelab modal state
   const [homelabOpenSlug, setHomelabOpenSlug] = useState<string | null>(null)
   const homelabTechnologies = getHomelabTechnologies()
@@ -222,6 +232,36 @@ function ProjectsPageContent() {
     }
   }, [projects])
 
+  // Fetch photos when photography filter is selected
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      if (selectedType !== 'photography') {
+        setPhotos([])
+        return
+      }
+
+      try {
+        setPhotosLoading(true)
+        setPhotosError(null)
+        
+        const response = await fetch('/api/photos?sort=order&limit=50')
+        if (!response.ok) {
+          throw new Error(`Failed to fetch photos: ${response.status}`)
+        }
+        
+        const data = await response.json()
+        setPhotos(data.photos || [])
+      } catch (err) {
+        setPhotosError(err instanceof Error ? err.message : 'Failed to fetch photos')
+        console.error('Error fetching photos:', err)
+      } finally {
+        setPhotosLoading(false)
+      }
+    }
+
+    fetchPhotos()
+  }, [selectedType])
+
   // Handle URL-based video modal
   useEffect(() => {
     const videoSlug = searchParams.get('video')
@@ -250,6 +290,17 @@ function ProjectsPageContent() {
   const handleVideoModalClose = () => {
     setIsVideoModalOpen(false)
     setSelectedVideoProject(null)
+  }
+
+  // Photo modal handlers
+  const handlePhotoClick = (photo: Photo) => {
+    const photoIndex = photos.findIndex(p => p._id.toString() === photo._id.toString())
+    setSelectedPhotoIndex(photoIndex >= 0 ? photoIndex : 0)
+    setIsPhotoModalOpen(true)
+  }
+
+  const handlePhotoModalClose = () => {
+    setIsPhotoModalOpen(false)
   }
 
   // Filter projects based on selected type and orientation (when videography)
@@ -387,7 +438,7 @@ function ProjectsPageContent() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          {selectedType !== 'videography' && (
+          {selectedType !== 'videography' && selectedType !== 'photography' && (
             <>
               <h2 className="text-2xl font-bold mb-6">Featured Projects</h2>
               <ProjectGridSkeleton count={3} />
@@ -395,13 +446,16 @@ function ProjectsPageContent() {
           )}
           
           <h2 className="text-2xl font-bold mb-6 mt-12">
-            {selectedType === 'videography' ? 'Video Projects' : 'All Projects'}
+            {selectedType === 'videography' ? 'Video Projects' : 
+             selectedType === 'photography' ? 'Photography' : 'All Projects'}
           </h2>
           {selectedType === 'videography' ? (
             <VideoGridSkeleton 
               count={6} 
               orientation={selectedOrientation === 'all' ? 'horizontal' : selectedOrientation}
             />
+          ) : selectedType === 'photography' ? (
+            <PhotoGridSkeleton count={8} />
           ) : (
             <ProjectGridSkeleton count={6} />
           )}
@@ -409,7 +463,7 @@ function ProjectsPageContent() {
       )}
 
       {/* Featured Projects */}
-      {!loading && featuredProjects.length > 0 && selectedType !== 'videography' && selectedType !== 'homelab' && (
+      {!loading && featuredProjects.length > 0 && selectedType !== 'videography' && selectedType !== 'homelab' && selectedType !== 'photography' && (
         <motion.section
           className="mb-12"
           initial={{ opacity: 0 }}
@@ -437,7 +491,29 @@ function ProjectsPageContent() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
         >
-          {selectedType === 'homelab' ? (
+          {selectedType === 'photography' ? (
+            <div className="space-y-8">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold">Photography</h2>
+                <p className="text-muted-foreground">Visual stories captured through the lens</p>
+              </div>
+
+              {photosError ? (
+                <div className="text-center py-12">
+                  <p className="text-red-500 mb-4">Error loading photos: {photosError}</p>
+                  <Button onClick={() => window.location.reload()}>
+                    Try Again
+                  </Button>
+                </div>
+              ) : (
+                <PhotoGrid 
+                  photos={photos} 
+                  loading={photosLoading}
+                  onPhotoClick={handlePhotoClick}
+                />
+              )}
+            </div>
+          ) : selectedType === 'homelab' ? (
             <div className="space-y-8">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold">Home Lab</h2>
@@ -660,6 +736,14 @@ function ProjectsPageContent() {
         isOpen={isVideoModalOpen}
         onClose={handleVideoModalClose}
         initialVideoIndex={initialVideoIndex}
+      />
+
+      {/* Photo Modal */}
+      <PhotoModal
+        photos={photos}
+        initialIndex={selectedPhotoIndex}
+        isOpen={isPhotoModalOpen}
+        onClose={handlePhotoModalClose}
       />
 
       {/* Homelab Modal duplication safeguard for SSR hydration order */}

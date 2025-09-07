@@ -654,3 +654,82 @@ html {
   display: none;  /* Safari and Chrome */
 }
 
+
+
+@layer utilities {
+  /* Base hero text gradient with default light theme */
+  .hero-gradient {
+    background-image: linear-gradient(
+      90deg,
+      hsl(217.2 91.2% 59.8%), /* blue-500 */
+      hsl(271.1 81.3% 55.8%), /* purple-600 */
+      hsl(221.2 83.2% 53.3%)  /* blue-600 */
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Per-theme gradient variants - each includes base styles */
+  .hero-gradient--light {
+    background-image: linear-gradient(
+      90deg,
+      hsl(217.2 91.2% 59.8%), /* blue-500 */
+      hsl(271.1 81.3% 55.8%), /* purple-600 */
+      hsl(221.2 83.2% 53.3%)  /* blue-600 */
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-gradient--dark {
+    background-image: linear-gradient(
+      90deg,
+      hsl(213 94% 68%),      /* blue-400 */
+      hsl(280 83% 70%),      /* purple-400 */
+      hsl(187 92% 67%)       /* cyan-400 */
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-gradient--pastel {
+    background-image: linear-gradient(
+      90deg,
+      hsl(340 65% 65%), /* darker rose */
+      hsl(270 60% 60%), /* deeper lavender */
+      hsl(140 55% 50%)  /* richer mint */
+    );
+    background-size: 200% 200%;
+    animation: pastel-flow 10s ease-in-out infinite;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-gradient--coffee {
+    background-image: linear-gradient(
+      90deg,
+      hsl(var(--coffee-espresso)),
+      hsl(var(--coffee-cinnamon)),
+      hsl(var(--coffee-caramel))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero-gradient--developer {
+    background-image: linear-gradient(
+      90deg,
+      hsl(var(--matrix-green)),
+      hsl(var(--matrix-bright)),
+      hsl(var(--matrix-glow))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}

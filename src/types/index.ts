@@ -201,3 +201,53 @@ export interface HomelabNode {
   url?: string;
   category?: string;
 }
+
+// Photo Types for Blob Storage
+export interface Photo {
+  _id: ObjectId;
+  filename: string;
+  originalName: string;
+  blobUrl: string;
+  thumbnailUrl?: string;
+  alt: string;
+  description?: string;
+  tags: string[];
+  metadata: {
+    size: number; // bytes
+    width: number;
+    height: number;
+    format: string; // jpg, png, etc.
+    camera?: string;
+    lens?: string;
+    settings?: {
+      aperture?: string;
+      shutterSpeed?: string;
+      iso?: number;
+      focalLength?: string;
+    };
+    location?: {
+      name?: string;
+      coordinates?: {
+        lat: number;
+        lng: number;
+      };
+    };
+  };
+  featured: boolean;
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PhotoUploadResponse {
+  success: boolean;
+  photo?: Photo;
+  error?: string;
+}
+
+export interface PhotosApiResponse {
+  success: boolean;
+  photos: Photo[];
+  total: number;
+  error?: string;
+}
