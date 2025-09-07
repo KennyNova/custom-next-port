@@ -4,6 +4,14 @@ import type { PhotoUploadResponse } from '@/types';
 
 export async function POST(request: NextRequest) {
   try {
+    // Block photo uploads when admin is disabled
+    if (process.env.ENABLE_ADMIN !== 'true') {
+      return NextResponse.json(
+        { success: false, error: 'Photo upload is disabled' },
+        { status: 403 }
+      );
+    }
+
     // Check for authentication if needed
     // const { userId } = auth();
     // if (!userId) {

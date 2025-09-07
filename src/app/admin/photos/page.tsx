@@ -8,8 +8,9 @@ import { PhotoModal } from '@/components/ui/photo-modal'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Camera, Upload, Grid3X3, RefreshCw } from 'lucide-react'
+import { Camera, Upload, Grid3X3, RefreshCw, Shield } from 'lucide-react'
 import type { Photo } from '@/types'
+import { useRouter } from 'next/navigation'
 
 export default function PhotoAdminPage() {
   const [photos, setPhotos] = useState<Photo[]>([])

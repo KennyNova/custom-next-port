@@ -18,7 +18,6 @@ const isPublicRoute = createRouteMatcher([
   '/terms',
   '/sign-in',
   '/sign-up',
-  '/admin/photos', // Admin photo management
   '/api/blog',
   '/api/blog/(.*)',
   '/api/projects',
@@ -29,6 +28,13 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
+  // Block admin routes when admin is disabled
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (process.env.ENABLE_ADMIN !== 'true') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
   // Don't protect the signatures API in middleware - let the API route handle it
   if (request.nextUrl.pathname.startsWith('/api/signatures')) {
     return;
