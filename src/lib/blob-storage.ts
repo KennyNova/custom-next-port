@@ -217,7 +217,7 @@ export async function updatePhoto(
       { returnDocument: 'after' }
     );
 
-    return result as Photo | null;
+    return result.value as Photo | null;
   } catch (error) {
     console.error('Error updating photo:', error);
     throw new Error('Failed to update photo');
