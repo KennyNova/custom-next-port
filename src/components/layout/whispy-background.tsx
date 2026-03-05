@@ -1,6 +1,7 @@
 'use client'
 
 import { useTheme } from '@/components/providers/theme-provider'
+import { useIsConstrained } from '@/components/providers/perf-provider'
 import { useEffect, useState } from 'react'
 
 interface Line {
@@ -20,8 +21,15 @@ interface Line {
 
 const WhispyBackground = () => {
   const { theme } = useTheme()
+  const isConstrained = useIsConstrained()
   const [lines, setLines] = useState<Line[]>([])
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
+
+  // Early return for constrained environments to preserve performance
+  if (isConstrained) {
+    console.log('🔧 WhispyBackground disabled due to performance constraints')
+    return null
+  }
 
   // Theme-based color configurations
   const getThemeColors = () => {

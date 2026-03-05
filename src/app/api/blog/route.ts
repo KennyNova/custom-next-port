@@ -1,9 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getDatabase } from '@/lib/db/mongodb'
+import { getDatabase, isDatabaseAvailable } from '@/lib/db/mongodb'
 import type { BlogPost } from '@/types'
 
 export async function GET(request: NextRequest) {
   try {
+    // Check if database is available
+    if (!isDatabaseAvailable()) {
+      return NextResponse.json({
+        posts: [],
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 0,
+          pages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        message: 'Database not configured - running in demo mode'
+      })
+    }
+
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
@@ -54,6 +70,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if database is available
+    if (!isDatabaseAvailable()) {
+      return NextResponse.json(
+        { error: 'Database not configured - cannot create blog posts' },
+        { status: 503 }
+      )
+    }
     const body = await request.json()
     const { title, content, excerpt, featuredImage, tags } = body
     

@@ -9,18 +9,29 @@ import { Menu, X, Home, FolderOpen, BookOpen, Brain, PenTool, Workflow } from 'l
 import { useState, useEffect } from 'react'
 
 // Component for cycling random characters with sliding slot effect
-function CyclingText() {
-  const originalText = 'n8n Templates'
+function CyclingText({ isHovered }: { isHovered: boolean }) {
+  const targetText = 'coming soon'
   const [displayChars, setDisplayChars] = useState(
-    originalText.split('').map(char => ({ current: char, next: char, isAnimating: false }))
+    targetText.split('').map(char => ({ current: char, next: char, isAnimating: false }))
   )
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?'
   
   useEffect(() => {
+    let completionTimeout: ReturnType<typeof setTimeout> | null = null
+
     const interval = setInterval(() => {
       setDisplayChars(prev => {
         return prev.map((charData, index) => {
-          // Randomly decide if this character should animate (30% chance)
+          if (isHovered) {
+            const targetChar = targetText[index]
+            const shouldAnimateToTarget = charData.current !== targetChar
+            return {
+              current: charData.current,
+              next: targetChar,
+              isAnimating: shouldAnimateToTarget
+            }
+          }
+
           if (Math.random() < 0.3) {
             const nextChar = characters[Math.floor(Math.random() * characters.length)]
             return {
@@ -33,8 +44,7 @@ function CyclingText() {
         })
       })
       
-      // Complete the animation after a short delay
-      setTimeout(() => {
+      completionTimeout = setTimeout(() => {
         setDisplayChars(prev => {
           return prev.map(charData => ({
             current: charData.isAnimating ? charData.next : charData.current,
@@ -45,8 +55,13 @@ function CyclingText() {
       }, 200)
     }, 300)
     
-    return () => clearInterval(interval)
-  }, [])
+    return () => {
+      clearInterval(interval)
+      if (completionTimeout) {
+        clearTimeout(completionTimeout)
+      }
+    }
+  }, [characters, isHovered, targetText])
   
   return (
     <span className="font-mono inline-flex">
@@ -94,14 +109,15 @@ const navigation = [
   { name: 'Blog', href: '/blog', icon: BookOpen },
   { name: 'Quiz', href: '/quiz', icon: Brain },
   { name: 'Signatures', href: '/signatures', icon: PenTool },
-  { name: <CyclingText />, href: '/coming-soon', key: 'templates', disabled: true, icon: Workflow },
+  { name: 'Templates', href: '/coming-soon', key: 'templates', disabled: true, icon: Workflow, isAnimated: true },
 ]
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [templatesHovered, setTemplatesHovered] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur backdrop-ok supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -128,13 +144,25 @@ export function Header() {
                 key={item.key || (typeof item.name === 'string' ? item.name : 'element')}
                 href={item.href}
                 disabled={item.disabled}
+                onMouseEnter={() => {
+                  if (item.isAnimated) setTemplatesHovered(true)
+                }}
+                onMouseLeave={() => {
+                  if (item.isAnimated) setTemplatesHovered(false)
+                }}
+                onFocus={() => {
+                  if (item.isAnimated) setTemplatesHovered(true)
+                }}
+                onBlur={() => {
+                  if (item.isAnimated) setTemplatesHovered(false)
+                }}
                 className={`text-sm font-medium transition-colors ${
                   item.disabled 
                     ? 'text-muted-foreground/50 opacity-60 hover:opacity-80' 
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {item.name}
+                {item.isAnimated ? <CyclingText isHovered={templatesHovered} /> : item.name}
               </PreloadLink>
             ))}
           </motion.nav>
@@ -200,7 +228,7 @@ export function Header() {
             <>
               {/* Backdrop overlay with blur */}
               <motion.div
-                className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm md:hidden"
+                className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm backdrop-ok md:hidden"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -217,10 +245,10 @@ export function Header() {
                 transition={{ duration: 0.4, ease: "easeOut" }}
               >
                 {/* Glass morphism background */}
-                <div className="relative bg-gradient-to-br from-background/95 via-background/90 to-background/95 backdrop-blur-xl border-gradient">
+                <div className="relative bg-gradient-to-br from-background/95 via-background/90 to-background/95 backdrop-blur-xl backdrop-ok border-gradient">
                   {/* Animated gradient border */}
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 animate-pulse-glow opacity-50" />
-                  <div className="absolute inset-[1px] bg-background/95 backdrop-blur-xl rounded-[inherit]" />
+                  <div className="absolute inset-[1px] bg-background/95 backdrop-blur-xl backdrop-ok rounded-[inherit]" />
                   
                   {/* Content */}
                   <div className="relative px-6 py-8 space-y-2">

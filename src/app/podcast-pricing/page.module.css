@@ -1,0 +1,727 @@
+.page {
+  min-height: 100vh;
+  background:
+    radial-gradient(1000px 450px at 80% -10%, hsl(var(--info) / 0.18), transparent 60%),
+    radial-gradient(900px 400px at 0% 0%, hsl(var(--warning) / 0.12), transparent 65%),
+    linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--card)) 100%);
+  color: hsl(var(--foreground));
+  position: relative;
+}
+
+.gradientGlow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    120deg,
+    hsl(var(--info) / 0.05),
+    transparent 35%,
+    hsl(var(--warning) / 0.06) 70%,
+    transparent
+  );
+}
+
+.wrapper {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 32px 18px 52px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero h1 {
+  margin: 0 0 10px;
+  font-size: clamp(1.6rem, 2.8vw, 2.2rem);
+  line-height: 1.2;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--info));
+  font-weight: 700;
+}
+
+.sub {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.55;
+  max-width: 840px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+  gap: 18px;
+  align-items: start;
+}
+
+@media (max-width: 1020px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel,
+.summary,
+.actions {
+  margin-top: 16px;
+  border: 1px solid hsl(var(--border) / 0.45);
+  border-radius: 16px;
+  background: hsl(var(--card) / 0.82);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 12px 30px hsl(var(--foreground) / 0.12);
+}
+
+.panel,
+.summary {
+  padding: 15px;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  color: hsl(var(--warning));
+  font-size: 1.05rem;
+}
+
+.sectionHeader p {
+  margin: 8px 0 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.9rem;
+}
+
+.tableScroll {
+  overflow-x: auto;
+  margin-top: 14px;
+  border: 1px solid hsl(var(--border) / 0.45);
+  border-radius: 12px;
+}
+
+.priceTable {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 920px;
+}
+
+.priceTable th,
+.priceTable td {
+  border-bottom: 1px solid hsl(var(--border) / 0.45);
+  border-right: 1px solid hsl(var(--border) / 0.45);
+  padding: 10px 11px;
+  vertical-align: top;
+}
+
+.priceTable th:last-child,
+.priceTable td:last-child {
+  border-right: 0;
+}
+
+.priceTable thead th {
+  background: hsl(var(--muted) / 0.92);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.priceTable tr:last-child td {
+  border-bottom: 0;
+}
+
+.rowLabel {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+  width: 225px;
+  background: hsl(var(--muted) / 0.6);
+}
+
+.tierHead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tierName {
+  font-weight: 700;
+}
+
+.tierAmount {
+  color: hsl(var(--warning));
+  font-weight: 700;
+}
+
+.pillYes,
+.pillNo {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pillYes {
+  color: hsl(var(--success));
+  background: hsl(var(--success) / 0.14);
+  border: 1px solid hsl(var(--success) / 0.5);
+}
+
+.pillNo {
+  color: hsl(var(--destructive));
+  background: hsl(var(--destructive) / 0.14);
+  border: 1px solid hsl(var(--destructive) / 0.5);
+}
+
+.sourceCell {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.sourceBadge {
+  border: 1px solid hsl(var(--info) / 0.5);
+  color: hsl(var(--info));
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.sourceTag {
+  border: 1px solid hsl(var(--border) / 0.5);
+  color: hsl(var(--muted-foreground));
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+}
+
+.tierGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.tierOption {
+  width: 100%;
+  text-align: left;
+  border: 1px solid hsl(var(--border) / 0.55);
+  border-radius: 12px;
+  padding: 12px;
+  background: hsl(var(--card) / 0.72);
+  color: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.tierOption:hover {
+  transform: translateY(-1px);
+  border-color: hsl(var(--info) / 0.7);
+  box-shadow: 0 6px 16px hsl(var(--info) / 0.16);
+}
+
+.selectedTier {
+  border-color: hsl(var(--warning) / 0.75);
+  background: hsl(var(--muted) / 0.9);
+}
+
+.tierTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.tierDelivery {
+  display: block;
+  margin-top: 6px;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.86rem;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.row input[type="number"] {
+  width: 160px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid hsl(var(--input));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.error {
+  min-height: 1.2em;
+  color: hsl(var(--destructive));
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+}
+
+.features {
+  margin: 0;
+  padding-left: 19px;
+}
+
+.features li {
+  margin: 6px 0;
+  color: hsl(var(--foreground));
+}
+
+.checkline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid hsl(var(--border) / 0.45);
+  background: hsl(var(--muted) / 0.55);
+  border-radius: 10px;
+  padding: 9px 10px;
+  margin: 8px 0;
+}
+
+.info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid hsl(var(--info) / 0.8);
+  color: hsl(var(--info));
+  font-size: 11px;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.addonList {
+  display: grid;
+  gap: 8px;
+}
+
+.addonItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border: 1px solid hsl(var(--border) / 0.45);
+  border-radius: 10px;
+  background: hsl(var(--muted) / 0.55);
+  padding: 10px;
+}
+
+.addonTitle {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.addonTag {
+  margin-top: 5px;
+  display: inline-block;
+  font-size: 0.76rem;
+  border: 1px solid hsl(var(--border) / 0.6);
+  border-radius: 999px;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--background) / 0.6);
+  padding: 2px 7px;
+}
+
+.actions {
+  padding: 10px 12px;
+}
+
+.resetButton {
+  border: 1px solid hsl(var(--border) / 0.6);
+  border-radius: 10px;
+  padding: 9px 14px;
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.resetButton:hover {
+  border-color: hsl(var(--primary) / 0.7);
+}
+
+.summary {
+  position: sticky;
+  top: calc(5rem + 14px);
+  max-height: calc(100vh - (5rem + 28px));
+  overflow: auto;
+}
+
+@media (max-width: 1020px) {
+  .summary {
+    position: static;
+    max-height: none;
+  }
+}
+
+.summary h2 {
+  margin: 0 0 10px;
+  color: hsl(var(--warning));
+}
+
+.summaryValues {
+  display: grid;
+  gap: 10px;
+}
+
+.kpi {
+  border: 1px solid hsl(var(--border) / 0.45);
+  border-radius: 10px;
+  padding: 10px;
+  background: hsl(var(--muted) / 0.72);
+}
+
+.kpi span {
+  display: block;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.85rem;
+}
+
+.kpi strong {
+  font-size: 1.23rem;
+}
+
+.payNow strong {
+  color: hsl(var(--warning));
+}
+
+.monthly strong {
+  color: hsl(var(--success));
+}
+
+.breakdown {
+  border-top: 1px solid hsl(var(--border) / 0.45);
+  margin-top: 12px;
+  padding-top: 10px;
+}
+
+.breakdown ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.breakdown li {
+  margin: 5px 0;
+  color: hsl(var(--foreground));
+}
+
+.breakdown p {
+  margin-top: 10px;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.84rem;
+}
+
+/* ── Recommended banner ───────────────────────────────────────────── */
+@keyframes chromeSweep {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.recommendedBadge {
+  display: block;
+  position: relative;
+  width: 100%;
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  padding: 5px 10px;
+  border-radius: 0;
+  white-space: nowrap;
+  margin: 0;
+
+  /* Cell background via box-shadow so background-clip: text works cleanly */
+  background-color: transparent;
+  box-shadow: inset 0 0 0 999px hsl(var(--warning) / 0.11);
+
+  /* Chrome sweep text effect */
+  background-image: linear-gradient(
+    90deg,
+    hsl(38 92% 38%) 10%,
+    hsl(var(--warning)) 28%,
+    hsl(45 100% 72%) 50%,
+    hsl(var(--warning)) 72%,
+    hsl(38 92% 38%) 90%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: chromeSweep 2.8s linear infinite;
+}
+
+/* Banner flush at the bottom of the tier card button */
+.tierOption .recommendedBadge {
+  margin: 8px -12px -12px;
+  width: calc(100% + 24px);
+  border-radius: 0 0 10px 10px;
+  border-top: 1px solid hsl(var(--warning) / 0.35);
+  border-bottom: none;
+  box-shadow: none;
+}
+
+/* Banner flush at the bottom of the table header cell */
+.tierHead .recommendedBadge {
+  margin: 8px -11px -10px;
+  width: calc(100% + 22px);
+  border-radius: 0;
+  border-top: 1px solid hsl(var(--warning) / 0.35);
+  border-bottom: none;
+  box-shadow: none;
+}
+
+/* ── Agency Plus tier button highlight ───────────────────────────── */
+.agencyPlusTier {
+  border: 2px solid hsl(var(--warning) / 0.58);
+  box-shadow: 0 0 16px hsl(var(--warning) / 0.14);
+}
+
+.agencyPlusTier:hover {
+  border-color: hsl(var(--warning) / 0.78);
+  box-shadow: 0 6px 20px hsl(var(--warning) / 0.2);
+}
+
+.agencyPlusTier.selectedTier {
+  border-color: hsl(var(--warning) / 0.92);
+  box-shadow: 0 0 24px hsl(var(--warning) / 0.25);
+}
+
+/* ── Agency Plus table column highlight ──────────────────────────── */
+.agencyPlusCol {
+  background: hsl(var(--warning) / 0.08) !important;
+  border-left: 2px solid hsl(var(--warning) / 0.4) !important;
+  border-right: 2px solid hsl(var(--warning) / 0.4) !important;
+}
+
+.priceTable thead .agencyPlusCol {
+  border-top: 2px solid hsl(var(--warning) / 0.4) !important;
+}
+
+.priceTable tbody tr:last-child .agencyPlusCol {
+  border-bottom: 2px solid hsl(var(--warning) / 0.4) !important;
+}
+
+/* ── Add-on pill (for exclusive license on lower tiers) ──────────── */
+.pillAddon {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: hsl(var(--warning));
+  background: hsl(var(--warning) / 0.12);
+  border: 1px solid hsl(var(--warning) / 0.45);
+  cursor: help;
+}
+
+/* ── vs Pro comparison card ──────────────────────────────────────── */
+.vsPro {
+  margin-top: 16px;
+  border: 1px solid hsl(var(--warning) / 0.4);
+  border-radius: 12px;
+  background: hsl(var(--warning) / 0.08);
+  padding: 14px 16px;
+}
+
+.vsProLabel {
+  margin: 0 0 10px;
+  font-weight: 700;
+  color: hsl(var(--warning));
+  font-size: 0.9rem;
+}
+
+.vsProList {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.vsProList li {
+  color: hsl(var(--foreground));
+  font-size: 0.9rem;
+}
+
+.vsProList li span {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.85rem;
+}
+
+/* ── Pro → Agency Plus upgrade nudge ─────────────────────────────── */
+.upgradeNudge {
+  margin-bottom: 14px;
+  border: 1px solid hsl(var(--warning) / 0.48);
+  border-radius: 12px;
+  background: hsl(var(--warning) / 0.09);
+  padding: 14px 16px;
+}
+
+.upgradeNudge strong {
+  display: block;
+  color: hsl(var(--warning));
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.upgradeNudge p {
+  margin: 0 0 12px;
+  color: hsl(var(--foreground));
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.switchBtn {
+  display: inline-block;
+  background: linear-gradient(90deg, hsl(var(--warning) / 0.3), hsl(var(--warning) / 0.2));
+  border: 1px solid hsl(var(--warning) / 0.62);
+  color: hsl(var(--foreground));
+  font-weight: 700;
+  font-size: 0.88rem;
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.switchBtn:hover {
+  background: linear-gradient(90deg, hsl(var(--warning) / 0.4), hsl(var(--warning) / 0.3));
+  box-shadow: 0 4px 14px hsl(var(--warning) / 0.25);
+}
+
+/* ── Exclusive license included callout (Agency Plus) ────────────── */
+.exclusiveIncluded {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px solid hsl(var(--warning) / 0.48);
+  border-radius: 12px;
+  background: linear-gradient(135deg, hsl(var(--warning) / 0.12), hsl(var(--warning) / 0.07));
+  padding: 14px 16px;
+  margin: 8px 0;
+}
+
+.exclusiveIncluded strong {
+  display: block;
+  color: hsl(var(--warning));
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.exclusiveIncluded p {
+  margin: 0;
+  color: hsl(var(--foreground));
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.exclusiveIcon {
+  font-size: 1.4rem;
+  color: hsl(var(--warning));
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+/* ── Exclusive license hint (lower tiers) ────────────────────────── */
+.exclusiveHint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid hsl(var(--warning) / 0.35);
+  border-radius: 10px;
+  background: hsl(var(--warning) / 0.08);
+  padding: 10px 14px;
+  margin: 4px 0 8px;
+  color: hsl(var(--foreground));
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.switchBtnSmall {
+  display: inline-block;
+  background: linear-gradient(90deg, hsl(var(--warning) / 0.24), hsl(var(--warning) / 0.16));
+  border: 1px solid hsl(var(--warning) / 0.55);
+  color: hsl(var(--foreground));
+  font-weight: 700;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 0.18s ease;
+  white-space: nowrap;
+}
+
+.switchBtnSmall:hover {
+  background: linear-gradient(90deg, hsl(var(--warning) / 0.36), hsl(var(--warning) / 0.26));
+}
+
+/* ── Exclusive tag on tier selection button ───────────────────────── */
+.exclusiveTag {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: hsl(var(--warning));
+  letter-spacing: 0.02em;
+}
+
+/* Pastel theme: targeted readability tweaks (not all cards) */
+:global(.pastel) .summary,
+:global(.pastel) .selectedTier {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--pastel-pink) / 0.26) 0%,
+    hsl(0 0% 100% / 0.94) 100%
+  );
+}
+
+/* In pastel mode, replace yellow highlight text with darker rose/plum */
+:global(.pastel) .sectionHeader h2,
+:global(.pastel) .summary h2,
+:global(.pastel) .tierAmount,
+:global(.pastel) .payNow strong,
+:global(.pastel) .vsProLabel,
+:global(.pastel) .upgradeNudge strong,
+:global(.pastel) .exclusiveIncluded strong,
+:global(.pastel) .exclusiveIcon,
+:global(.pastel) .exclusiveTag,
+:global(.pastel) .pillAddon {
+  color: hsl(330 38% 32%);
+}
+
+:global(.pastel) .recommendedBadge {
+  box-shadow: inset 0 0 0 999px hsl(var(--pastel-rose) / 0.14);
+  border-color: hsl(330 38% 32% / 0.35);
+  /* Rose-chrome shimmer */
+  background-image: linear-gradient(
+    90deg,
+    hsl(330 45% 38%) 15%,
+    hsl(340 60% 72%) 35%,
+    hsl(330 40% 92%) 50%,
+    hsl(340 60% 72%) 65%,
+    hsl(330 45% 38%) 85%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: chromeSweep 2.8s linear infinite;
+}

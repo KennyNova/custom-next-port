@@ -289,7 +289,7 @@ export default function BlogPostPage() {
                 transition={{ duration: 0.8, delay: 0.2 }}
                 className="relative"
               >
-                <Card className="overflow-hidden border-0 shadow-lg bg-card/80 backdrop-blur-sm">
+                <Card className="overflow-hidden border-0 shadow-lg bg-card/80 backdrop-blur-sm backdrop-ok">
                   <CardContent className="p-8 lg:p-12">
                     <MarkdownContent content={content.content} />
                   </CardContent>

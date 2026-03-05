@@ -1,10 +1,12 @@
 import { MongoClient, Db } from 'mongodb'
 
-if (!process.env.MONGODB_URI) {
-  console.warn('MONGODB_URI environment variable is missing. Database operations will fail.')
+// Check for MongoDB URI
+const uri = process.env.MONGODB_URI
+
+if (!uri) {
+  console.warn('⚠️ MONGODB_URI environment variable is missing. Database operations will be disabled.')
 }
 
-const uri = process.env.MONGODB_URI!
 const options = {
   // Enhanced options for better Vercel compatibility
   useNewUrlParser: true,
@@ -20,33 +22,41 @@ const options = {
   tlsAllowInvalidHostnames: false,
 }
 
-let client: MongoClient
-let clientPromise: Promise<MongoClient>
+let client: MongoClient | null = null
+let clientPromise: Promise<MongoClient> | null = null
 
-if (process.env.NODE_ENV === 'development') {
-  // In development mode, use a global variable so that the value
-  // is preserved across module reloads caused by HMR (Hot Module Replacement).
-  let globalWithMongo = global as typeof globalThis & {
-    _mongoClientPromise?: Promise<MongoClient>
-  }
+// Only create MongoDB client if URI is available
+if (uri) {
+  if (process.env.NODE_ENV === 'development') {
+    // In development mode, use a global variable so that the value
+    // is preserved across module reloads caused by HMR (Hot Module Replacement).
+    let globalWithMongo = global as typeof globalThis & {
+      _mongoClientPromise?: Promise<MongoClient>
+    }
 
-  if (!globalWithMongo._mongoClientPromise) {
+    if (!globalWithMongo._mongoClientPromise) {
+      client = new MongoClient(uri, options)
+      globalWithMongo._mongoClientPromise = client.connect()
+    }
+    clientPromise = globalWithMongo._mongoClientPromise
+  } else {
+    // In production mode, it's best to not use a global variable.
     client = new MongoClient(uri, options)
-    globalWithMongo._mongoClientPromise = client.connect()
+    clientPromise = client.connect()
   }
-  clientPromise = globalWithMongo._mongoClientPromise
-} else {
-  // In production mode, it's best to not use a global variable.
-  client = new MongoClient(uri, options)
-  clientPromise = client.connect()
 }
 
 export async function getDatabase(): Promise<Db> {
-  if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI environment variable is not configured. Please add it to your Vercel environment variables.')
+  if (!uri || !clientPromise) {
+    throw new Error('MONGODB_URI environment variable is not configured. Please add it to your environment variables.')
   }
   const client = await clientPromise
   return client.db('portfolio-blog')
+}
+
+// Helper function to check if database is available
+export function isDatabaseAvailable(): boolean {
+  return Boolean(uri && clientPromise)
 }
 
 // Export a module-scoped MongoClient promise. By doing this in a

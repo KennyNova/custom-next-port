@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getDatabase } from '@/lib/db/mongodb'
+import { getDatabase, isDatabaseAvailable } from '@/lib/db/mongodb'
 import { auth } from '@clerk/nextjs/server'
 import type { Signature } from '@/types'
 
@@ -8,6 +8,22 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
+    // Check if database is available
+    if (!isDatabaseAvailable()) {
+      return NextResponse.json({
+        signatures: [],
+        pagination: {
+          page: 1,
+          limit: 20,
+          total: 0,
+          pages: 0,
+          hasNext: false,
+          hasPrev: false
+        },
+        message: 'Database not configured - running in demo mode'
+      })
+    }
+
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
@@ -51,6 +67,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if database is available
+    if (!isDatabaseAvailable()) {
+      return NextResponse.json(
+        { error: 'Database not configured - cannot save signatures' },
+        { status: 503 }
+      )
+    }
+
     const { userId: clerkUserId } = await auth()
     
     console.log('POST /api/signatures - User ID:', clerkUserId)

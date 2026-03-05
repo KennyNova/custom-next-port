@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getDatabase } from '@/lib/db/mongodb'
+import { getDatabase, isDatabaseAvailable } from '@/lib/db/mongodb'
 import type { Project } from '@/types'
 
 // GitHub repository interface
@@ -85,8 +85,8 @@ export async function GET(request: NextRequest) {
       allProjects = [...allProjects, ...githubProjects]
     }
     
-    // Fetch database projects if not exclusively requesting GitHub
-    if (type !== 'github') {
+    // Fetch database projects if not exclusively requesting GitHub and database is available
+    if (type !== 'github' && isDatabaseAvailable()) {
       const db = await getDatabase()
       const collection = db.collection<Project>('projects')
       
@@ -143,6 +143,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if database is available
+    if (!isDatabaseAvailable()) {
+      return NextResponse.json(
+        { error: 'Database not configured - cannot create projects' },
+        { status: 503 }
+      )
+    }
     const body = await request.json()
     const { 
       title, 

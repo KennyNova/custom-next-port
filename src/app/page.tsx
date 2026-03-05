@@ -65,9 +65,26 @@ export default function HomePage() {
       }
     }
 
-    // Start prefetching after a short delay to allow page to render first
-    const timer = setTimeout(prefetchProjects, 100)
-    return () => clearTimeout(timer)
+    // Check network conditions before prefetching
+    const nav = navigator as any
+    const conn = nav?.connection
+    const effectiveType = conn?.effectiveType as string | undefined
+    
+    // Skip prefetch on constrained networks
+    if (conn?.saveData || (effectiveType && ['slow-2g', '2g', '3g'].includes(effectiveType))) {
+      console.log('🔧 Prefetch skipped due to network constraints:', { 
+        saveData: conn?.saveData, 
+        effectiveType 
+      })
+      return
+    }
+
+    // Use requestIdleCallback if available, otherwise fallback to timeout
+    const scheduleCallback = (window as any).requestIdleCallback || setTimeout
+    const cancelCallback = (window as any).cancelIdleCallback || clearTimeout
+    
+    const id = scheduleCallback(prefetchProjects, { timeout: 3000 })
+    return () => cancelCallback(id)
   }, [])
   
   return (
@@ -76,7 +93,7 @@ export default function HomePage() {
       
       {/* Optional: Small loading indicator for background prefetching */}
       {isPrefetching && (
-        <div className="fixed bottom-4 left-4 z-50 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 border shadow-lg">
+        <div className="fixed top-4 right-4 z-50 bg-background/80 backdrop-blur-sm backdrop-ok rounded-lg px-3 py-2 border shadow-lg">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-primary/60 rounded-full animate-pulse"></div>
             <span className="text-xs text-muted-foreground">Preloading...</span>
@@ -233,7 +250,7 @@ export default function HomePage() {
               </CardContent>
             </Card>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-background/90 backdrop-blur-sm rounded-lg px-6 py-4 border shadow-lg">
+              <div className="bg-background/90 backdrop-blur-sm backdrop-ok rounded-lg px-6 py-4 border shadow-lg">
                 <p className="text-lg font-semibold text-foreground">Coming Soon 🤫</p>
               </div>
             </div>
