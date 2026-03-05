@@ -25,9 +25,96 @@ const WhispyBackground = () => {
   const [lines, setLines] = useState<Line[]>([])
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
 
-  // Early return for constrained environments to preserve performance
+  // Initialize dimensions (must run before early return - Rules of Hooks)
+  useEffect(() => {
+    if (isConstrained) return
+    const updateDimensions = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      })
+    }
+    updateDimensions()
+    window.addEventListener('resize', updateDimensions)
+    return () => window.removeEventListener('resize', updateDimensions)
+  }, [isConstrained])
+
+  useEffect(() => {
+    if (isConstrained || dimensions.width === 0 || dimensions.height === 0) return
+    const createLines = () => {
+      const newLines: Line[] = []
+      const numLines = Math.floor((dimensions.width * dimensions.height) / 15000)
+      for (let i = 0; i < numLines; i++) {
+        const angle = Math.random() * Math.PI * 2
+        const length = 100 + Math.random() * 200
+        const startX = Math.random() * dimensions.width
+        const startY = Math.random() * dimensions.height
+        const maxAge = 60 + Math.random() * 120
+        newLines.push({
+          id: i,
+          startX,
+          startY,
+          endX: startX + Math.cos(angle) * length,
+          endY: startY + Math.sin(angle) * length,
+          opacity: 0.2 + Math.random() * 0.6,
+          strokeWidth: 1 + Math.random() * 2,
+          length,
+          angle,
+          speed: 0.5 + Math.random() * 1.5,
+          age: Math.random() * maxAge,
+          maxAge
+        })
+      }
+      setLines(newLines)
+    }
+    createLines()
+  }, [isConstrained, dimensions])
+
+  useEffect(() => {
+    if (isConstrained || lines.length === 0) return
+    const animateLines = () => {
+      setLines(prevLines =>
+        prevLines.map(line => {
+          const newAge = line.age + 1
+          if (newAge > line.maxAge) {
+            const angle = Math.random() * Math.PI * 2
+            const length = 100 + Math.random() * 200
+            const startX = Math.random() * dimensions.width
+            const startY = Math.random() * dimensions.height
+            const maxAge = 60 + Math.random() * 120
+            return {
+              ...line,
+              startX,
+              startY,
+              endX: startX + Math.cos(angle) * length,
+              endY: startY + Math.sin(angle) * length,
+              angle,
+              length,
+              age: 0,
+              maxAge,
+              speed: 0.5 + Math.random() * 1.5,
+              opacity: 0.2 + Math.random() * 0.6,
+              strokeWidth: 1 + Math.random() * 2
+            }
+          }
+          let newStartX = line.startX + Math.cos(line.angle) * line.speed
+          let newStartY = line.startY + Math.sin(line.angle) * line.speed
+          if (newStartX > dimensions.width + 100) newStartX = -100
+          if (newStartX < -100) newStartX = dimensions.width + 100
+          if (newStartY > dimensions.height + 100) newStartY = -100
+          if (newStartY < -100) newStartY = dimensions.height + 100
+          const newEndX = newStartX + Math.cos(line.angle) * line.length
+          const newEndY = newStartY + Math.sin(line.angle) * line.length
+          return { ...line, startX: newStartX, startY: newStartY, endX: newEndX, endY: newEndY, age: newAge }
+        })
+      )
+    }
+    const interval = setInterval(animateLines, 50)
+    return () => clearInterval(interval)
+  }, [isConstrained, lines.length, dimensions])
+
+  // Early return for constrained environments (after all hooks)
   if (isConstrained) {
-    console.log('🔧 WhispyBackground disabled due to performance constraints')
     return null
   }
 
@@ -71,122 +158,6 @@ const WhispyBackground = () => {
         }
     }
   }
-
-  // Initialize lines
-  useEffect(() => {
-    const updateDimensions = () => {
-      setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      })
-    }
-
-    updateDimensions()
-    window.addEventListener('resize', updateDimensions)
-
-    return () => window.removeEventListener('resize', updateDimensions)
-  }, [])
-
-  useEffect(() => {
-    if (dimensions.width === 0 || dimensions.height === 0) return
-
-    const createLines = () => {
-      const newLines: Line[] = []
-      const numLines = Math.floor((dimensions.width * dimensions.height) / 15000) // Responsive line count
-
-      for (let i = 0; i < numLines; i++) {
-        const angle = Math.random() * Math.PI * 2
-        const length = 100 + Math.random() * 200
-        const startX = Math.random() * dimensions.width
-        const startY = Math.random() * dimensions.height
-        const maxAge = 60 + Math.random() * 120 // Lines live for 1-3 seconds (at 20fps)
-        
-        newLines.push({
-          id: i,
-          startX,
-          startY,
-          endX: startX + Math.cos(angle) * length,
-          endY: startY + Math.sin(angle) * length,
-          opacity: 0.2 + Math.random() * 0.6,
-          strokeWidth: 1 + Math.random() * 2,
-          length,
-          angle,
-          speed: 0.5 + Math.random() * 1.5,
-          age: Math.random() * maxAge, // Start at random age for staggered effect
-          maxAge
-        })
-      }
-      
-      setLines(newLines)
-    }
-
-    createLines()
-  }, [dimensions])
-
-  // Animation loop
-  useEffect(() => {
-    if (lines.length === 0) return
-
-    const animateLines = () => {
-      setLines(prevLines => {
-        const newLines = prevLines.map(line => {
-          // Age the line
-          const newAge = line.age + 1
-          
-          // If line is too old, respawn it at a random location
-          if (newAge > line.maxAge) {
-            const angle = Math.random() * Math.PI * 2
-            const length = 100 + Math.random() * 200
-            const startX = Math.random() * dimensions.width
-            const startY = Math.random() * dimensions.height
-            const maxAge = 60 + Math.random() * 120
-            
-            return {
-              ...line,
-              startX,
-              startY,
-              endX: startX + Math.cos(angle) * length,
-              endY: startY + Math.sin(angle) * length,
-              angle,
-              length,
-              age: 0, // Reset age for fade-in
-              maxAge,
-              speed: 0.5 + Math.random() * 1.5,
-              opacity: 0.2 + Math.random() * 0.6,
-              strokeWidth: 1 + Math.random() * 2
-            }
-          }
-
-          // Move the line based on its speed and angle
-          let newStartX = line.startX + Math.cos(line.angle) * line.speed
-          let newStartY = line.startY + Math.sin(line.angle) * line.speed
-
-          // Wrap around screen edges
-          if (newStartX > dimensions.width + 100) newStartX = -100
-          if (newStartX < -100) newStartX = dimensions.width + 100
-          if (newStartY > dimensions.height + 100) newStartY = -100
-          if (newStartY < -100) newStartY = dimensions.height + 100
-
-          const newEndX = newStartX + Math.cos(line.angle) * line.length
-          const newEndY = newStartY + Math.sin(line.angle) * line.length
-
-          return {
-            ...line,
-            startX: newStartX,
-            startY: newStartY,
-            endX: newEndX,
-            endY: newEndY,
-            age: newAge
-          }
-        })
-        
-        return newLines
-      })
-    }
-
-    const interval = setInterval(animateLines, 50) // 20 FPS for smooth animation
-    return () => clearInterval(interval)
-  }, [lines.length, dimensions])
 
   const colors = getThemeColors()
 
