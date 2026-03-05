@@ -49,7 +49,7 @@ const packages: PackageTier[] = [
     hasMultiSourceYoutubeAudio: false,
     hasFullThreeSource: false,
     customThemeByYou: false,
-    setupFeePerSite: 50,
+    setupFeePerSite: 30,
     allowsExclusive: false,
     features: [
       "One audio source setup (RSS or Megaphone).",
@@ -69,7 +69,7 @@ const packages: PackageTier[] = [
     hasMultiSourceYoutubeAudio: false,
     hasFullThreeSource: false,
     customThemeByYou: false,
-    setupFeePerSite: 100,
+    setupFeePerSite: 50,
     allowsExclusive: false,
     features: [
       "One audio source setup (RSS or Megaphone).",
@@ -91,7 +91,7 @@ const packages: PackageTier[] = [
     hasMultiSourceYoutubeAudio: true,
     hasFullThreeSource: false,
     customThemeByYou: true,
-    setupFeePerSite: 30,
+    setupFeePerSite: 100,
     allowsExclusive: false,
     features: [
       "One audio source setup (RSS or Megaphone).",
@@ -115,7 +115,7 @@ const packages: PackageTier[] = [
     hasMultiSourceYoutubeAudio: true,
     hasFullThreeSource: true,
     customThemeByYou: true,
-    setupFeePerSite: 15,
+    setupFeePerSite: 30,
     allowsExclusive: true,
     recommended: true,
     features: [
@@ -554,7 +554,7 @@ export default function PodcastPricingPage() {
                         <li>Automated transcript delivery <span>(vs manual upload tools)</span></li>
                         <li>Premium theme per site <span>(vs standard custom theme)</span></li>
                         <li>Exclusive license included <span>(the design leaves my library — you&apos;re the only one running it)</span></li>
-                        <li>Lowest per-site setup fee <span>($15/site vs $30 on Pro)</span></li>
+                        <li>Lowest per-site setup fee <span>($30/site vs $100 on Pro)</span></li>
                       </ul>
                     </div>
                   )}
