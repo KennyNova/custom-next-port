@@ -382,42 +382,42 @@ export default function PodcastPricingPage() {
   const tableRows: { label: string; tip: string; getValue: (pkg: PackageTier) => ReactNode }[] = [
     {
       label: "One-time package fee",
-      tip: "The upfront package price you pay once.",
+      tip: "The upfront price you pay once. This covers everything listed in this row and below—the features, support, revisions, and delivery timeline.",
       getValue: (pkg) => currency.format(pkg.price),
     },
     {
       label: "Included source types",
-      tip: "Source setup shown with clear source tags.",
+      tip: "What kinds of podcast or video sources you can connect. RSS works with any podcast feed. Megaphone is for podcasts hosted on Megaphone or Spotify. YouTube is for connecting your YouTube channel videos.",
       getValue: (pkg) => sourceCell(pkg),
     },
     {
       label: "Transcript tools",
-      tip: "Not included in Launch and Growth. Higher tiers include transcript tooling.",
+      tip: "Automatically pulls and attaches transcripts to your videos—no manual work needed.",
       getValue: (pkg) => yesNoPill(pkg.hasTranscriptPulling),
     },
     {
       label: "Custom theme by me",
-      tip: "When included, Included+ has package-specific detail.",
+      tip: "Included: I update colors and styling to match your site while keeping the layout the same. Included+: I analyze your site and create a custom layout that matches it perfectly.",
       getValue: (pkg) => customThemeCell(pkg),
     },
     {
       label: "Done-for-you setup option",
-      tip: "If selected, I install and set up each client site for this per-site fee.",
+      tip: "I handle everything: installing the plugin, setting up API keys, connecting your podcast feeds, and configuring the basics. You don't need to touch anything.",
       getValue: (pkg) => `${currency.format(pkg.setupFeePerSite)}/site`,
     },
     {
       label: "Support",
-      tip: "How long post-launch support is included.",
+      tip: "I respond within 1 business day. Covers questions, setup help, and bug fixes.",
       getValue: (pkg) => pkg.support,
     },
     {
       label: "Revisions",
-      tip: "How many update rounds are included.",
+      tip: "A revision is one round of changes you request—like removing a section, adding something new, or tweaking how things look. You can send multiple changes at once, but they count as one revision as long as they're in a single batch.",
       getValue: (pkg) => pkg.revisions,
     },
     {
       label: "Delivery time",
-      tip: "Expected timeline, with rush option shown.",
+      tip: "How long until your project is ready. Rush puts you in a faster queue so the pages goes live sooner.",
       getValue: (pkg) => pkg.delivery,
     },
     {
@@ -427,7 +427,7 @@ export default function PodcastPricingPage() {
     },
     {
       label: "Documentation",
-      tip: "Guides for your team to install and add API keys.",
+      tip: "Step-by-step guides for installing the plugin, getting your API keys, and using the plugin day-to-day.",
       getValue: () => yesNoPill(true),
     },
   ];
