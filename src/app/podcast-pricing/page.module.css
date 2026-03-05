@@ -285,6 +285,28 @@
   margin: 8px 0;
 }
 
+.subAddonWrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.3s ease,
+    opacity 0.25s ease;
+}
+
+.subAddonWrap.subAddonOpen {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.subAddon {
+  overflow: hidden;
+  margin-left: 20px;
+  padding-left: 12px;
+  border-left: 3px solid hsl(var(--warning) / 0.5);
+  padding-top: 2px;
+}
+
 .info {
   display: inline-flex;
   align-items: center;
@@ -398,6 +420,27 @@
 
 .monthly strong {
   color: hsl(var(--success));
+}
+
+.totalBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid hsl(var(--warning) / 0.45);
+  background: hsl(var(--warning) / 0.08);
+}
+
+.totalBar span {
+  font-size: 0.9rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.totalBar strong {
+  font-size: 1.3rem;
+  color: hsl(var(--warning));
 }
 
 .breakdown {

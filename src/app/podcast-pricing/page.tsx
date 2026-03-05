@@ -293,10 +293,14 @@ export default function PodcastPricingPage() {
     const payNow = oneTimeSubtotal + rushFee;
 
     const monthly = maintenance ? 10 * clientSites : 0;
-    const perClientNow = payNow / clientSites;
+    const perSiteCost = setupTotal + rushFee + addonPerSiteTotal;
+    const perClientNow = perSiteCost / clientSites;
     const perClientMonthly = monthly / clientSites;
 
-    const breakdown: string[] = [`Base package (${selectedPackage.name}): ${currency.format(baseCost)}`, `Client sites: ${clientSites}`];
+    const breakdown: string[] = [
+      `Base package (${selectedPackage.name}): ${currency.format(baseCost)} one-time`,
+      `Client sites: ${clientSites}`,
+    ];
 
     if (fullSetup) {
       breakdown.push(
@@ -555,20 +559,32 @@ export default function PodcastPricingPage() {
                     <h2>4) Setup and Speed Options</h2>
                   </div>
                   <label className={styles.checkline}>
-                    <input type="checkbox" checked={fullSetup} onChange={(event) => setFullSetup(event.target.checked)} />
+                    <input
+                      type="checkbox"
+                      checked={fullSetup}
+                      onChange={(event) => {
+                        const checked = event.target.checked;
+                        setFullSetup(checked);
+                        if (!checked) setRushDelivery(false);
+                      }}
+                    />
                     <span>Done-for-You Setup Per Site ({currency.format(selectedPackage.setupFeePerSite)}/site)</span>
                     <span className={styles.info} title="I handle setup for each client site: plugin install, API keys, and core settings.">
                       i
                     </span>
                   </label>
 
-                  <label className={styles.checkline}>
-                    <input type="checkbox" checked={rushDelivery} onChange={(event) => setRushDelivery(event.target.checked)} />
-                    <span>Rush Delivery (+20% on per-site setup)</span>
-                    <span className={styles.info} title="Rush puts your project in a faster queue and adds 20% to setup totals.">
-                      i
-                    </span>
-                  </label>
+                  <div className={`${styles.subAddonWrap} ${fullSetup ? styles.subAddonOpen : ""}`}>
+                    <div className={styles.subAddon}>
+                      <label className={styles.checkline}>
+                        <input type="checkbox" checked={rushDelivery} onChange={(event) => setRushDelivery(event.target.checked)} />
+                        <span>Rush Delivery (+20% on setup)</span>
+                        <span className={styles.info} title="Puts your project in a faster queue so sites go live sooner. Adds 20% to your per-site setup total.">
+                          i
+                        </span>
+                      </label>
+                    </div>
+                  </div>
 
                   {selectedPackage.id !== "agency-plus" ? (
                     <>
@@ -687,13 +703,18 @@ export default function PodcastPricingPage() {
                 <strong>{currency.format(totals.monthly)}</strong>
               </div>
               <div className={styles.kpi}>
-                <span>Per Client Site (One-Time)</span>
+                <span>Per Client Site (Setup & Add-Ons)</span>
                 <strong>{currency.format(totals.perClientNow)}</strong>
               </div>
               <div className={styles.kpi}>
                 <span>Per Client Site (Monthly)</span>
                 <strong>{currency.format(totals.perClientMonthly)}</strong>
               </div>
+            </div>
+
+            <div className={styles.totalBar}>
+              <span>Total (excluding monthly)</span>
+              <strong>{currency.format(totals.payNow)}</strong>
             </div>
 
             <div className={styles.breakdown}>
