@@ -217,16 +217,6 @@ function getMissingAddons(pkg: PackageTier): AddonItem[] {
       amount: 200,
     });
   }
-  if (!pkg.hasFullThreeSource) {
-    items.push({
-      id: "addon-three-source",
-      title: "Full 3-source setup (+$100)",
-      tip: "Adds YouTube, Megaphone, and custom RSS support together.",
-      note: "$100 one-time",
-      pricingType: "one-time",
-      amount: 100,
-    });
-  }
   if (!pkg.customThemeByYou) {
     items.push({
       id: "addon-custom-theme",
