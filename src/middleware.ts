@@ -25,6 +25,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/projects/(.*)',
   '/api/photos',
   '/api/photos/(.*)',
+  '/api/tabreeze-feedback',
   '/api/webhook/(.*)', // Webhook routes should be public
 ]);
 

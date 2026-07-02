@@ -15,7 +15,8 @@
     "verify-setup": "node verify-setup.js",
     "sync-mux": "node scripts/sync-mux-assets.js",
     "assign-video": "node scripts/assign-video.js",
-    "create-project": "node scripts/create-test-project.js"
+    "create-project": "node scripts/create-test-project.js",
+    "verify-tabreeze-feedback": "npx tsx scripts/verify-tabreeze-feedback.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.31.6",
@@ -31,6 +32,8 @@
     "@radix-ui/react-switch": "^1.0.3",
     "@radix-ui/react-tabs": "^1.1.13",
     "@types/marked": "^5.0.2",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.0",
     "@vercel/blob": "^1.1.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
@@ -47,6 +50,7 @@
     "react-syntax-highlighter": "^15.6.1",
     "react-zoom-pan-pinch": "^3.7.0",
     "remark-gfm": "^4.0.1",
+    "resend": "^6.16.0",
     "swr": "^2.2.4",
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7"
