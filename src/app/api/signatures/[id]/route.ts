@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/db/mongodb'
-import { auth } from '@clerk/nextjs/server'
+import { getAuthUserId } from '@/lib/clerk-auth.server'
 import type { Signature } from '@/types'
 import { ObjectId } from 'mongodb'
 
@@ -12,7 +12,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { userId: clerkUserId } = await auth()
+    const clerkUserId = await getAuthUserId()
     
     if (!clerkUserId) {
       return NextResponse.json(
@@ -92,7 +92,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { userId: clerkUserId } = await auth()
+    const clerkUserId = await getAuthUserId()
     
     if (!clerkUserId) {
       return NextResponse.json(

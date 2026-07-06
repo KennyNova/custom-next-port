@@ -1,7 +1,8 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { isClerkConfigured } from '@/lib/clerk-config'
 
-// Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
   '/',
   '/signatures',
@@ -26,38 +27,46 @@ const isPublicRoute = createRouteMatcher([
   '/api/photos',
   '/api/photos/(.*)',
   '/api/tabreeze-feedback',
-  '/api/webhook/(.*)', // Webhook routes should be public
-]);
+  '/api/webhook/(.*)',
+])
 
-export default clerkMiddleware(async (auth, request) => {
-  // Block admin routes when admin is disabled
+function passthroughMiddleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/admin')) {
     if (process.env.ENABLE_ADMIN !== 'true') {
-      return NextResponse.redirect(new URL('/', request.url));
+      return NextResponse.redirect(new URL('/', request.url))
     }
   }
 
-  // Don't protect the signatures API in middleware - let the API route handle it
-  if (request.nextUrl.pathname.startsWith('/api/signatures')) {
-    return;
-  }
-  
-  // Only protect routes that are not public
-  if (!isPublicRoute(request)) {
-    const { userId } = await auth();
-    if (!userId) {
-      const signInUrl = new URL('/sign-in', request.url);
-      signInUrl.searchParams.set('redirect_url', request.url);
-      return NextResponse.redirect(signInUrl);
+  return NextResponse.next()
+}
+
+const clerkHandler = clerkMiddleware(async (auth, request) => {
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (process.env.ENABLE_ADMIN !== 'true') {
+      return NextResponse.redirect(new URL('/', request.url))
     }
   }
-});
+
+  if (request.nextUrl.pathname.startsWith('/api/signatures')) {
+    return
+  }
+
+  if (!isPublicRoute(request)) {
+    const { userId } = await auth()
+    if (!userId) {
+      const signInUrl = new URL('/sign-in', request.url)
+      signInUrl.searchParams.set('redirect_url', request.url)
+      return NextResponse.redirect(signInUrl)
+    }
+  }
+})
+
+export default isClerkConfigured() ? clerkHandler : passthroughMiddleware
 
 export const config = {
   matcher: [
-    '/((?!.*\\..*|_next).*)', // Exclude static files and Next.js internals
-    '/', // Include the root path
-    '/(api|trpc)(.*)', // Include API and tRPC routes
+    '/((?!.*\\..*|_next).*)',
+    '/',
+    '/(api|trpc)(.*)',
   ],
-};
-
+}

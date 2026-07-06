@@ -7,32 +7,37 @@
 
 const { MongoClient } = require('mongodb');
 
-// Your current credentials
-const USERNAME = 'navidmad4598';
-const PASSWORD = 'tyhZ9YNIPNAEuE4cFzC2X34cWL6CBA22BwQoCikAkMs';
-const CLUSTER = 'port.ca4zksq.mongodb.net';
-const DATABASE = 'portfolio-blog';
+const BASE_URI = process.env.PROD_MONGODB_URI || process.env.MONGODB_URI;
+const DATABASE = process.env.MONGODB_DB_NAME || 'portfolio-blog';
+
+function withParams(uri, params) {
+  const url = new URL(uri);
+  Object.entries(params).forEach(([key, value]) => {
+    url.searchParams.set(key, value);
+  });
+  return url.toString();
+}
 
 // Different connection string formats to test
 const connectionTests = [
   {
     name: 'Current SRV Format',
-    uri: `mongodb+srv://${USERNAME}:${PASSWORD}@${CLUSTER}/${DATABASE}?retryWrites=true&w=majority`,
+    uri: BASE_URI ? withParams(BASE_URI, { retryWrites: 'true', w: 'majority' }) : '',
     options: {}
   },
   {
     name: 'SRV without w=majority',
-    uri: `mongodb+srv://${USERNAME}:${PASSWORD}@${CLUSTER}/${DATABASE}?retryWrites=true`,
+    uri: BASE_URI ? withParams(BASE_URI, { retryWrites: 'true' }) : '',
     options: {}
   },
   {
     name: 'SRV with SSL options',
-    uri: `mongodb+srv://${USERNAME}:${PASSWORD}@${CLUSTER}/${DATABASE}?retryWrites=true&w=majority&ssl=true`,
+    uri: BASE_URI ? withParams(BASE_URI, { retryWrites: 'true', w: 'majority', ssl: 'true' }) : '',
     options: {}
   },
   {
     name: 'Enhanced connection options',
-    uri: `mongodb+srv://${USERNAME}:${PASSWORD}@${CLUSTER}/${DATABASE}?retryWrites=true&w=majority`,
+    uri: BASE_URI ? withParams(BASE_URI, { retryWrites: 'true', w: 'majority' }) : '',
     options: {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -44,7 +49,7 @@ const connectionTests = [
   },
   {
     name: 'Relaxed SSL options',
-    uri: `mongodb+srv://${USERNAME}:${PASSWORD}@${CLUSTER}/${DATABASE}?retryWrites=true&w=majority`,
+    uri: BASE_URI ? withParams(BASE_URI, { retryWrites: 'true', w: 'majority' }) : '',
     options: {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -120,10 +125,13 @@ async function testConnection(test) {
 async function runDiagnostics() {
   console.log('🚀 MongoDB Connection Diagnostics');
   console.log('=================================');
-  console.log(`Target: ${CLUSTER}`);
+  if (!BASE_URI) {
+    throw new Error('Missing PROD_MONGODB_URI or MONGODB_URI environment variable');
+  }
+  const baseHost = new URL(BASE_URI).host;
+  console.log(`Target: ${baseHost}`);
   console.log(`Database: ${DATABASE}`);
-  console.log(`Username: ${USERNAME}`);
-  console.log('Password: [HIDDEN]');
+  console.log('Credentials: [FROM ENV]');
   
   let successCount = 0;
   

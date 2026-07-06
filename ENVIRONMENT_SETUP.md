@@ -44,9 +44,9 @@ mongodb+srv://USERNAME:PASSWORD@port.ca4zksq.mongodb.net/portfolio-blog?retryWri
 - `PASSWORD` = The password you set for that user
 
 **Example:**
-If your username is `portfolio-reader` and password is `SecurePass123`, then:
+If your username is `portfolio-reader` and password is `<strong-password>`, then:
 ```
-mongodb+srv://portfolio-reader:SecurePass123@port.ca4zksq.mongodb.net/portfolio-blog?retryWrites=true&w=majority
+mongodb+srv://portfolio-reader:<strong-password>@port.ca4zksq.mongodb.net/portfolio-blog?retryWrites=true&w=majority
 ```
 
 ---

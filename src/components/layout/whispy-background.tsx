@@ -2,7 +2,7 @@
 
 import { useTheme } from '@/components/providers/theme-provider'
 import { useIsConstrained } from '@/components/providers/perf-provider'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface Line {
   id: number
@@ -17,17 +17,39 @@ interface Line {
   speed: number
   age: number
   maxAge: number
+  depth: number
 }
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+const lerp = (start: number, end: number, amount: number) => start + (end - start) * amount
 
 const WhispyBackground = () => {
   const { theme } = useTheme()
   const isConstrained = useIsConstrained()
   const [lines, setLines] = useState<Line[]>([])
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
+  const scrollTargetRef = useRef(0)
+  const scrollCurrentRef = useRef(0)
 
   // Initialize dimensions (must run before early return - Rules of Hooks)
   useEffect(() => {
     if (isConstrained) return
+
+    const updateScrollTarget = () => {
+      scrollTargetRef.current = clamp(window.scrollY, 0, 700)
+    }
+
+    updateScrollTarget()
+    window.addEventListener('scroll', updateScrollTarget, { passive: true })
+
+    return () => {
+      window.removeEventListener('scroll', updateScrollTarget)
+    }
+  }, [isConstrained])
+
+  useEffect(() => {
+    if (isConstrained) return
+
     const updateDimensions = () => {
       setDimensions({
         width: window.innerWidth,
@@ -46,7 +68,10 @@ const WhispyBackground = () => {
       const numLines = Math.floor((dimensions.width * dimensions.height) / 15000)
       for (let i = 0; i < numLines; i++) {
         const angle = Math.random() * Math.PI * 2
-        const length = 100 + Math.random() * 200
+        // Depth controls near/far layering for parallax response.
+        // Higher depth = closer to viewer.
+        const depth = Math.pow(Math.random(), 0.75)
+        const length = 90 + depth * 140 + Math.random() * 120
         const startX = Math.random() * dimensions.width
         const startY = Math.random() * dimensions.height
         const maxAge = 60 + Math.random() * 120
@@ -56,13 +81,14 @@ const WhispyBackground = () => {
           startY,
           endX: startX + Math.cos(angle) * length,
           endY: startY + Math.sin(angle) * length,
-          opacity: 0.2 + Math.random() * 0.6,
-          strokeWidth: 1 + Math.random() * 2,
+          opacity: 0.18 + depth * 0.42 + Math.random() * 0.2,
+          strokeWidth: 0.8 + depth * 1.8 + Math.random() * 0.7,
           length,
           angle,
-          speed: 0.5 + Math.random() * 1.5,
+          speed: 0.35 + depth * 1.25 + Math.random() * 0.8,
           age: Math.random() * maxAge,
-          maxAge
+          maxAge,
+          depth
         })
       }
       setLines(newLines)
@@ -73,12 +99,15 @@ const WhispyBackground = () => {
   useEffect(() => {
     if (isConstrained || lines.length === 0) return
     const animateLines = () => {
+      scrollCurrentRef.current = lerp(scrollCurrentRef.current, scrollTargetRef.current, 0.08)
+
       setLines(prevLines =>
         prevLines.map(line => {
           const newAge = line.age + 1
           if (newAge > line.maxAge) {
             const angle = Math.random() * Math.PI * 2
-            const length = 100 + Math.random() * 200
+            const depth = Math.pow(Math.random(), 0.75)
+            const length = 90 + depth * 140 + Math.random() * 120
             const startX = Math.random() * dimensions.width
             const startY = Math.random() * dimensions.height
             const maxAge = 60 + Math.random() * 120
@@ -92,9 +121,10 @@ const WhispyBackground = () => {
               length,
               age: 0,
               maxAge,
-              speed: 0.5 + Math.random() * 1.5,
-              opacity: 0.2 + Math.random() * 0.6,
-              strokeWidth: 1 + Math.random() * 2
+              depth,
+              speed: 0.35 + depth * 1.25 + Math.random() * 0.8,
+              opacity: 0.18 + depth * 0.42 + Math.random() * 0.2,
+              strokeWidth: 0.8 + depth * 1.8 + Math.random() * 0.7
             }
           }
           let newStartX = line.startX + Math.cos(line.angle) * line.speed
@@ -254,14 +284,23 @@ const WhispyBackground = () => {
           const getOpacity = () => {
             return finalOpacity
           }
+
+          const positionDepth = clamp(((line.startY + line.endY) / 2) / dimensions.height, 0, 1)
+          const parallaxDepth = clamp(positionDepth * 0.35 + line.depth * 0.65, 0, 1)
+          const scrollShiftY = scrollCurrentRef.current * (0.008 + parallaxDepth * 0.024)
+
+          const x1 = line.startX
+          const y1 = line.startY - scrollShiftY
+          const x2 = line.endX
+          const y2 = line.endY - scrollShiftY * 1.08
           
           return (
             <line
               key={line.id}
-              x1={line.startX}
-              y1={line.startY}
-              x2={line.endX}
-              y2={line.endY}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
               stroke={`url(#${gradientId})`}
               strokeWidth={line.strokeWidth}
               opacity={getOpacity()}
@@ -277,9 +316,9 @@ const WhispyBackground = () => {
       <div 
         className="absolute inset-0 transition-all duration-1000 ease-in-out pointer-events-none"
         style={{
-          background: `radial-gradient(circle at 30% 20%, ${colors.glow} 0%, transparent 50%), 
-                      radial-gradient(circle at 70% 80%, ${colors.accent} 0%, transparent 50%),
-                      radial-gradient(circle at 20% 80%, ${colors.secondary} 0%, transparent 50%)`
+          background: `radial-gradient(circle at 30% ${20 - scrollCurrentRef.current * 0.008}%, ${colors.glow} 0%, transparent 50%), 
+                      radial-gradient(circle at 70% ${80 - scrollCurrentRef.current * 0.01}%, ${colors.accent} 0%, transparent 50%),
+                      radial-gradient(circle at 20% ${80 - scrollCurrentRef.current * 0.006}%, ${colors.secondary} 0%, transparent 50%)`
         }}
       />
     </div>

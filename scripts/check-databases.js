@@ -7,8 +7,8 @@
 
 const { MongoClient } = require('mongodb');
 
-const DEV_URI = 'mongodb://localhost:27017';
-const PROD_URI = 'mongodb+srv://navidm4598:rqkq0lFMTjzR6fFZ@port.ca4zksq.mongodb.net/';
+const DEV_URI = process.env.DEV_MONGODB_URI || 'mongodb://localhost:27017';
+const PROD_URI = process.env.PROD_MONGODB_URI || process.env.MONGODB_URI;
 const DATABASE_NAME = 'portfolio-blog';
 
 const COLLECTIONS = ['projects', 'blogPosts', 'users'];
@@ -58,6 +58,10 @@ async function checkDatabase(uri, label) {
 async function main() {
   console.log('🚀 Database Checker');
   console.log('====================');
+
+  if (!PROD_URI) {
+    throw new Error('Missing PROD_MONGODB_URI or MONGODB_URI environment variable');
+  }
   
   // Check development database
   await checkDatabase(DEV_URI, 'Development');

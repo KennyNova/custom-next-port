@@ -6,115 +6,27 @@ import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { PreloadLink } from '@/components/ui/preload-link'
 import { Menu, X, Home, FolderOpen, BookOpen, Brain, PenTool, Workflow } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, type ComponentType } from 'react'
 
-// Component for cycling random characters with sliding slot effect
-function CyclingText({ isHovered }: { isHovered: boolean }) {
-  const targetText = 'coming soon'
-  const [displayChars, setDisplayChars] = useState(
-    targetText.split('').map(char => ({ current: char, next: char, isAnimating: false }))
-  )
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?'
-  
-  useEffect(() => {
-    let completionTimeout: ReturnType<typeof setTimeout> | null = null
-
-    const interval = setInterval(() => {
-      setDisplayChars(prev => {
-        return prev.map((charData, index) => {
-          if (isHovered) {
-            const targetChar = targetText[index]
-            const shouldAnimateToTarget = charData.current !== targetChar
-            return {
-              current: charData.current,
-              next: targetChar,
-              isAnimating: shouldAnimateToTarget
-            }
-          }
-
-          if (Math.random() < 0.3) {
-            const nextChar = characters[Math.floor(Math.random() * characters.length)]
-            return {
-              current: charData.current,
-              next: nextChar,
-              isAnimating: true
-            }
-          }
-          return charData
-        })
-      })
-      
-      completionTimeout = setTimeout(() => {
-        setDisplayChars(prev => {
-          return prev.map(charData => ({
-            current: charData.isAnimating ? charData.next : charData.current,
-            next: charData.next,
-            isAnimating: false
-          }))
-        })
-      }, 200)
-    }, 300)
-    
-    return () => {
-      clearInterval(interval)
-      if (completionTimeout) {
-        clearTimeout(completionTimeout)
-      }
-    }
-  }, [characters, isHovered, targetText])
-  
-  return (
-    <span className="font-mono inline-flex">
-      {displayChars.map((charData, index) => (
-        <span
-          key={index}
-          className="relative inline-block overflow-hidden"
-          style={{ width: '0.6em' }}
-        >
-          <motion.span
-            className="block"
-            animate={{
-              y: charData.isAnimating ? '-100%' : '0%',
-              filter: charData.isAnimating ? 'blur(2px)' : 'blur(0px)'
-            }}
-            transition={{
-              duration: 0.2,
-              ease: 'easeInOut'
-            }}
-          >
-            {charData.current}
-          </motion.span>
-          <motion.span
-            className="absolute top-0 left-0 block"
-            animate={{
-              y: charData.isAnimating ? '0%' : '100%',
-              filter: charData.isAnimating ? 'blur(2px)' : 'blur(0px)'
-            }}
-            transition={{
-              duration: 0.2,
-              ease: 'easeInOut'
-            }}
-          >
-            {charData.next}
-          </motion.span>
-        </span>
-      ))}
-    </span>
-  )
+type NavigationItem = {
+  name: string
+  href: string
+  key?: string
+  disabled?: boolean
+  icon: ComponentType<{ className?: string }>
 }
 
-const navigation = [
+const navigation: NavigationItem[] = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Projects', href: '/projects', icon: FolderOpen },
   { name: 'Blog', href: '/blog', icon: BookOpen },
   { name: 'Quiz', href: '/quiz', icon: Brain },
   { name: 'Signatures', href: '/signatures', icon: PenTool },
-  { name: 'Templates', href: '/coming-soon', key: 'templates', disabled: true, icon: Workflow, isAnimated: true },
+  { name: 'Templates', href: '/templates', key: 'templates', icon: Workflow },
 ]
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [templatesHovered, setTemplatesHovered] = useState(false)
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur backdrop-ok supports-[backdrop-filter]:bg-background/60">
@@ -144,25 +56,13 @@ export function Header() {
                 key={item.key || (typeof item.name === 'string' ? item.name : 'element')}
                 href={item.href}
                 disabled={item.disabled}
-                onMouseEnter={() => {
-                  if (item.isAnimated) setTemplatesHovered(true)
-                }}
-                onMouseLeave={() => {
-                  if (item.isAnimated) setTemplatesHovered(false)
-                }}
-                onFocus={() => {
-                  if (item.isAnimated) setTemplatesHovered(true)
-                }}
-                onBlur={() => {
-                  if (item.isAnimated) setTemplatesHovered(false)
-                }}
                 className={`text-sm font-medium transition-colors ${
                   item.disabled 
                     ? 'text-muted-foreground/50 opacity-60 hover:opacity-80' 
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {item.isAnimated ? <CyclingText isHovered={templatesHovered} /> : item.name}
+                {item.name}
               </PreloadLink>
             ))}
           </motion.nav>

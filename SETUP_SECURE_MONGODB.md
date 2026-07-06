@@ -1,10 +1,10 @@
 # 🔒 Secure MongoDB Atlas Setup for Vercel
 
-## 🎯 **Your Generated Credentials**
+## 🎯 **Create New Rotated Credentials**
 
 ```
-Username: portfolio-app-20250817
-Password: jjhhGqsM3GB6mb+FpKIO+/ntP+HdOSgrG15wuYK0fhI=
+Username: <new-mongodb-username>
+Password: <new-strong-password>
 ```
 
 **⚠️ Save these credentials securely - you'll need them for the setup!**
@@ -23,8 +23,8 @@ Password: jjhhGqsM3GB6mb+FpKIO+/ntP+HdOSgrG15wuYK0fhI=
    - Go to **Database Access** tab
    - Click **"+ Add New Database User"**
    - **Authentication Method**: Password
-   - **Username**: `portfolio-app-20250817`
-   - **Password**: `jjhhGqsM3GB6mb+FpKIO+/ntP+HdOSgrG15wuYK0fhI=`
+   - **Username**: `<new-mongodb-username>`
+   - **Password**: `<new-strong-password>`
    - **Database User Privileges**: 
      - Select **"Built-in Role"**
      - Choose **"Read and write to any database"** 
@@ -50,9 +50,9 @@ Password: jjhhGqsM3GB6mb+FpKIO+/ntP+HdOSgrG15wuYK0fhI=
 
 ### **Step 3: Update Your Connection String**
 
-Your new secure connection string:
+Your new secure connection string template:
 ```
-mongodb+srv://portfolio-app-20250817:jjhhGqsM3GB6mb+FpKIO+/ntP+HdOSgrG15wuYK0fhI=@port.ca4zksq.mongodb.net/portfolio-blog?retryWrites=true&w=majority
+mongodb+srv://<new-mongodb-username>:<new-strong-password>@<cluster-host>/portfolio-blog?retryWrites=true&w=majority
 ```
 
 ### **Step 4: Configure Vercel Environment Variables**
@@ -65,7 +65,7 @@ mongodb+srv://portfolio-app-20250817:jjhhGqsM3GB6mb+FpKIO+/ntP+HdOSgrG15wuYK0fhI
    - Go to **Settings** → **Environment Variables**
    - Click **"Add New"**
    - **Name**: `MONGODB_URI`
-   - **Value**: `mongodb+srv://portfolio-app-20250817:jjhhGqsM3GB6mb+FpKIO+/ntP+HdOSgrG15wuYK0fhI=@port.ca4zksq.mongodb.net/portfolio-blog?retryWrites=true&w=majority`
+   - **Value**: `mongodb+srv://<new-mongodb-username>:<new-strong-password>@<cluster-host>/portfolio-blog?retryWrites=true&w=majority`
    - **Environments**: ✅ Production, ✅ Preview, ✅ Development
    - Click **"Save"**
 
@@ -74,7 +74,7 @@ mongodb+srv://portfolio-app-20250817:jjhhGqsM3GB6mb+FpKIO+/ntP+HdOSgrG15wuYK0fhI
 Test locally first:
 ```bash
 # Update your local .env.local file
-echo 'MONGODB_URI="mongodb+srv://portfolio-app-20250817:jjhhGqsM3GB6mb+FpKIO+/ntP+HdOSgrG15wuYK0fhI=@port.ca4zksq.mongodb.net/portfolio-blog?retryWrites=true&w=majority"' > .env.local
+echo 'MONGODB_URI="mongodb+srv://<new-mongodb-username>:<new-strong-password>@<cluster-host>/portfolio-blog?retryWrites=true&w=majority"' > .env.local
 
 # Test the connection
 npm run test-prod

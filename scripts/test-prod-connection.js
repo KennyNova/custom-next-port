@@ -7,10 +7,14 @@
 
 const { MongoClient } = require('mongodb');
 
-const PROD_URI = 'mongodb+srv://navidm4598:rqkq0lFMTjzR6fFZ@port.ca4zksq.mongodb.net/portfolio-blog';
+const PROD_URI = process.env.PROD_MONGODB_URI || process.env.MONGODB_URI;
 
 async function testProduction() {
   console.log('🧪 Testing Production Database Connection...\n');
+
+  if (!PROD_URI) {
+    throw new Error('Missing PROD_MONGODB_URI or MONGODB_URI environment variable');
+  }
   
   let client;
   try {
@@ -71,7 +75,7 @@ async function testProduction() {
     console.log(`   • Database operations: Working ✅`);
     
     console.log('\n🚀 Next step: Configure this URI in Vercel environment variables');
-    console.log('   MONGODB_URI=' + PROD_URI);
+    console.log('   Add MONGODB_URI in Vercel Project Settings > Environment Variables');
     
   } catch (error) {
     console.error('❌ Production database test failed:', error.message);

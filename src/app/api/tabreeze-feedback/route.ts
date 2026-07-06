@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { captureServerEvent, getDistinctIdFromRequest } from '@/lib/posthog/server'
 import {
   corsHeaders,
   isOriginAllowed,
@@ -93,6 +94,14 @@ export async function POST(request: NextRequest) {
 
   try {
     await sendFeedbackEmail(validation.payload)
+    await captureServerEvent(
+      getDistinctIdFromRequest(request) || 'tabreeze-extension',
+      'tabreeze_feedback_submitted',
+      {
+        report_type: validation.payload.reportType,
+        source: 'api',
+      }
+    )
     console.log('Tabreeze feedback received', {
       reportType: validation.payload.reportType,
       submittedAt: validation.payload.submittedAt,

@@ -29,12 +29,13 @@ mongoexport --host localhost:27017 --db portfolio-blog --collection blogPosts --
 
 ### Step 2: Import to Production
 ```bash
-# Import using connection string (replace with your actual URI)
-mongorestore --uri "mongodb+srv://navidm4598:rqkq0lFMTjzR6fFZ@port.ca4zksq.mongodb.net/" --db portfolio-blog ./dev-backup/portfolio-blog
+# Import using environment variable (replace with your actual URI)
+export PROD_MONGODB_URI="mongodb+srv://<username>:<password>@<cluster-host>/portfolio-blog?retryWrites=true&w=majority"
+mongorestore --uri "$PROD_MONGODB_URI" --db portfolio-blog ./dev-backup/portfolio-blog
 
 # Or import specific collections
-mongoimport --uri "mongodb+srv://navidm4598:rqkq0lFMTjzR6fFZ@port.ca4zksq.mongodb.net/" --db portfolio-blog --collection projects --file projects.json
-mongoimport --uri "mongodb+srv://navidm4598:rqkq0lFMTjzR6fFZ@port.ca4zksq.mongodb.net/" --db portfolio-blog --collection blogPosts --file blogPosts.json
+mongoimport --uri "$PROD_MONGODB_URI" --db portfolio-blog --collection projects --file projects.json
+mongoimport --uri "$PROD_MONGODB_URI" --db portfolio-blog --collection blogPosts --file blogPosts.json
 ```
 
 ## Option 3: Using MongoDB Compass (GUI)
@@ -49,7 +50,7 @@ mongoimport --uri "mongodb+srv://navidm4598:rqkq0lFMTjzR6fFZ@port.ca4zksq.mongod
    - Save as JSON files
 
 3. **Connect to Production Database:**
-   - Connect to `mongodb+srv://navidm4598:rqkq0lFMTjzR6fFZ@port.ca4zksq.mongodb.net/`
+   - Connect using `PROD_MONGODB_URI` or `MONGODB_URI`
    - Navigate to `portfolio-blog` database
 
 4. **Import Collections:**
@@ -60,7 +61,7 @@ mongoimport --uri "mongodb+srv://navidm4598:rqkq0lFMTjzR6fFZ@port.ca4zksq.mongod
 
 1. **Update Vercel Environment Variables:**
    ```
-   MONGODB_URI=mongodb+srv://navidm4598:rqkq0lFMTjzR6fFZ@port.ca4zksq.mongodb.net/portfolio-blog
+   MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-host>/portfolio-blog?retryWrites=true&w=majority
    ```
 
 2. **Redeploy your Vercel application**
@@ -102,7 +103,7 @@ After migration, verify your data:
 
 ```bash
 # Check production database using MongoDB shell
-mongosh "mongodb+srv://navidm4598:rqkq0lFMTjzR6fFZ@port.ca4zksq.mongodb.net/"
+mongosh "$PROD_MONGODB_URI"
 
 # In the MongoDB shell:
 use portfolio-blog

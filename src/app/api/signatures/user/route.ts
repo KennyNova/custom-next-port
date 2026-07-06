@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/db/mongodb'
-import { auth } from '@clerk/nextjs/server'
+import { getAuthUserId } from '@/lib/clerk-auth.server'
 import type { Signature } from '@/types'
 
 // Force dynamic rendering for this route since it uses auth headers
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       )
     }
     
-    const { userId: clerkUserId } = await auth()
+    const clerkUserId = await getAuthUserId()
     
     if (!clerkUserId) {
       return NextResponse.json(

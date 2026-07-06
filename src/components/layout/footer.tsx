@@ -4,84 +4,17 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Github, Linkedin, Mail, Twitter } from 'lucide-react'
 import { PreloadLink } from '@/components/ui/preload-link'
-import { useState, useEffect } from 'react'
 
-// Component for cycling random characters with sliding slot effect
-function CyclingText() {
-  const originalText = 'n8n Templates'
-  const [displayChars, setDisplayChars] = useState(
-    originalText.split('').map(char => ({ current: char, next: char, isAnimating: false }))
-  )
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?'
-  
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDisplayChars(prev => {
-        return prev.map((charData, index) => {
-          // Randomly decide if this character should animate (30% chance)
-          if (Math.random() < 0.3) {
-            const nextChar = characters[Math.floor(Math.random() * characters.length)]
-            return {
-              current: charData.current,
-              next: nextChar,
-              isAnimating: true
-            }
-          }
-          return charData
-        })
-      })
-      
-      // Complete the animation after a short delay
-      setTimeout(() => {
-        setDisplayChars(prev => {
-          return prev.map(charData => ({
-            current: charData.isAnimating ? charData.next : charData.current,
-            next: charData.next,
-            isAnimating: false
-          }))
-        })
-      }, 200)
-    }, 300)
-    
-    return () => clearInterval(interval)
-  }, [])
-  
-  return (
-    <span className="font-mono inline-flex">
-      {displayChars.map((charData, index) => (
-        <span
-          key={index}
-          className="relative inline-block overflow-hidden"
-          style={{ width: '0.6em' }}
-        >
-          <motion.span
-            className="block"
-            animate={{
-              y: charData.isAnimating ? '-100%' : '0%'
-            }}
-            transition={{
-              duration: 0.2,
-              ease: 'easeInOut'
-            }}
-          >
-            {charData.current}
-          </motion.span>
-          <motion.span
-            className="absolute top-0 left-0 block"
-            animate={{
-              y: charData.isAnimating ? '0%' : '100%'
-            }}
-            transition={{
-              duration: 0.2,
-              ease: 'easeInOut'
-            }}
-          >
-            {charData.next}
-          </motion.span>
-        </span>
-      ))}
-    </span>
-  )
+type FooterLink = {
+  name: string
+  href: string
+  key?: string
+  disabled?: boolean
+}
+
+type FooterSection = {
+  title: string
+  links: FooterLink[]
 }
 
 const socialLinks = [
@@ -91,7 +24,7 @@ const socialLinks = [
   { name: 'Email', href: 'mailto:hello@example.com', icon: Mail },
 ]
 
-const footerLinks = [
+const footerLinks: FooterSection[] = [
   {
     title: 'Navigation',
     links: [
@@ -104,7 +37,7 @@ const footerLinks = [
   {
     title: 'Resources',
     links: [
-      { name: <CyclingText />, href: '/coming-soon', key: 'templates', disabled: true },
+      { name: 'n8n Templates', href: '/templates', key: 'templates' },
       { name: 'Signatures', href: '/signatures' },
       { name: 'Consultation', href: '/consultation' },
     ],

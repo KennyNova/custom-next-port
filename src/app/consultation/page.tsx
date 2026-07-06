@@ -25,13 +25,19 @@ import {
   Target,
   X
 } from 'lucide-react'
+import { captureEvent } from '@/lib/posthog/client'
 
 // Cal.com integration hook
 const useCalComBooking = () => {
   const [isLoading, setIsLoading] = useState(false)
 
-  const openBooking = (eventType: string) => {
+  const openBooking = (eventType: string, source = 'consultation') => {
     setIsLoading(true)
+
+    captureEvent('consultation_booking_started', {
+      source,
+      event_type: eventType,
+    })
     
     // Cal.com embed configuration
     const calComUrl = process.env.NEXT_PUBLIC_CALCOM_BASE_URL || 'https://cal.com'

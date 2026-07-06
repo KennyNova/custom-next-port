@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ChevronLeft, ChevronRight, CheckCircle, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
+import { captureEvent } from '@/lib/posthog/client'
 
 // Cal.com integration hook with quiz results support
 const useCalComBooking = () => {
@@ -438,6 +438,13 @@ export default function QuizPage() {
   const [showBreakdown, setShowBreakdown] = useState(false)
   const ctaAnchorRef = useRef<HTMLDivElement | null>(null)
   const [ctaStuck, setCtaStuck] = useState(false)
+  const quizStartedRef = useRef(false)
+
+  const getQuestionById = (questionId: string) =>
+    quizQuestions.find((question) => question.id === questionId)
+
+  const getOptionText = (question: Question, value: string) =>
+    question.options.find((option) => option.value === value)?.text ?? value
 
   useEffect(() => {
     if (!showResults) return
@@ -466,6 +473,52 @@ export default function QuizPage() {
   const availableQuestions = getAvailableQuestions()
   const currentQuestion = availableQuestions[currentQuestionIndex]
 
+  const getQuizProgressMeta = () => ({
+    total_questions: availableQuestions.length,
+    progress_percent: Math.round(overallProgress),
+    questions_answered: Object.keys(answers).length,
+  })
+
+  useEffect(() => {
+    if (showResults || !currentQuestion) return
+
+    if (!quizStartedRef.current) {
+      quizStartedRef.current = true
+      captureEvent('quiz_started', {
+        total_questions: availableQuestions.length,
+      })
+    }
+
+    captureEvent('quiz_question_viewed', {
+      question_id: currentQuestion.id,
+      question_text: currentQuestion.text,
+      question_index: currentQuestionIndex,
+      question_number: currentQuestionIndex + 1,
+      question_type: currentQuestion.type,
+      ...getQuizProgressMeta(),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentQuestion?.id, showResults])
+
+  useEffect(() => {
+    if (showResults) return
+
+    const handleLeave = () => {
+      if (Object.keys(answers).length === 0) return
+
+      captureEvent('quiz_abandoned', {
+        last_question_id: currentQuestion?.id,
+        last_question_index: currentQuestionIndex,
+        last_question_number: currentQuestionIndex + 1,
+        ...getQuizProgressMeta(),
+      })
+    }
+
+    window.addEventListener('pagehide', handleLeave)
+    return () => window.removeEventListener('pagehide', handleLeave)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showResults, currentQuestion?.id, currentQuestionIndex, answers, overallProgress, availableQuestions.length])
+
   // Calculate progressive percentage based on available questions for this user
   const calculateProgressivePercentage = () => {
     const totalAvailableQuestions = availableQuestions.length
@@ -489,21 +542,76 @@ export default function QuizPage() {
   }
 
   const handleAnswer = (questionId: string, answer: string | string[]) => {
+    const question = getQuestionById(questionId)
+    if (question && typeof answer === 'string') {
+      captureEvent('quiz_answer_selected', {
+        question_id: questionId,
+        question_text: question.text,
+        question_index: currentQuestionIndex,
+        question_number: currentQuestionIndex + 1,
+        question_type: question.type,
+        answer_value: answer,
+        answer_text: getOptionText(question, answer),
+        selection_action: 'selected',
+        ...getQuizProgressMeta(),
+      })
+    }
+
     setAnswers(prev => ({ ...prev, [questionId]: answer }))
   }
 
   const handleMultipleAnswer = (questionId: string, value: string, checked: boolean) => {
+    const question = getQuestionById(questionId)
+    const currentAnswers = (answers[questionId] as string[]) || []
+
+    if (question) {
+      captureEvent('quiz_answer_selected', {
+        question_id: questionId,
+        question_text: question.text,
+        question_index: currentQuestionIndex,
+        question_number: currentQuestionIndex + 1,
+        question_type: question.type,
+        answer_value: value,
+        answer_text: getOptionText(question, value),
+        selection_action: checked ? 'selected' : 'deselected',
+        selected_count: checked
+          ? currentAnswers.length + 1
+          : Math.max(0, currentAnswers.length - 1),
+        ...getQuizProgressMeta(),
+      })
+    }
+
     setAnswers(prev => {
-      const currentAnswers = (prev[questionId] as string[]) || []
+      const prevAnswers = (prev[questionId] as string[]) || []
       if (checked) {
-        return { ...prev, [questionId]: [...currentAnswers, value] }
+        return { ...prev, [questionId]: [...prevAnswers, value] }
       } else {
-        return { ...prev, [questionId]: currentAnswers.filter(answer => answer !== value) }
+        return { ...prev, [questionId]: prevAnswers.filter(answer => answer !== value) }
       }
     })
   }
 
   const nextQuestion = () => {
+    if (!currentQuestion) return
+
+    const currentAnswer = answers[currentQuestion.id]
+    captureEvent('quiz_question_submitted', {
+      question_id: currentQuestion.id,
+      question_text: currentQuestion.text,
+      question_index: currentQuestionIndex,
+      question_number: currentQuestionIndex + 1,
+      question_type: currentQuestion.type,
+      is_final_question: currentQuestionIndex === availableQuestions.length - 1,
+      answer_values: currentAnswer,
+      answer_text:
+        currentQuestion.type === 'single' && typeof currentAnswer === 'string'
+          ? getOptionText(currentQuestion, currentAnswer)
+          : Array.isArray(currentAnswer)
+            ? currentAnswer.map((value) => getOptionText(currentQuestion, value))
+            : undefined,
+      ...getQuizProgressMeta(),
+    })
+
     if (currentQuestionIndex < availableQuestions.length - 1) {
       const nextIndex = currentQuestionIndex + 1
       setCurrentQuestionIndex(nextIndex)
@@ -529,6 +637,12 @@ export default function QuizPage() {
 
   const prevQuestion = () => {
     if (showResults) {
+      captureEvent('quiz_question_back', {
+        from_question_id: 'results',
+        from_question_index: availableQuestions.length,
+        to_question_index: availableQuestions.length - 1,
+        ...getQuizProgressMeta(),
+      })
       // If we're showing results, go back to the last question
       setShowResults(false)
       setServicePercentages([])
@@ -539,6 +653,12 @@ export default function QuizPage() {
       // Restore progress to 95% (before completion)
       setOverallProgress(95)
     } else if (currentQuestionIndex > 0) {
+      captureEvent('quiz_question_back', {
+        from_question_id: currentQuestion?.id,
+        from_question_index: currentQuestionIndex,
+        to_question_index: currentQuestionIndex - 1,
+        ...getQuizProgressMeta(),
+      })
       const prevIndex = currentQuestionIndex - 1
       setCurrentQuestionIndex(prevIndex)
       // Keep progress monotonic; do not decrease when navigating backward
@@ -646,10 +766,20 @@ export default function QuizPage() {
     // Create blended result based on top scoring services
     const primaryService = servicePercentages[0]?.service || 'web'
     setResult(primaryService)
+    captureEvent('quiz_completed', {
+      primary_service: primaryService,
+      top_services: servicePercentages.slice(0, 3).map((item) => ({
+        service: item.service,
+        percentage: Math.round(item.percentage),
+      })),
+      questions_answered: Object.keys(answers).length,
+    })
     setShowResults(true)
   }
 
   const resetQuiz = () => {
+    captureEvent('quiz_restarted', getQuizProgressMeta())
+    quizStartedRef.current = false
     setCurrentQuestionIndex(0)
     setAnswers({})
     setShowResults(false)
@@ -728,6 +858,11 @@ export default function QuizPage() {
       metadata: `Completed ${formattedData.totalQuestions} questions on ${formattedData.completedAt}`
     }
     
+    captureEvent('consultation_booking_started', {
+      source: 'quiz',
+      event_type: 'quiz',
+      primary_service: quizResultsData.primaryService,
+    })
     openBookingWithQuizResults('quiz', quizResultsData)
   }
 
@@ -986,26 +1121,26 @@ export default function QuizPage() {
               className="space-y-3"
             >
                 {currentQuestion.options?.map((option, index) => (
-                <motion.div
+                <motion.label
                     key={option.value}
-                  className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                  htmlFor={option.value}
+                  className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer w-full"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
                     <RadioGroupItem value={option.value} id={option.value} />
-                    <Label htmlFor={option.value} className="flex-1 cursor-pointer">
-                      {option.text}
-                  </Label>
-                </motion.div>
+                    <span className="flex-1">{option.text}</span>
+                </motion.label>
               ))}
             </RadioGroup>
             ) : (
               <div className="space-y-3">
                 {currentQuestion.options?.map((option, index) => (
-                  <motion.div
+                  <motion.label
                     key={option.value}
-                    className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors"
+                    htmlFor={option.value}
+                    className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer w-full"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
@@ -1017,10 +1152,8 @@ export default function QuizPage() {
                         handleMultipleAnswer(currentQuestion.id, option.value, !!checked)
                       }
                     />
-                    <Label htmlFor={option.value} className="flex-1 cursor-pointer">
-                      {option.text}
-                    </Label>
-                  </motion.div>
+                    <span className="flex-1">{option.text}</span>
+                  </motion.label>
                 ))}
               </div>
             )}

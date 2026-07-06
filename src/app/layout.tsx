@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Suspense } from 'react'
 import '@/styles/globals.css'
+import { satoshi } from '@/lib/fonts'
 import { ClerkProvider } from '@clerk/nextjs'
+import { isClerkConfigured } from '@/lib/clerk-config'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { PerfProvider } from '@/components/providers/perf-provider'
+import { PostHogProvider } from '@/components/providers/posthog-provider'
+import { PostHogIdentify } from '@/components/providers/posthog-identify'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Portfolio & Blog',
@@ -26,10 +28,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body className={inter.className}>
+  const app = (
+    <html lang="en" className={satoshi.variable} suppressHydrationWarning>
+      <body className={`${satoshi.className} font-sans antialiased`}>
+        <PostHogProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -37,6 +39,9 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <PerfProvider>
+              <Suspense fallback={null}>
+                <PostHogIdentify />
+              </Suspense>
               <div className="min-h-screen flex flex-col">
                 <Header />
                 <main className="flex-1">
@@ -46,8 +51,14 @@ export default function RootLayout({
               </div>
             </PerfProvider>
           </ThemeProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+        </PostHogProvider>
+      </body>
+    </html>
   )
+
+  if (!isClerkConfigured()) {
+    return app
+  }
+
+  return <ClerkProvider>{app}</ClerkProvider>
 }

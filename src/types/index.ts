@@ -117,16 +117,75 @@ export interface PageMeta {
 }
 
 // n8n Template Types
-export interface N8nTemplate {
-  _id: ObjectId;
+export interface N8nTemplateNode {
+  id: string;
   name: string;
-  description: string;
-  tags: string[];
-  useCase: string;
-  templateData: object; // JSON template
-  downloadUrl: string;
-  createdAt: Date;
-  updatedAt: Date;
+  type: string;
+  position: [number, number];
+}
+
+export interface N8nTemplateConnection {
+  from: string;
+  to: string;
+  type: string;
+  fromType: string;
+  toType: string;
+}
+
+export interface N8nTemplateIndexItem {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  filePath: string;
+  rawUrl: string;
+  localPath: string;
+  nodeCount: number;
+  edgeCount: number;
+  nodeTypes: string[];
+  services: string[];
+  hasAI: boolean;
+  hasEmail: boolean;
+  hasVectorStore: boolean;
+  nodes: N8nTemplateNode[];
+  connections: N8nTemplateConnection[];
+}
+
+export interface N8nTemplateIndexData {
+  generatedAt: string;
+  source: {
+    repo: string;
+    branch: string;
+    treeApi: string;
+  };
+  stats: {
+    totalTemplates: number;
+    categories: number;
+    services: number;
+  };
+  categories: string[];
+  services: string[];
+  templates: N8nTemplateIndexItem[];
+}
+
+export interface N8nWorkflowNode {
+  id: string;
+  name: string;
+  type: string;
+  typeVersion?: number | string;
+  position?: [number, number];
+  parameters?: Record<string, unknown>;
+  credentials?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface N8nWorkflowTemplate {
+  name: string;
+  nodes: N8nWorkflowNode[];
+  connections?: Record<string, unknown>;
+  settings?: Record<string, unknown>;
+  triggerCount?: number;
+  [key: string]: unknown;
 }
 
 // Mux Types

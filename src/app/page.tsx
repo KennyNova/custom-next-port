@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { HomepageSkeleton } from '@/components/ui/homepage-skeleton'
 import { PreloadLink } from '@/components/ui/preload-link'
-import WhispyBackground from '@/components/layout/whispy-background'
 import { useTheme } from '@/components/providers/theme-provider'
 import Link from 'next/link'
+import WhispyBackground from '@/components/layout/whispy-background'
 import { ArrowRight, Code2, PenTool, Puzzle, Calendar, Rocket, Sparkles, Workflow } from 'lucide-react'
 
 export default function HomePage() {
@@ -232,28 +232,24 @@ export default function HomePage() {
             </Card>
           </div>
 
-          <div className="relative">
-            <Card className="h-full transition-all duration-300 border-2 opacity-50 blur-sm pointer-events-none grayscale">
+          <div>
+            <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/20">
               <CardHeader>
-                <Workflow className="h-8 w-8 text-muted-foreground mb-2" />
-                <CardTitle className="text-muted-foreground">n8n Templates</CardTitle>
+                <Workflow className="h-8 w-8 text-primary mb-2" />
+                <CardTitle className="text-primary">n8n Templates</CardTitle>
                 <CardDescription>
-                  {/* Ready-to-use automation workflows for common business processes */}
-                  Nice try! If you must know its n8n templates.
+                  Browse searchable n8n workflows with graph previews and provider-aware downloads.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="secondary" className="w-full group" disabled>
-                  <Workflow className="mr-2 h-4 w-4" />
-                  Browse Templates
-                </Button>
+                <PreloadLink href="/templates" className="w-full">
+                  <Button variant="default" className="w-full group">
+                    <Workflow className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
+                    Browse Templates
+                  </Button>
+                </PreloadLink>
               </CardContent>
             </Card>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-background/90 backdrop-blur-sm backdrop-ok rounded-lg px-6 py-4 border shadow-lg">
-                <p className="text-lg font-semibold text-foreground">Coming Soon 🤫</p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
