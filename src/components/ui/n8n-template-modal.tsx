@@ -70,7 +70,7 @@ export function N8nTemplateModal({ template, isOpen, onClose }: N8nTemplateModal
       setError(null)
 
       try {
-        const response = await fetch(`/api/n8n-templates/${templateId}`)
+        const response = await fetch(`/n8n-templates/${templateId}.json`)
         if (!response.ok) {
           throw new Error(`Failed to load template (${response.status})`)
         }

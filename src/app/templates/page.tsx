@@ -47,7 +47,7 @@ export default function TemplatesPage() {
       try {
         setIsLoading(true)
         setError(null)
-        const response = await fetch('/api/n8n-templates')
+        const response = await fetch('/n8n-templates-index.json')
         if (!response.ok) {
           throw new Error(`Failed to load templates (${response.status})`)
         }
@@ -74,9 +74,9 @@ export default function TemplatesPage() {
     }
   }, [])
 
-  const templates = indexData?.templates ?? []
-  const categories = indexData?.categories ?? []
-  const services = indexData?.services ?? []
+  const templates = useMemo(() => indexData?.templates ?? [], [indexData])
+  const categories = useMemo(() => indexData?.categories ?? [], [indexData])
+  const services = useMemo(() => indexData?.services ?? [], [indexData])
 
   const filteredTemplates = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()

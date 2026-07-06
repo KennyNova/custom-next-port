@@ -10,6 +10,8 @@ const RAW_BASE = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const OUTPUT_DIR = path.join(PROJECT_ROOT, "src", "data", "n8n-templates");
 const OUTPUT_INDEX = path.join(PROJECT_ROOT, "src", "data", "n8n-templates-index.json");
+const PUBLIC_OUTPUT_DIR = path.join(PROJECT_ROOT, "public", "n8n-templates");
+const PUBLIC_OUTPUT_INDEX = path.join(PROJECT_ROOT, "public", "n8n-templates-index.json");
 
 const SERVICE_PATTERNS = [
   { id: "gmail", label: "Gmail", patterns: [/gmail/i] },
@@ -180,14 +182,24 @@ function buildTemplateMetadata(filePath, templateJson) {
 async function ensureOutputDirectory() {
   await fs.mkdir(path.dirname(OUTPUT_INDEX), { recursive: true });
   await fs.mkdir(OUTPUT_DIR, { recursive: true });
+  await fs.mkdir(path.dirname(PUBLIC_OUTPUT_INDEX), { recursive: true });
+  await fs.mkdir(PUBLIC_OUTPUT_DIR, { recursive: true });
 }
 
 async function clearOutputDirectory() {
   const entries = await fs.readdir(OUTPUT_DIR);
+  const publicEntries = await fs.readdir(PUBLIC_OUTPUT_DIR);
+
   await Promise.all(
     entries
       .filter((entry) => entry.endsWith(".json"))
       .map((entry) => fs.unlink(path.join(OUTPUT_DIR, entry)))
+  );
+
+  await Promise.all(
+    publicEntries
+      .filter((entry) => entry.endsWith(".json"))
+      .map((entry) => fs.unlink(path.join(PUBLIC_OUTPUT_DIR, entry)))
   );
 }
 
@@ -217,7 +229,9 @@ async function main() {
           const parsed = JSON.parse(rawText);
           const metadata = buildTemplateMetadata(filePath, parsed);
           const outputPath = path.join(OUTPUT_DIR, `${metadata.id}.json`);
+          const publicOutputPath = path.join(PUBLIC_OUTPUT_DIR, `${metadata.id}.json`);
           await fs.writeFile(outputPath, JSON.stringify(parsed, null, 2), "utf8");
+          await fs.writeFile(publicOutputPath, JSON.stringify(parsed, null, 2), "utf8");
           return metadata;
         } catch (error) {
           failedFiles.push({
@@ -260,9 +274,12 @@ async function main() {
   };
 
   await fs.writeFile(OUTPUT_INDEX, JSON.stringify(indexPayload, null, 2), "utf8");
+  await fs.writeFile(PUBLIC_OUTPUT_INDEX, JSON.stringify(indexPayload, null, 2), "utf8");
 
   console.log(`Wrote ${OUTPUT_INDEX}`);
+  console.log(`Wrote ${PUBLIC_OUTPUT_INDEX}`);
   console.log(`Wrote ${metadataList.length} template files to ${OUTPUT_DIR}`);
+  console.log(`Wrote ${metadataList.length} template files to ${PUBLIC_OUTPUT_DIR}`);
 
   if (failedFiles.length > 0) {
     console.log(`Failed files (${failedFiles.length}):`);

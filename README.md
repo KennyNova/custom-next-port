@@ -86,7 +86,7 @@ cd [repository-name]
 
 2. Install dependencies
 ```bash
-npm install
+pnpm install
 ```
 
 3. Set up environment variables
@@ -110,8 +110,28 @@ Required environment variables:
 
 4. Run the development server
 ```bash
-npm run dev
+pnpm dev
 ```
+
+## Build And Runtime Speed
+
+Use these commands for quick performance checks:
+
+```bash
+# Production build
+pnpm build
+
+# Bundle analyzer output (.next/analyze)
+pnpm build:analyze
+
+# Full local quality gate
+pnpm check
+```
+
+Recommended CI cache paths:
+
+- `~/.pnpm-store`
+- `.next/cache`
 
 ## 📝 Content Management
 

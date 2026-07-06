@@ -356,6 +356,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
         transition={{ duration: 0.6 }}
         className="my-8 overflow-hidden rounded-lg"
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
           alt={alt}

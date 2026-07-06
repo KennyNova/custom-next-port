@@ -131,6 +131,7 @@ export function SignaturesOffline() {
                       {signature.useRandomIcon || !signature.avatarUrl ? (
                         <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                       ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={signature.avatarUrl}
                           alt={signature.name}

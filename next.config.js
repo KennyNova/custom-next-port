@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com'
 const posthogAssetsHost = posthogHost.replace('.i.posthog.com', '-assets.i.posthog.com')
 
@@ -34,6 +38,9 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_CALCOM_BASE_URL: process.env.CALCOM_BASE_URL,
   },
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
 }
 
-module.exports = nextConfig
+module.exports = withBundleAnalyzer(nextConfig)

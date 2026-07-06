@@ -28,6 +28,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const clerkEnabled = isClerkConfigured()
+
   const app = (
     <html lang="en" className={satoshi.variable} suppressHydrationWarning>
       <body className={`${satoshi.className} font-sans antialiased`}>
@@ -39,9 +41,11 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <PerfProvider>
-              <Suspense fallback={null}>
-                <PostHogIdentify />
-              </Suspense>
+              {clerkEnabled ? (
+                <Suspense fallback={null}>
+                  <PostHogIdentify />
+                </Suspense>
+              ) : null}
               <div className="min-h-screen flex flex-col">
                 <Header />
                 <main className="flex-1">
@@ -56,7 +60,7 @@ export default function RootLayout({
     </html>
   )
 
-  if (!isClerkConfigured()) {
+  if (!clerkEnabled) {
     return app
   }
 

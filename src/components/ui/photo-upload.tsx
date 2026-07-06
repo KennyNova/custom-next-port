@@ -328,6 +328,7 @@ export function PhotoUpload({ onUploadSuccess, onUploadError, onBulkUploadProgre
                 {selectedFiles.length === 1 ? (
                   // Single file preview
                   <div className="relative inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={previewUrls[0]}
                       alt="Preview"
@@ -347,6 +348,7 @@ export function PhotoUpload({ onUploadSuccess, onUploadError, onBulkUploadProgre
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {selectedFiles.slice(0, 6).map((file, index) => (
                       <div key={index} className="relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={previewUrls[index]}
                           alt={`Preview ${index + 1}`}

@@ -102,13 +102,13 @@ export function withPreload<T extends Record<string, any>>(
       if (!disabled && href) {
         startPreload(href, preloadDelay)
       }
-    }, [href, disabled])
+    }, [href, disabled, startPreload])
 
     const handleMouseLeave = useCallback(() => {
       if (!disabled && href) {
         cancelPreload(href)
       }
-    }, [href, disabled])
+    }, [href, disabled, cancelPreload])
 
     const handleClick = useCallback((e: React.MouseEvent) => {
       // Cancel all other preloads when this link is clicked
@@ -121,7 +121,7 @@ export function withPreload<T extends Record<string, any>>(
       if (disabled) {
         e.preventDefault()
       }
-    }, [disabled, onClick])
+    }, [disabled, onClick, cancelAllPreloads])
 
     return (
       <div

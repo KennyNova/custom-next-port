@@ -14,7 +14,7 @@ import { usePreload } from '@/lib/hooks/use-preload'
 import { Calendar, Clock, ArrowLeft, Heart, Share2, Eye, User, Check } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { BlogPost } from '@/types'
 import { MarkdownContent } from '@/components/ui/markdown-content'
 import { ReadingProgress } from '@/components/ui/reading-progress'
@@ -34,27 +34,7 @@ export default function BlogPostPage() {
   const [likes, setLikes] = useState(0)
   const [copiedLink, setCopiedLink] = useState(false)
 
-  useEffect(() => {
-    if (!params.slug) return
-
-    // 1. Check for cached metadata first (from hover preload)
-    const cachedMetadata = getCachedMetadata(params.slug as string)
-    if (cachedMetadata) {
-      setMetadata(cachedMetadata)
-      setLoadingMetadata(false)
-      console.log(`⚡ Using preloaded metadata for: ${params.slug}`)
-    }
-
-    // 2. Load metadata if not cached
-    if (!cachedMetadata) {
-      loadMetadata()
-    }
-
-    // 3. Always load content (happens in parallel)
-    loadContent()
-  }, [params.slug, getCachedMetadata])
-
-  const loadMetadata = async () => {
+  const loadMetadata = useCallback(async () => {
     try {
       const response = await fetch(`/api/blog/${params.slug}/metadata`)
       if (!response.ok) {
@@ -74,9 +54,9 @@ export default function BlogPostPage() {
     } finally {
       setLoadingMetadata(false)
     }
-  }
+  }, [params.slug])
 
-  const loadContent = async () => {
+  const loadContent = useCallback(async () => {
     try {
       const contentData = await loadBlogContent(params.slug as string)
       if (contentData) {
@@ -91,7 +71,27 @@ export default function BlogPostPage() {
     } finally {
       setLoadingContent(false)
     }
-  }
+  }, [loadBlogContent, params.slug])
+
+  useEffect(() => {
+    if (!params.slug) return
+
+    // 1. Check for cached metadata first (from hover preload)
+    const cachedMetadata = getCachedMetadata(params.slug as string)
+    if (cachedMetadata) {
+      setMetadata(cachedMetadata)
+      setLoadingMetadata(false)
+      console.log(`⚡ Using preloaded metadata for: ${params.slug}`)
+    }
+
+    // 2. Load metadata if not cached
+    if (!cachedMetadata) {
+      loadMetadata()
+    }
+
+    // 3. Always load content (happens in parallel)
+    loadContent()
+  }, [params.slug, getCachedMetadata, loadMetadata, loadContent])
 
   // Initialize likes from metadata
   useEffect(() => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -127,17 +127,6 @@ export function VideoModal({ project, isOpen, onClose, initialVideoIndex = 0 }: 
     }
   }, [isOpen, onClose])
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (!isOpen) return
-      if (e.key === 'ArrowRight') nextVideo()
-      if (e.key === 'ArrowLeft') prevVideo()
-    }
-    document.addEventListener('keydown', handleKey)
-    return () => document.removeEventListener('keydown', handleKey)
-  }, [isOpen, currentVideoIndex, allVideos.length])
-
   const formatDuration = (duration?: number) => {
     if (!duration) return '0:00'
     const minutes = Math.floor(duration / 60)
@@ -163,7 +152,7 @@ export function VideoModal({ project, isOpen, onClose, initialVideoIndex = 0 }: 
     }
   }
 
-  const nextVideo = () => {
+  const nextVideo = useCallback(() => {
     if (currentVideoIndex < allVideos.length - 1) {
       setVideoLoading(true)
       const nextIndex = currentVideoIndex + 1
@@ -175,16 +164,27 @@ export function VideoModal({ project, isOpen, onClose, initialVideoIndex = 0 }: 
       // Reset video loading after a short delay to show skeleton
       setTimeout(() => setVideoLoading(false), 300)
     }
-  }
+  }, [allVideos.length, currentVideoIndex, loadedCount])
 
-  const prevVideo = () => {
+  const prevVideo = useCallback(() => {
     if (currentVideoIndex > 0) {
       setVideoLoading(true)
       setCurrentVideoIndex(prev => prev - 1)
       // Reset video loading after a short delay to show skeleton
       setTimeout(() => setVideoLoading(false), 300)
     }
-  }
+  }, [currentVideoIndex])
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (!isOpen) return
+      if (e.key === 'ArrowRight') nextVideo()
+      if (e.key === 'ArrowLeft') prevVideo()
+    }
+    document.addEventListener('keydown', handleKey)
+    return () => document.removeEventListener('keydown', handleKey)
+  }, [isOpen, nextVideo, prevVideo])
 
   if (!isOpen) return null
 
