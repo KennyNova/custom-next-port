@@ -48,7 +48,7 @@
     "mongodb": "^5.9.0",
     "next": "^14.2.31",
     "next-mdx-remote": "^6.0.0",
-    "posthog-js": "^1.397.0",
+    "posthog-js": "^1.396.0",
     "posthog-node": "^5.39.4",
     "react": "^18",
     "react-dom": "^18",
@@ -62,10 +62,10 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^14.2.31",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@next/bundle-analyzer": "^14.2.31",
     "@types/react-syntax-highlighter": "^15.5.13",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
