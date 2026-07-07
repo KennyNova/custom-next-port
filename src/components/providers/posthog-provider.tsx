@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
 import {
+  getPostHogProjectToken,
   getPostHogUiHost,
   isPostHogConfigured,
 } from '@/lib/posthog/config'
@@ -31,11 +32,12 @@ function PostHogPageView() {
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    if (!isPostHogConfigured()) {
+    const projectToken = getPostHogProjectToken()
+    if (!projectToken) {
       return
     }
 
-    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
+    posthog.init(projectToken, {
       api_host: '/ingest',
       ui_host: getPostHogUiHost(),
       person_profiles: 'identified_only',

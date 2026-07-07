@@ -1,5 +1,12 @@
+export function getPostHogProjectToken(): string | undefined {
+  return (
+    process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ||
+    process.env.NEXT_PUBLIC_POSTHOG_KEY
+  )
+}
+
 export function isPostHogConfigured(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN)
+  return Boolean(getPostHogProjectToken())
 }
 
 export function getPostHogHost(): string {
