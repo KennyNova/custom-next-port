@@ -108,9 +108,31 @@ Required environment variables:
 - `CALCOM_API_KEY`: Cal.com API key
 - `CALCOM_BASE_URL`: Cal.com base URL
 
+Show Hub smoke test variables (for `navidmadani.com/showhub-smoke`):
+- `NEXT_PUBLIC_SHOWHUB_EMBED_SRC` (optional, default `https://showhubco.com/embed.js`)
+- `NEXT_PUBLIC_SHOWHUB_PODCAST_ID` (required for live embed checks)
+- `NEXT_PUBLIC_SHOWHUB_DEVPLAN` (optional, default `free`)
+- `NEXT_PUBLIC_SHOWHUB_THEME` (optional, default `auto`)
+- `NEXT_PUBLIC_SHOWHUB_STYLE` (optional, default `full`)
+- `NEXT_PUBLIC_SHOWHUB_MAX_EPISODES` (optional, default `10`)
+
 4. Run the development server
 ```bash
 pnpm dev
+```
+
+### Show Hub production smoke test
+
+After deploying this repo, run:
+
+```bash
+pnpm test:showhub-smoke
+```
+
+Optional target override:
+
+```bash
+SHOWHUB_SMOKE_URL="https://navidmadani.com/showhub-smoke" pnpm test:showhub-smoke
 ```
 
 ## Build And Runtime Speed
