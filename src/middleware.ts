@@ -28,6 +28,8 @@ const isPublicRoute = createRouteMatcher([
   '/api/photos/(.*)',
   '/api/tabreeze-feedback',
   '/api/webhook/(.*)',
+  '/showhub-smoke',
+  '/api/showhub-smoke',
 ])
 
 function passthroughMiddleware(request: NextRequest) {
