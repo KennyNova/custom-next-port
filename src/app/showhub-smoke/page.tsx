@@ -1,27 +1,15 @@
-const defaultEmbedSrc = "https://showhubco.com/embed.js";
-
-function readConfig() {
-  const embedSrc = process.env.NEXT_PUBLIC_SHOWHUB_EMBED_SRC?.trim() || defaultEmbedSrc;
-  const podcastId = process.env.NEXT_PUBLIC_SHOWHUB_PODCAST_ID?.trim() || "";
-  const devplan = process.env.NEXT_PUBLIC_SHOWHUB_DEVPLAN?.trim() || "free";
-  const theme = process.env.NEXT_PUBLIC_SHOWHUB_THEME?.trim() || "auto";
-  const style = process.env.NEXT_PUBLIC_SHOWHUB_STYLE?.trim() || "full";
-  const maxEpisodes = process.env.NEXT_PUBLIC_SHOWHUB_MAX_EPISODES?.trim() || "10";
-
-  return {
-    embedSrc,
-    podcastId,
-    devplan,
-    theme,
-    style,
-    maxEpisodes,
-    configured: podcastId.length > 0
-  };
-}
+const embedConfig = {
+  embedSrc: "https://showhubco.com/embed.js",
+  podcastId: "kd75wbfmwvbwzvphfm6973568n8bmm36",
+  devplan: "free",
+  theme: "auto",
+  style: "full",
+  maxEpisodes: "50",
+  container: "podcastsaas-player",
+  apiBase: "https://bold-deer-931.convex.cloud"
+};
 
 export default function ShowHubSmokePage() {
-  const config = readConfig();
-
   return (
     <div data-testid="showhub-smoke-page" className="mx-auto max-w-5xl px-6 py-10">
       <h1 className="text-3xl font-bold">Show Hub Smoke Test</h1>
@@ -31,40 +19,36 @@ export default function ShowHubSmokePage() {
 
       <div className="mt-4 rounded border border-slate-700 bg-slate-950/40 p-4 text-sm">
         <p>
-          <strong>Embed source:</strong> {config.embedSrc}
+          <strong>Embed source:</strong> {embedConfig.embedSrc}
         </p>
         <p>
-          <strong>Podcast ID:</strong> {config.podcastId || "(missing)"}
+          <strong>Podcast ID:</strong> {embedConfig.podcastId}
         </p>
         <p>
-          <strong>Configured:</strong> {config.configured ? "yes" : "no"}
+          <strong>API base:</strong> {embedConfig.apiBase}
+        </p>
+        <p>
+          <strong>Configured:</strong> yes
         </p>
       </div>
 
-      {!config.configured ? (
-        <div className="mt-4 rounded border border-amber-600/40 bg-amber-500/10 p-4 text-sm text-amber-200">
-          Set `NEXT_PUBLIC_SHOWHUB_PODCAST_ID` in this app to enable live embed rendering.
-        </div>
-      ) : null}
-
       <div className="mt-8">
-        <div id="showhub-smoke-player" className="min-h-[200px] rounded border border-slate-700 p-4">
+        <div id={embedConfig.container} className="min-h-[200px] rounded border border-slate-700 p-4">
           Loading Show Hub embed...
         </div>
       </div>
 
-      {config.configured ? (
-        <script
-          async
-          src={config.embedSrc}
-          data-podcast-id={config.podcastId}
-          data-devplan={config.devplan}
-          data-theme={config.theme}
-          data-style={config.style}
-          data-max-episodes={config.maxEpisodes}
-          data-container="showhub-smoke-player"
-        />
-      ) : null}
+      <script
+        async
+        src={embedConfig.embedSrc}
+        data-podcast-id={embedConfig.podcastId}
+        data-devplan={embedConfig.devplan}
+        data-theme={embedConfig.theme}
+        data-style={embedConfig.style}
+        data-max-episodes={embedConfig.maxEpisodes}
+        data-container={embedConfig.container}
+        data-api-base={embedConfig.apiBase}
+      />
     </div>
   );
 }

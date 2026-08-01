@@ -36,14 +36,14 @@ async function main() {
   }
   pass("Smoke page marker present");
 
-  if (!pageHtml.includes('id="showhub-smoke-player"')) {
+  if (!pageHtml.includes('id="podcastsaas-player"')) {
     fail("Embed container not found on smoke page");
   }
   pass("Embed container present");
 
   const scriptMatch = pageHtml.match(/<script[^>]+src="([^"]*embed\.js[^"]*)"[^>]*data-podcast-id="([^"]+)"/i);
   if (!scriptMatch) {
-    fail("Show Hub embed script tag with podcast id not found. Check NEXT_PUBLIC_SHOWHUB_PODCAST_ID.");
+    fail("Show Hub embed script tag with podcast id not found.");
   }
 
   const embedScriptUrl = scriptMatch[1];
@@ -65,7 +65,7 @@ async function main() {
     fail("Smoke status API did not return ok=true");
   }
   if (!statusPayload.configured) {
-    fail("Smoke status API reports configured=false. Set NEXT_PUBLIC_SHOWHUB_PODCAST_ID.");
+    fail("Smoke status API reports configured=false.");
   }
   pass("Smoke status API reports configured=true");
 
