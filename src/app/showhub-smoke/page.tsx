@@ -6,7 +6,7 @@ const embedConfig = {
   style: "full",
   maxEpisodes: "50",
   container: "podcastsaas-player",
-  apiBase: "https://bold-deer-931.convex.cloud"
+  apiBase: "https://bold-deer-931.convex.site"
 };
 
 export default function ShowHubSmokePage() {
