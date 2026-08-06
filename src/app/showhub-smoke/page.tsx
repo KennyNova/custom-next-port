@@ -1,3 +1,5 @@
+import Script from "next/script";
+
 const apiBase = "https://bold-deer-931.convex.site";
 const embedSrc = "https://showhubco.com/embed.js";
 const podcastId = "kd75wbfmwvbwzvphfm6973568n8bmm36";
@@ -59,8 +61,9 @@ export default function ShowHubSmokePage() {
             </div>
           </div>
 
-          <script
+          <Script
             src={embed.embedSrc}
+            strategy="afterInteractive"
             data-podcast-id={embed.podcastId}
             data-devplan={embed.devplan}
             data-style={embed.style}
