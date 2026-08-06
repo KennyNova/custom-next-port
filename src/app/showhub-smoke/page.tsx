@@ -1,13 +1,31 @@
-const embedConfig = {
-  embedSrc: "https://showhubco.com/embed.js",
-  podcastId: "kd75wbfmwvbwzvphfm6973568n8bmm36",
-  devplan: "free",
-  theme: "auto",
-  style: "full",
-  maxEpisodes: "50",
-  container: "podcastsaas-player",
-  apiBase: "https://bold-deer-931.convex.site"
-};
+const apiBase = "https://bold-deer-931.convex.site";
+const embedSrc = "https://showhubco.com/embed.js";
+const podcastId = "kd75wbfmwvbwzvphfm6973568n8bmm36";
+
+const embeds = [
+  {
+    label: "Full player",
+    container: "podcastsaas-player",
+    embedSrc,
+    podcastId,
+    devplan: "free",
+    theme: "auto",
+    style: "full",
+    maxEpisodes: "50",
+    apiBase
+  },
+  {
+    label: "Recent list",
+    container: "podcastsaas-recent-list",
+    embedSrc: `${embedSrc}?instance=recent-list`,
+    podcastId,
+    devplan: "free",
+    style: "list",
+    maxEpisodes: "3",
+    section: "recent",
+    apiBase
+  }
+] as const;
 
 export default function ShowHubSmokePage() {
   return (
@@ -17,50 +35,43 @@ export default function ShowHubSmokePage() {
         This page is used to validate real-domain embed behavior on `navidmadani.com`.
       </p>
 
-      <div className="mt-4 rounded border border-slate-700 bg-slate-950/40 p-4 text-sm">
-        <p>
-          <strong>Embed source:</strong> {embedConfig.embedSrc}
-        </p>
-        <p>
-          <strong>Podcast ID:</strong> {embedConfig.podcastId}
-        </p>
-        <p>
-          <strong>API base:</strong> {embedConfig.apiBase}
-        </p>
-        <p>
-          <strong>Configured:</strong> yes
-        </p>
-      </div>
+      {embeds.map((embed) => (
+        <section key={embed.container} className="mt-8">
+          <h2 className="text-xl font-semibold">{embed.label}</h2>
 
-      <div className="mt-8">
-        <div id={embedConfig.container} className="min-h-[200px] rounded border border-slate-700 p-4">
-          Loading Show Hub embed...
-        </div>
-      </div>
+          <div className="mt-4 rounded border border-slate-700 bg-slate-950/40 p-4 text-sm">
+            <p>
+              <strong>Container:</strong> {embed.container}
+            </p>
+            <p>
+              <strong>Style:</strong> {embed.style}
+            </p>
+            {"section" in embed ? (
+              <p>
+                <strong>Section:</strong> {embed.section}
+              </p>
+            ) : null}
+          </div>
 
-      <script
-        async
-        src={embedConfig.embedSrc}
-        data-podcast-id={embedConfig.podcastId}
-        data-devplan={embedConfig.devplan}
-        data-theme={embedConfig.theme}
-        data-style={embedConfig.style}
-        data-max-episodes={embedConfig.maxEpisodes}
-        data-container={embedConfig.container}
-        data-api-base={embedConfig.apiBase}
-      />
+          <div className="mt-4">
+            <div id={embed.container} className="min-h-[200px] rounded border border-slate-700 p-4">
+              Loading Show Hub embed...
+            </div>
+          </div>
 
-
-
-<script
-  src="https://showhubco.com/embed.js"
-  data-podcast-id="kd75wbfmwvbwzvphfm6973568n8bmm36"
-  data-devplan="free"
-  data-style="list"
-  data-max-episodes="3"
-  data-section="recent"
-  async>
-</script>
+          <script
+            src={embed.embedSrc}
+            data-podcast-id={embed.podcastId}
+            data-devplan={embed.devplan}
+            data-style={embed.style}
+            data-max-episodes={embed.maxEpisodes}
+            data-container={embed.container}
+            data-api-base={embed.apiBase}
+            {...("theme" in embed ? { "data-theme": embed.theme } : {})}
+            {...("section" in embed ? { "data-section": embed.section } : {})}
+          />
+        </section>
+      ))}
     </div>
   );
 }
