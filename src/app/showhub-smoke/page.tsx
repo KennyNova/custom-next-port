@@ -49,6 +49,18 @@ export default function ShowHubSmokePage() {
         data-container={embedConfig.container}
         data-api-base={embedConfig.apiBase}
       />
+
+
+
+<script
+  src="https://showhubco.com/embed.js"
+  data-podcast-id="kd75wbfmwvbwzvphfm6973568n8bmm36"
+  data-devplan="free"
+  data-style="list"
+  data-max-episodes="3"
+  data-section="recent"
+  async>
+</script>
     </div>
   );
 }
