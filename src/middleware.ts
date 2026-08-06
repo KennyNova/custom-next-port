@@ -30,6 +30,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhook/(.*)',
   '/showhub-smoke',
   '/api/showhub-smoke',
+  '/showhub-full',
 ])
 
 function passthroughMiddleware(request: NextRequest) {
