@@ -339,7 +339,7 @@ function ProjectsPageContent() {
       >
         <h1 className="text-4xl font-bold mb-4">Projects</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Explore my professional work, personal projects, and creative endeavors across different technologies and domains.
+          Code on GitHub, my homelab, and photo and video work. Pick a category below.
         </p>
       </motion.div>
 
@@ -495,7 +495,7 @@ function ProjectsPageContent() {
             <div className="space-y-8">
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold">Photography</h2>
-                <p className="text-muted-foreground">Visual stories captured through the lens</p>
+                <p className="text-muted-foreground">Photos I&apos;ve shot. Click one to open it larger.</p>
               </div>
 
               {photosError ? (
@@ -627,7 +627,7 @@ function ProjectsPageContent() {
                   <CardContent className="p-6">
                     <div className="mb-4">
                       <p className="text-sm text-muted-foreground">
-                        Explore the complete homelab setup. Pan the canvas to navigate, scroll to zoom, and click nodes for detailed information.
+                        The whole homelab as a graph. Drag to pan, scroll to zoom, click a node for details.
                       </p>
                     </div>
                     <InteractiveHomelabFlowchart
@@ -682,7 +682,7 @@ function ProjectsPageContent() {
               </h2>
               {filteredProjects.length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground">No projects found in this category.</p>
+                  <p className="text-muted-foreground">Nothing in this category yet.</p>
                 </div>
               ) : selectedType === 'videography' ? (
                 <motion.div 
@@ -763,7 +763,7 @@ export default function ProjectsPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4">Projects</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Explore my professional work, personal projects, and creative endeavors across different technologies and domains.
+            Code on GitHub, my homelab, and photo and video work. Pick a category below.
           </p>
         </div>
         <ProjectGridSkeleton count={6} />

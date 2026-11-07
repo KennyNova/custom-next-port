@@ -111,26 +111,26 @@ const QuizPopup = ({ isOpen, onClose, onStartQuiz }: {
                 </div>
                 <CardTitle className="text-xl">Not Sure What You Need?</CardTitle>
                 <CardDescription>
-                  Take our quick quiz to discover the perfect solution for your business
+                  Answer up to eight questions and I&apos;ll suggest which services fit.
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4 text-primary" />
-                    <span>Takes just 2-3 minutes</span>
+                    <span>About 2 minutes</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <Target className="h-4 w-4 text-primary" />
-                    <span>Get personalized recommendations</span>
+                    <span>Recommendations based on your answers</span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <Sparkles className="h-4 w-4 text-primary" />
-                    <span>Discover services you might not know you need</span>
+                    <span>Your answers carry over if you book a call</span>
                   </div>
                   <div className="flex gap-2 pt-4">
                     <Button variant="outline" onClick={onClose} className="flex-1">
-                      Maybe Later
+                      Not now
                     </Button>
                     <Button onClick={onStartQuiz} className="flex-1">
                       <Zap className="mr-2 h-4 w-4" />
@@ -198,7 +198,7 @@ const FloatingQuizIcon = ({ isVisible, onClick }: {
               transition={{ delay: 0.5, duration: 0.3 }}
               className="absolute right-16 top-1/2 transform -translate-y-1/2 bg-background/95 backdrop-blur-sm border rounded-lg px-3 py-2 text-sm font-medium shadow-lg whitespace-nowrap"
             >
-              Need help choosing? Take our quiz!
+              Not sure which package? Take the quiz
               <div className="absolute right-0 top-1/2 transform translate-x-full -translate-y-1/2 w-0 h-0 border-l-4 border-l-background/95 border-y-4 border-y-transparent"></div>
             </motion.div>
           )}
@@ -216,13 +216,13 @@ const consultationTypes = [
     duration: '30 minutes',
     price: 'FREE',
     originalPrice: null,
-    description: 'Perfect starting point - understand your needs and explore possibilities',
+    description: "A 30-minute call to talk through what you need and whether I'm the right fit.",
     features: [
       'Project assessment and feasibility',
       'Technology recommendations',
-      'Custom solution planning',
+      'A rough plan for the work',
       'Timeline and budget discussion',
-      'Next steps roadmap'
+      'Clear next steps'
     ],
     calEventType: 'discovery-call',
     popular: true,
@@ -237,13 +237,13 @@ const consultationTypes = [
     duration: 'Project-based',
     price: 'From $2,500',
     originalPrice: null,
-    description: 'Modern, fast, and conversion-optimized websites that represent your brand professionally',
+    description: 'Custom websites that load fast, work on phones, and that you can update yourself',
     features: [
       'Custom website development',
       'Mobile-responsive design',
       'SEO optimization',
       'Performance optimization',
-      'E-commerce solutions',
+      'E-commerce stores',
       'Content management system',
       '30-day post-launch support'
     ],
@@ -260,7 +260,7 @@ const consultationTypes = [
     duration: 'Project-based',
     price: 'From $800',
     originalPrice: null,
-    description: 'Stunning photography that tells your brand story and attracts ideal customers',
+    description: 'Headshots, product, brand, and event photos, edited and delivered in the formats you need',
     features: [
       'Business headshots',
       'Product photography',
@@ -283,7 +283,7 @@ const consultationTypes = [
     duration: 'Project-based',
     price: 'From $1,500',
     originalPrice: null,
-    description: 'Compelling video content that engages your audience and drives results',
+    description: 'Brand, product, and event videos, shot, edited, and delivered for web and social',
     features: [
       'Brand story videos',
       'Product demonstrations',
@@ -306,14 +306,14 @@ const consultationTypes = [
     duration: 'Project-based',
     price: 'From $1,200',
     originalPrice: null,
-    description: 'Automate repetitive tasks so you can focus on growing your business',
+    description: 'Workflows that take data entry, lead follow-up, and routine support replies off your plate',
     features: [
       'Workflow automation',
       'Customer service automation',
       'Lead nurturing systems',
       'Data entry automation',
       'Social media automation',
-      'Integration solutions',
+      'Connecting your existing tools',
       'Training and documentation'
     ],
     calEventType: 'automation-package',
@@ -329,13 +329,13 @@ const consultationTypes = [
     duration: 'Project-based',
     price: 'From $2,000',
     originalPrice: null,
-    description: 'Harness AI to save time, reduce costs, and gain competitive advantage',
+    description: 'Chatbots, content generation, and AI steps inside the workflows you already run',
     features: [
       'AI chatbots and assistants',
       'Content generation systems',
       'Predictive analytics',
-      'AI-powered automation',
-      'Custom AI solutions',
+      'AI steps in your automations',
+      'Custom AI tools',
       'AI strategy consulting',
       'Implementation support'
     ],
@@ -352,13 +352,13 @@ const consultationTypes = [
     duration: 'Project-based',
     price: 'From $150/hr',
     originalPrice: null,
-    description: 'Navigate technology decisions with confidence and expert guidance',
+    description: 'Help picking tools, connecting the ones you have, and cleaning up a messy stack',
     features: [
       'Technology strategy',
       'System integration',
       'Tool selection and setup',
-      'Digital transformation',
-      'Tech stack optimization',
+      'Replacing manual processes',
+      'Stack cleanup',
       'Training and support',
       'Ongoing consultation'
     ],
@@ -372,18 +372,18 @@ const consultationTypes = [
   {
     id: 'custom-package',
     title: 'Custom Solution',
-    duration: 'Tailored to your needs',
+    duration: 'Scoped per project',
     price: 'Contact for quote',
     originalPrice: null,
-    description: 'Unique challenges require unique solutions. Let\'s create something perfect for you',
+    description: "For work that mixes services or doesn't fit a package. Tell me what you need and I'll quote it.",
     features: [
-      'Completely customized approach',
-      'Multi-service combinations',
+      'Scope built around your project',
+      'Combine any of the services above',
       'Flexible timeline and budget',
-      'Dedicated project management',
+      'Project management included',
       'Priority support',
-      'Scalable solutions',
-      'Long-term partnership'
+      'Documentation and handoff',
+      'Ongoing support if you want it'
     ],
     calEventType: 'custom-package',
     popular: false,
@@ -393,10 +393,10 @@ const consultationTypes = [
 ]
 
 const socialProof = [
-  { metric: '500+', label: 'Projects Completed' },
-  { metric: '98%', label: 'Client Satisfaction' },
-  { metric: '12h', label: 'Average Response Time' },
-  { metric: '5★', label: 'Average Rating' }
+  { metric: '30 min', label: 'Free discovery call' },
+  { metric: '6', label: 'Service areas' },
+  { metric: '$800+', label: 'Projects start at' },
+  { metric: '24/7', label: 'Online booking' }
 ]
 
 export default function ConsultationPage() {
@@ -483,18 +483,18 @@ export default function ConsultationPage() {
             transition={{ delay: 0.2 }}
           >
             <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Your Success Starts Here</span>
+            <span className="text-sm font-medium text-primary">Services and booking</span>
           </motion.div>
           
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
             Let's Build Something
             <span className="block bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              Extraordinary
+              That Works
             </span>
           </h1>
           
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed px-4">
-            Turn your vision into reality with expert guidance. Get personalized solutions that drive real results for your business.
+            I build websites, shoot photo and video, and set up automations and AI tools for businesses. Start with a free 30-minute call, or book a package below.
           </p>
 
           {/* Quiz CTA Button */}
@@ -511,12 +511,12 @@ export default function ConsultationPage() {
                 className="text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 border-2 border-primary/30 hover:border-primary bg-background/50 backdrop-blur-sm max-w-[90vw] mx-auto"
               >
                 <HelpCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-                <span className="text-center">Not Sure What You Need? Take Our Quiz</span>
+                <span className="text-center">Not sure what you need? Take the quiz</span>
                 <Sparkles className="ml-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
               </Button>
             </Link>
             <p className="text-sm text-muted-foreground mt-2">
-              Get personalized service recommendations in 2 minutes
+              Up to eight questions, about 2 minutes
             </p>
           </motion.div>
 
@@ -557,7 +557,7 @@ export default function ConsultationPage() {
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                   <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                     <Star className="h-3 w-3" />
-                    Most Popular
+                    Start here
                   </div>
                 </div>
               )}
@@ -594,7 +594,7 @@ export default function ConsultationPage() {
                     )}
                     {consultation.price === 'FREE' && (
                       <span className="text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
-                        Limited Time
+                        No obligation
                       </span>
                     )}
                   </div>
@@ -610,7 +610,7 @@ export default function ConsultationPage() {
                     ))}
                     {consultation.features.length > 5 && (
                       <li className="text-xs text-muted-foreground/70 italic pl-5">
-                        +{consultation.features.length - 5} more features included
+                        +{consultation.features.length - 5} more
                       </li>
                     )}
                   </ul>
@@ -629,7 +629,7 @@ export default function ConsultationPage() {
                     ) : (
                       <MessageSquare className="mr-2 h-4 w-4" />
                     )}
-                    {isLoading ? 'Opening...' : consultation.price === 'Contact for quote' ? 'Get Quote' : 'Book Now'}
+                    {isLoading ? 'Opening...' : consultation.price === 'Contact for quote' ? 'Request a quote' : 'Book now'}
                     <ArrowRight className="ml-2 h-3 w-3" />
                   </Button>
                 </CardContent>
@@ -645,23 +645,23 @@ export default function ConsultationPage() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
         >
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Why Choose Our Services?</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">How I Work</h2>
           <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-4xl mx-auto">
             {[
               {
                 icon: Award,
-                title: 'Expert Guidance',
-                description: 'Years of experience across multiple industries and technologies'
+                title: 'Code and Camera',
+                description: "I build the website, shoot the photos and video, and wire up the automations, so one project doesn't need three vendors."
               },
               {
                 icon: Zap,
-                title: 'Actionable Insights',
-                description: 'Walk away with concrete next steps and implementation strategies'
+                title: 'Clear Next Steps',
+                description: 'Calls end with next steps, a rough timeline, and a budget range you can plan around.'
               },
               {
                 icon: Users,
-                title: 'Personalized Approach',
-                description: 'Tailored solutions that fit your specific business needs and goals'
+                title: 'Scoped to You',
+                description: 'The packages are starting points. I scope the actual work around your business and budget.'
               }
             ].map((item, index) => (
               <motion.div
@@ -689,9 +689,9 @@ export default function ConsultationPage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.8 }}
         >
-          <h2 className="text-3xl font-bold mb-4">Ready to Elevate Your Business?</h2>
+          <h2 className="text-3xl font-bold mb-4">Start With a Call</h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Start with a free discovery call to explore your needs, or dive straight into one of our specialized service packages.
+            The discovery call is free and takes 30 minutes. If you already know what you want, book a package above.
           </p>
           <Button
             size="lg"
@@ -699,11 +699,11 @@ export default function ConsultationPage() {
             onClick={() => openBooking('discovery-call')}
           >
             <Calendar className="mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-            <span className="text-center">Book Your FREE Discovery Call</span>
+            <span className="text-center">Book a free discovery call</span>
             <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
           </Button>
           <p className="text-sm text-muted-foreground mt-4">
-            No commitment required • 30 minutes • Completely free
+            30 minutes. Free. No commitment.
           </p>
         </motion.section>
       </div>

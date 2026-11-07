@@ -298,7 +298,7 @@ export function InteractiveHomelabFlowchart({ nodes, onNodeClick }: FlowchartPro
                 <p>• Scroll to zoom in/out</p>
                 <p>• Click nodes for details</p>
                 <p>• Drag canvas to pan around</p>
-                <p>• Fixed organized layout</p>
+                <p>• Node positions are fixed</p>
               </div>
               <div className="mt-3 text-xs text-muted-foreground">
                 Zoom: {Math.round(viewBox.zoom * 100)}%

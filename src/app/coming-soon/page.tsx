@@ -36,7 +36,7 @@ export default function ComingSoonPage() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            Something exciting is in the works. Stay tuned.
+            This page isn&apos;t finished yet. Check back later.
           </motion.p>
         </motion.div>
       </div>

@@ -1,3 +1,10 @@
+import Link from 'next/link'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy',
+  description: 'How this site collects and uses information.',
+}
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function PrivacyPage() {
@@ -7,7 +14,7 @@ export default function PrivacyPage() {
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4">Privacy Policy</h1>
           <p className="text-lg text-muted-foreground">
-            Last updated: {new Date().toLocaleDateString()}
+            Last updated: August 17, 2025
           </p>
         </div>
 
@@ -110,8 +117,9 @@ export default function PrivacyPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p>
-              If you have any questions about this Privacy Policy, please contact us through the contact information 
-              provided on this website.
+              If you have any questions about this Privacy Policy, reach me on{' '}
+              <a href="https://www.linkedin.com/in/navid-madani" target="_blank" rel="noreferrer" className="underline underline-offset-4">LinkedIn</a>
+              {' '}or <Link href="/consultation" className="underline underline-offset-4">book a call</Link>.
             </p>
           </CardContent>
         </Card>

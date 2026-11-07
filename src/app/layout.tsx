@@ -10,15 +10,20 @@ import { PostHogProvider } from '@/components/providers/posthog-provider'
 import { PostHogIdentify } from '@/components/providers/posthog-identify'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
+import { SITE_URL } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Portfolio & Blog',
-  description: 'A modern, interactive portfolio and blog website showcasing professional work, personal projects, and hobbies.',
-  keywords: ['portfolio', 'blog', 'web development', 'projects'],
-  authors: [{ name: 'Your Name' }],
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'Navid Madani | The Practical Cinematic Engineer',
+    template: '%s | Navid Madani',
+  },
+  description: 'Navid Madani builds websites and automations and shoots photo and video. Projects, a self-hosted homelab, n8n templates, and a blog.',
+  keywords: ['Navid Madani', 'web development', 'n8n templates', 'automation', 'homelab', 'photography', 'video production'],
+  authors: [{ name: 'Navid Madani' }],
   openGraph: {
-    title: 'Portfolio & Blog',
-    description: 'A modern, interactive portfolio and blog website',
+    title: 'Navid Madani | The Practical Cinematic Engineer',
+    description: 'Websites, automations, photo and video. Projects, homelab notes, n8n templates, and a blog.',
     type: 'website',
   },
 }

@@ -92,9 +92,9 @@ export function SignaturesOffline() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <h1 className="text-4xl font-bold mb-4">Digital Signature Wall</h1>
+        <h1 className="text-4xl font-bold mb-4">Signature Wall</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Leave your mark! Sign the wall with your GitHub, LinkedIn, or Google account and share your thoughts.
+          Sign in with GitHub, LinkedIn, or Google and leave a note.
         </p>
       </motion.div>
 

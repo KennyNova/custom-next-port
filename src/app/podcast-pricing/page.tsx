@@ -125,9 +125,9 @@ const packages: PackageTier[] = [
       "Transcript pull and upload tools.",
       "Full 3-source setup (YouTube, Megaphone, and RSS).",
       "Automatic updates and bulk management tools.",
-      "Automated transcript ingestion — formatted and live on launch day, zero manual steps for you or your client.",
-      "Premium custom theme for each client site — colors, wording, and branding dialed in.",
-      "Exclusive license included — the plugin design leaves my library. You're the only one running this version in the market.",
+      "Automated transcript ingestion: transcripts are formatted and live on launch day, with no manual steps for you or your client.",
+      "Premium custom theme for each client site: colors, wording, and branding matched to the client.",
+      "Exclusive license included: the plugin design leaves my library, so you're the only one running this version.",
     ],
   },
 ];
@@ -391,7 +391,7 @@ export default function PodcastPricingPage() {
     },
     {
       label: "Custom theme by me",
-      tip: "Included: I update colors and styling to match your site while keeping the layout the same. Included+: I analyze your site and create a custom layout that matches it perfectly.",
+      tip: "Included: I update colors and styling to match your site while keeping the layout the same. Included+: I study your site and build a custom layout that matches it.",
       getValue: (pkg) => customThemeCell(pkg),
     },
     {
@@ -411,7 +411,7 @@ export default function PodcastPricingPage() {
     },
     {
       label: "Delivery time",
-      tip: "How long until your project is ready. Rush puts you in a faster queue so the pages goes live sooner.",
+      tip: "How long until your project is ready. Rush puts you in a faster queue so the pages go live sooner.",
       getValue: (pkg) => pkg.delivery,
     },
     {

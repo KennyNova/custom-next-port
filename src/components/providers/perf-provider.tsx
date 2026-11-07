@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { debugLog } from '@/lib/debug'
 
 type PerfInfo = {
   lowEndDevice: boolean
@@ -57,14 +58,14 @@ export function PerfProvider({ children }: { children: React.ReactNode }) {
 
     // Log detected constraints for debugging
     if (lowEndDevice || slowNetwork || saveData || reducedMotion) {
-      console.log('🔧 Performance constraints detected:', {
+      debugLog('🔧 Performance constraints detected:', {
         lowEndDevice: lowEndDevice ? `CPU: ${navigator.hardwareConcurrency || 'unknown'}, RAM: ${nav.deviceMemory || 'unknown'}GB` : false,
         slowNetwork: slowNetwork ? effectiveType : false,
         saveData,
         reducedMotion
       })
     } else {
-      console.log('⚡ Full performance mode enabled')
+      debugLog('⚡ Full performance mode enabled')
     }
   }, [])
 

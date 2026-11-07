@@ -1,3 +1,10 @@
+import Link from 'next/link'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service',
+  description: 'Terms for using this site.',
+}
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function TermsPage() {
@@ -7,7 +14,7 @@ export default function TermsPage() {
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4">Terms of Service</h1>
           <p className="text-lg text-muted-foreground">
-            Last updated: {new Date().toLocaleDateString()}
+            Last updated: August 17, 2025
           </p>
         </div>
 
@@ -83,8 +90,9 @@ export default function TermsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p>
-              If you have any questions about these Terms of Service, please contact us through the contact information 
-              provided on this website.
+              If you have any questions about these Terms of Service, reach me on{' '}
+              <a href="https://www.linkedin.com/in/navid-madani" target="_blank" rel="noreferrer" className="underline underline-offset-4">LinkedIn</a>
+              {' '}or <Link href="/consultation" className="underline underline-offset-4">book a call</Link>.
             </p>
           </CardContent>
         </Card>
