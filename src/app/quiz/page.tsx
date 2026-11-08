@@ -143,15 +143,15 @@ const quizQuestions: Question[] = [
   // Question 1: Primary Challenge (Always shown)
   {
     id: '1',
-    text: "What's your primary business challenge right now?",
+    text: "What's the main problem you want solved?",
     type: 'single' as const,
     options: [
-      { value: "online_presence", text: "Need a better online presence/website", weight: { web: 4, photo: 1 } },
-      { value: "content_creation", text: "Need high-quality visual content", weight: { photo: 4, cinema: 4 } },
+      { value: "online_presence", text: "My website is missing or not good enough", weight: { web: 4, photo: 1 } },
+      { value: "content_creation", text: "I need better photos or video", weight: { photo: 4, cinema: 4 } },
       { value: "manual_tasks", text: "Too many repetitive manual tasks", weight: { automation: 4, ai: 2 } },
-      { value: "tech_overwhelm", text: "Overwhelmed by technology decisions", weight: { tech: 4, ai: 1 } },
-      { value: "efficiency", text: "Want to work smarter, not harder", weight: { ai: 4, automation: 4, tech: 2 } },
-      { value: "growth", text: "Ready to scale but don't know how", weight: { tech: 3, ai: 3, automation: 3, web: 2 } }
+      { value: "tech_overwhelm", text: "I don't know which tools to pick", weight: { tech: 4, ai: 1 } },
+      { value: "efficiency", text: "I want to save time across the business", weight: { ai: 4, automation: 4, tech: 2 } },
+      { value: "growth", text: "I'm growing and my current setup won't keep up", weight: { tech: 3, ai: 3, automation: 3, web: 2 } }
     ]
   },
 
@@ -195,7 +195,7 @@ const quizQuestions: Question[] = [
   // Question 4: Visual content (Only if they specifically need content creation OR are in visual businesses AND didn't select automation-focused challenges)
   {
     id: '4',
-    text: "How do you currently handle visual content for your business?",
+    text: "How do you handle photos and video now?",
     type: 'single' as const,
     condition: (answers) => {
       const challenge = answers['1'] as string
@@ -282,7 +282,7 @@ const quizQuestions: Question[] = [
   // Question 7: Budget (Always shown, but tailored based on identified needs)
   {
     id: '7',
-    text: "What's your investment range for solving these challenges?",
+    text: "What's your budget?",
     type: 'single' as const,
     options: [
       { value: "under_1k", text: "Under $1,000", weight: { web: 2, automation: 3, tech: 1 } },
@@ -325,93 +325,93 @@ const quizQuestions: Question[] = [
 const quizResults = {
   web: {
     title: "Web Development & Design",
-    subtitle: "Transform your online presence",
-    description: "Based on your answers, you need a powerful web presence that converts visitors into customers. I can help you build a modern, fast, and conversion-optimized website that represents your brand professionally.",
+    subtitle: "A website that does its job",
+    description: "Your answers point to your website. I build fast, mobile-friendly sites, redesign slow or outdated ones, and set up SEO so people can find you.",
     services: [
       "Custom website development",
-      "E-commerce solutions", 
-      "Website redesign & optimization",
+      "E-commerce stores",
+      "Website redesigns",
       "Mobile-responsive design",
       "SEO optimization",
       "Performance optimization"
     ],
-    cta: "Let's discuss your website project",
-    nextSteps: "Book a free consultation to discuss your website goals and get a custom proposal."
+    cta: "Talk about your website",
+    nextSteps: "Book a free discovery call. I'll follow up with a proposal."
   },
   photo: {
     title: "Professional Photography",
-    subtitle: "Elevate your visual brand",
-    description: "Your business deserves professional visual content that stands out. I can help you create stunning photography that tells your brand story and attracts your ideal customers.",
+    subtitle: "Photos of your people, products, and events",
+    description: "Your answers point to photography. I shoot headshots, products, brand images, events, and real estate, and deliver edited files sized for web and social.",
     services: [
       "Business headshots",
       "Product photography",
       "Brand photography",
       "Event photography",
       "Real estate photography",
-      "Social media content creation"
+      "Photos for social media"
     ],
-    cta: "Let's plan your photo shoot",
-    nextSteps: "Schedule a consultation to discuss your photography needs and creative vision."
+    cta: "Plan a shoot",
+    nextSteps: "Book a call to talk through what you need shot and how you'll use it."
   },
   cinema: {
     title: "Cinematography & Video Production",
-    subtitle: "Bring your story to life",
-    description: "Video content is essential for modern businesses. I can help you create compelling video content that engages your audience and drives results.",
+    subtitle: "Video for your brand, products, and events",
+    description: "Your answers point to video. I shoot and edit brand videos, product demos, corporate pieces, event coverage, and short clips for social.",
     services: [
       "Brand story videos",
       "Product demonstrations",
       "Corporate videos",
       "Social media video content",
       "Event videography",
-      "Commercial production"
+      "Commercials"
     ],
-    cta: "Let's create your video",
-    nextSteps: "Book a consultation to discuss your video project and creative requirements."
+    cta: "Plan a video",
+    nextSteps: "Book a call to go over the video, where it will run, and the budget."
   },
   automation: {
     title: "Business Automation Solutions",
-    subtitle: "Work smarter, not harder",
-    description: "Stop wasting time on repetitive tasks. I can help you automate your business processes so you can focus on what matters most - growing your business.",
+    subtitle: "Less repetitive work",
+    description: "Your answers point to automation. I build workflows that handle data entry, lead follow-up, scheduling, and routine customer questions so nobody does them by hand.",
     services: [
       "Workflow automation",
       "Customer service automation",
       "Lead nurturing systems",
       "Data entry automation",
       "Social media automation",
-      "Integration solutions"
+      "Connecting your existing tools"
     ],
-    cta: "Automate your business",
-    nextSteps: "Schedule a process audit to identify automation opportunities in your business."
+    cta: "Talk about automation",
+    nextSteps: "Book a call and we'll go through which tasks are worth automating."
   },
   ai: {
     title: "AI Solutions & Consulting",
-    subtitle: "Harness the power of AI",
-    description: "AI can revolutionize how you work. I can help you implement AI solutions that save time, reduce costs, and give you a competitive advantage.",
+    subtitle: "AI where it saves time",
+    description: "Your answers point to AI tools. I set up chatbots and assistants, content generation, and AI steps inside your existing workflows, where they save time instead of adding work.",
     services: [
       "AI chatbots and assistants",
       "Content generation systems",
       "Predictive analytics",
-      "AI-powered automation",
-      "Custom AI solutions",
+      "AI steps in your automations",
+      "Custom AI tools",
       "AI strategy consulting"
     ],
-    cta: "Explore AI for your business",
-    nextSteps: "Book an AI consultation to discover how artificial intelligence can transform your operations."
+    cta: "Talk about AI",
+    nextSteps: "Book a call and we'll look at where AI would help and where it wouldn't."
   },
   tech: {
     title: "Technology Consulting",
-    subtitle: "Navigate technology with confidence",
-    description: "Technology shouldn't be overwhelming. I can help you make smart technology decisions that align with your business goals and budget.",
+    subtitle: "Help choosing and connecting tools",
+    description: "Your answers point to tech consulting. I help you pick tools that fit your budget, connect the ones you already have, and clean up what isn't working.",
     services: [
       "Technology strategy",
       "System integration",
       "Tool selection and setup",
-      "Digital transformation",
-      "Tech stack optimization",
+      "Replacing manual processes",
+      "Stack cleanup",
       "Training and support"
     ],
-    cta: "Get tech guidance",
-    nextSteps: "Schedule a technology assessment to create a roadmap for your digital transformation."
+    cta: "Talk about your tech",
+    nextSteps: "Book a call and we'll work out what to change first."
   }
 }
 
@@ -892,9 +892,9 @@ export default function QuizPage() {
               >
                 <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
               </motion.div>
-              <CardTitle className="text-2xl">Your Personalized Service Recommendations</CardTitle>
+              <CardTitle className="text-2xl">Your results</CardTitle>
               <CardDescription className="text-lg font-medium text-primary">
-                Based on your specific needs and priorities
+                Services ranked by how well they match your answers
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -904,7 +904,7 @@ export default function QuizPage() {
                     onClick={() => setShowBreakdown(!showBreakdown)}
                     className="w-full p-4 text-left hover:bg-muted/70 transition-colors flex items-center justify-between"
                   >
-                    <h4 className="font-semibold">Your Service Match Breakdown</h4>
+                    <h4 className="font-semibold">Match breakdown</h4>
                     <motion.div
                       animate={{ rotate: showBreakdown ? 180 : 0 }}
                       transition={{ duration: 0.3 }}
@@ -964,7 +964,7 @@ export default function QuizPage() {
 
                 {servicePercentages.length > 0 && (
                   <div className="space-y-4">
-                    <h3 className="font-semibold">Recommended Services for You:</h3>
+                    <h3 className="font-semibold">Recommended services</h3>
                     {servicePercentages.map((item, index) => {
                       const resultData = quizResults[item.service]
                       // Only show detailed breakdown for services with >15% match
@@ -1000,9 +1000,9 @@ export default function QuizPage() {
                 )}
                 
                 <div className="bg-muted/50 p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2">Next Steps:</h4>
+                  <h4 className="font-semibold mb-2">Next step</h4>
                   <p className="text-sm text-muted-foreground">
-                    Book a consultation to discuss your {servicePercentages.length > 1 ? 'top service needs' : 'service requirements'} and get a custom proposal.
+                    Book a call to talk through {servicePercentages.length > 1 ? 'these services' : 'this service'}. Your quiz answers are sent along with the booking.
                   </p>
                 </div>
                 
@@ -1022,10 +1022,10 @@ export default function QuizPage() {
                       className="relative w-full overflow-hidden group bg-gradient-to-r from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-teal-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 hover:-translate-y-0.5 ring-1 ring-emerald-400/40 dark:ring-emerald-300/30 hover:ring-emerald-400/70 dark:hover:ring-emerald-300/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background after:absolute after:inset-0 after:-translate-x-full after:bg-gradient-to-r after:from-transparent after:via-white/30 after:to-transparent group-hover:after:translate-x-full after:transition-transform after:duration-700"
                     >
                       {calIsLoading ? (
-                        'Opening Booking...'
+                        'Opening booking...'
                       ) : (
                         <>
-                          Book Quiz-Based Consultation
+                          Book a call with these results
                           <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-0.5" />
                         </>
                       )}
@@ -1069,9 +1069,9 @@ export default function QuizPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <h1 className="text-4xl font-bold mb-4">Discover How I Can Transform Your Business</h1>
+        <h1 className="text-4xl font-bold mb-4">Find the Right Service</h1>
         <p className="text-xl text-muted-foreground">
-          Answer a few questions to find the perfect solution for your needs
+          Answer up to eight questions. I&apos;ll suggest which services fit, and you can book a call with the results.
         </p>
       </motion.div>
 
@@ -1083,12 +1083,12 @@ export default function QuizPage() {
         transition={{ duration: 0.5, delay: 0.2 }}
       >
         <div className="flex justify-between text-sm text-muted-foreground mb-2">
-          <span>Finding your perfect solution...</span>
+          <span>Progress</span>
           <span>{Math.round(progressPercentage)}% complete</span>
         </div>
         {availableQuestions.length < quizQuestions.length && (
           <div className="text-xs text-muted-foreground mb-2 text-center">
-            Personalized questions based on your answers
+            Some questions are skipped based on your earlier answers
           </div>
         )}
         <div className="w-full bg-secondary rounded-full h-2">

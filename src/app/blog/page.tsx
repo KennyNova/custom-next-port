@@ -9,8 +9,23 @@ import { Calendar, Clock, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import type { BlogPost } from '@/types'
+import { debugLog } from '@/lib/debug'
 
 const defaultTags = ['All', 'Next.js', 'Home Lab', 'IoT', 'Automation', 'Web Development', 'Coffee', 'n8n', 'Docker', 'Self-hosting', 'Arduino', 'ESP32', 'Proxmox', 'Business', 'Workflow', 'Integration', 'Infrastructure']
+
+async function fetchBlogPage(pageToLoad: number) {
+  const response = await fetch(`/api/blog?page=${pageToLoad}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch blog posts')
+  }
+  const data = await response.json()
+  const posts: BlogPost[] = data.posts || data // Handle both array and object response formats
+  return { posts, hasNext: Boolean(data.pagination?.hasNext) }
+}
+
+function collectTags(posts: BlogPost[]) {
+  return ['All', ...Array.from(new Set<string>(posts.flatMap((post) => post.tags)))]
+}
 
 export default function BlogPage() {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([])
@@ -18,26 +33,19 @@ export default function BlogPage() {
   const [selectedTag, setSelectedTag] = useState('All')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
+  const [hasNext, setHasNext] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/api/blog')
-        if (!response.ok) {
-          throw new Error('Failed to fetch blog posts')
-        }
-        const data = await response.json()
-        const posts = data.posts || data // Handle both array and object response formats
-        setBlogPosts(posts)
-        
-        // Extract unique tags from posts
-        const allTags = posts.reduce((acc: string[], post: BlogPost) => {
-          return [...acc, ...post.tags]
-        }, [] as string[])
-        const uniqueTags: string[] = ['All', ...Array.from(new Set<string>(allTags))]
-        setTags(uniqueTags)
-        
+        const result = await fetchBlogPage(1)
+        setBlogPosts(result.posts)
+        setTags(collectTags(result.posts))
+        setHasNext(result.hasNext)
+        setPage(1)
         setError(null)
       } catch (err) {
         console.error('Error fetching blog posts:', err)
@@ -49,6 +57,22 @@ export default function BlogPage() {
 
     fetchBlogPosts()
   }, [])
+
+  const loadMore = async () => {
+    try {
+      setLoadingMore(true)
+      const result = await fetchBlogPage(page + 1)
+      const merged = [...blogPosts, ...result.posts]
+      setBlogPosts(merged)
+      setTags(collectTags(merged))
+      setHasNext(result.hasNext)
+      setPage(page + 1)
+    } catch (err) {
+      console.error('Error loading more posts:', err)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   const filteredPosts = selectedTag === 'All' 
     ? blogPosts 
@@ -66,7 +90,7 @@ export default function BlogPage() {
         >
           <h1 className="text-4xl font-bold mb-4">Blog</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Insights, experiences, and technical articles about web development, home labs, automation, and creative projects.
+            Writing about web development, my homelab, automation, and creative projects.
           </p>
         </motion.div>
 
@@ -137,7 +161,7 @@ export default function BlogPage() {
       >
         <h1 className="text-4xl font-bold mb-4">Blog</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Insights, experiences, and technical articles about web development, home labs, automation, and creative projects.
+          Writing about web development, my homelab, automation, and creative projects.
         </p>
       </motion.div>
 
@@ -185,7 +209,7 @@ export default function BlogPage() {
                 preloadBlogMetadata={true}
                 blogSlug={post.slug}
                 onMetadataPreloaded={(metadata) => {
-                  console.log(`✨ Metadata preloaded for ${post.slug}:`, metadata)
+                  debugLog(`✨ Metadata preloaded for ${post.slug}:`, metadata)
                 }}
               >
                 <CardHeader className="relative overflow-hidden hover:bg-gradient-to-b hover:from-accent/50 hover:to-transparent transition-all duration-300 rounded-t-lg group/header">
@@ -233,16 +257,18 @@ export default function BlogPage() {
       </motion.div>
 
       {/* Load More */}
-      <motion.div
-        className="text-center mt-12"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.6 }}
-      >
-        <Button variant="outline" size="lg">
-          Load More Posts
-        </Button>
-      </motion.div>
+      {hasNext && (
+        <motion.div
+          className="text-center mt-12"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+        >
+          <Button variant="outline" size="lg" onClick={loadMore} disabled={loadingMore}>
+            {loadingMore ? 'Loading...' : 'Load More Posts'}
+          </Button>
+        </motion.div>
+      )}
     </div>
   )
 }

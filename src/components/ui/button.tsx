@@ -80,8 +80,23 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     disabled,
     ...props 
   }, ref) => {
-    const Comp = asChild ? Slot : "button"
-    
+    // Slot merges props into its single child element. Wrapping that child in
+    // the fragment below would hand the classes to the fragment and drop them,
+    // so asChild renders the child directly.
+    if (asChild) {
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, animation, className }))}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </Slot>
+      )
+    }
+
+    const Comp = "button"
+
     const isDisabled = disabled || loading
     
     const content = (

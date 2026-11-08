@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePreload } from '@/lib/hooks/use-preload'
 import { useCallback, ReactNode } from 'react'
+import { debugLog } from '@/lib/debug'
 
 interface PreloadLinkProps {
   href: string
@@ -50,7 +51,7 @@ export function PreloadLink({
             onMetadataPreloaded(metadata)
           }
         } catch (error) {
-          console.log('Blog metadata preload failed:', error)
+          debugLog('Blog metadata preload failed:', error)
         }
       }
     }

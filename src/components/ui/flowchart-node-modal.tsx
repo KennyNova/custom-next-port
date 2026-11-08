@@ -206,9 +206,9 @@ export function FlowchartNodeModal({ node, isOpen, onClose }: FlowchartNodeModal
                     <div className="text-center py-8">
                       <div className="text-muted-foreground mb-4">
                         <Icon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p>This component is part of the homelab infrastructure.</p>
+                        <p>This is part of the homelab.</p>
                         <p className="text-sm mt-2">
-                          Detailed information is not yet available for this node.
+                          I haven&apos;t written this one up yet.
                         </p>
                       </div>
                     </div>

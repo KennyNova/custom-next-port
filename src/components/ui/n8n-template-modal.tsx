@@ -234,7 +234,7 @@ export function N8nTemplateModal({ template, isOpen, onClose }: N8nTemplateModal
                       </Button>
                       <Button className="w-full" variant="secondary" asChild>
                         <Link href={`/templates/${template.id}/learn`}>
-                          Learn how to use this workflow for free
+                          Read the free setup guide
                         </Link>
                       </Button>
                     </CardContent>

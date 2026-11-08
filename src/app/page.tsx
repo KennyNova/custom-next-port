@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,10 +9,12 @@ import { PreloadLink } from '@/components/ui/preload-link'
 import { useTheme } from '@/components/providers/theme-provider'
 import Link from 'next/link'
 import WhispyBackground from '@/components/layout/whispy-background'
+import { ShowHubSection } from '@/components/showhub/showhub-section'
+import { featuredShowHubBlocks } from '@/config/showhub'
 import { ArrowRight, Code2, PenTool, Puzzle, Calendar, Rocket, Sparkles, Workflow } from 'lucide-react'
+import { debugLog } from '@/lib/debug'
 
 export default function HomePage() {
-  const [isPrefetching, setIsPrefetching] = useState(false)
   const { theme } = useTheme()
 
   // Get the appropriate gradient class for the current theme
@@ -39,7 +41,6 @@ export default function HomePage() {
   useEffect(() => {
     const prefetchProjects = async () => {
       try {
-        setIsPrefetching(true)
         
         // Prefetch in background - don't block page rendering
         const results = await Promise.allSettled([
@@ -52,16 +53,14 @@ export default function HomePage() {
         results.forEach((result, index) => {
           if (result.status === 'rejected') {
             const endpoints = ['/api/projects?featured=true', '/api/projects', '/api/blog']
-            console.log(`Background prefetch failed for ${endpoints[index]}:`, result.reason)
+            debugLog(`Background prefetch failed for ${endpoints[index]}:`, result.reason)
           } else {
             const endpoints = ['/api/projects?featured=true', '/api/projects', '/api/blog']
-            console.log(`✅ Background prefetch successful for ${endpoints[index]}`)
+            debugLog(`✅ Background prefetch successful for ${endpoints[index]}`)
           }
         })
       } catch (error) {
-        console.log('Background prefetch failed:', error)
-      } finally {
-        setIsPrefetching(false)
+        debugLog('Background prefetch failed:', error)
       }
     }
 
@@ -72,7 +71,7 @@ export default function HomePage() {
     
     // Skip prefetch on constrained networks
     if (conn?.saveData || (effectiveType && ['slow-2g', '2g', '3g'].includes(effectiveType))) {
-      console.log('🔧 Prefetch skipped due to network constraints:', { 
+      debugLog('🔧 Prefetch skipped due to network constraints:', { 
         saveData: conn?.saveData, 
         effectiveType 
       })
@@ -91,16 +90,6 @@ export default function HomePage() {
     <div className="relative">
       <WhispyBackground />
       
-      {/* Optional: Small loading indicator for background prefetching */}
-      {isPrefetching && (
-        <div className="fixed top-4 right-4 z-50 bg-background/80 backdrop-blur-sm backdrop-ok rounded-lg px-3 py-2 border shadow-lg">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-primary/60 rounded-full animate-pulse"></div>
-            <span className="text-xs text-muted-foreground">Preloading...</span>
-          </div>
-        </div>
-      )}
-      
       <div className="container mx-auto px-4 py-8 relative z-10">
       {/* Hero Section */}
       <section className="text-center py-20">
@@ -112,9 +101,9 @@ export default function HomePage() {
           </h1>
         </div>
         <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto animate-scale-in">
-          A blend of technical rigor and visual craft 
+          I build software and automations, and I shoot photo and video.
         </p>
-        <p className="text-lg italic md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-scale-in">for makers who enjoy both</p>
+        <p className="text-lg italic md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-scale-in">Projects, writing, and n8n templates below.</p>
         
         
         {theme === 'coffee' && (
@@ -142,7 +131,7 @@ export default function HomePage() {
               className="group font-semibold px-8 py-4 h-auto rounded-2xl"
             >
               <Rocket className="mr-3 h-5 w-5 transition-transform group-hover:scale-110" />
-              Explore My Work 
+              See My Work
               <ArrowRight className="ml-3 h-4 w-4 transition-transform group-hover:translate-x-1" />
               
               {/* Simple shine effect */}
@@ -158,7 +147,7 @@ export default function HomePage() {
               className="group font-semibold px-8 py-4 h-auto rounded-2xl"
             >
               <Sparkles className="mr-3 h-5 w-5 transition-transform group-hover:rotate-12" />
-              Book Consultation
+              Book a Call
               <Calendar className="ml-3 h-4 w-4 transition-transform group-hover:scale-110" />
               
               {/* Simple shine effect */}
@@ -170,7 +159,7 @@ export default function HomePage() {
 
       {/* Features Grid */}
       <section className="py-20">
-        <h2 className="text-3xl font-bold text-center mb-12">What You'll Find Here</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">On This Site</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div>
             <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/20">
@@ -178,7 +167,7 @@ export default function HomePage() {
                 <Code2 className="h-8 w-8 text-primary mb-2" />
                 <CardTitle className="text-primary">Projects</CardTitle>
                 <CardDescription>
-                  Explore my professional work, GitHub projects, and home lab setup
+                  GitHub projects, my homelab, and photo and video work
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -198,7 +187,7 @@ export default function HomePage() {
                 <PenTool className="h-8 w-8 text-primary mb-2" />
                 <CardTitle className="text-primary">Blog</CardTitle>
                 <CardDescription>
-                  Read insights, experiences, and technical articles
+                  Write-ups on web development, my homelab, and automation
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -216,9 +205,9 @@ export default function HomePage() {
             <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/20">
               <CardHeader>
                 <Puzzle className="h-8 w-8 text-primary mb-2 animate-bounce" />
-                <CardTitle className="text-primary">Consultation Quiz</CardTitle>
+                <CardTitle className="text-primary">Service Quiz</CardTitle>
                 <CardDescription>
-                  Discover how we can work together through interactive questions
+                  A few questions about your business, then a suggestion for which of my services fits
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -238,7 +227,7 @@ export default function HomePage() {
                 <Workflow className="h-8 w-8 text-primary mb-2" />
                 <CardTitle className="text-primary">n8n Templates</CardTitle>
                 <CardDescription>
-                  Browse searchable n8n workflows with graph previews and provider-aware downloads.
+                  Search n8n workflows, preview the node graph, and download the JSON with your choice of providers
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -253,6 +242,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <ShowHubSection blocks={featuredShowHubBlocks} showMoreLink />
       </div>
     </div>
   )

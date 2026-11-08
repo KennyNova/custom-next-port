@@ -53,8 +53,8 @@ export default async function TemplateLearnPage({
           Learn how to use "{template.name}" in n8n
         </h1>
         <p className="text-muted-foreground">
-          This is a step-by-step, beginner-friendly guide for people who are new to n8n. You will learn what n8n is,
-          how to install it, how to import this workflow, and how to safely run it in your own system.
+          A setup guide for people new to n8n: what n8n is, how to install it, how to import this workflow,
+          and how to run it safely on your own system.
         </p>
 
         <div className="flex flex-wrap gap-2">

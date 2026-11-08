@@ -8,7 +8,7 @@ import { HomelabArchitecture } from '@/components/ui/homelab-architecture'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Cpu, HardDrive, Server, MemoryStick } from 'lucide-react'
 
-// Note: Metadata moved to layout.tsx since this is now a client component
+// Metadata lives in ./layout.tsx because this is a client component.
 
 export default function HomelabPage() {
   const technologies = getHomelabTechnologies()

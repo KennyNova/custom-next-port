@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Github, Linkedin, Mail, Twitter } from 'lucide-react'
+import { Github, Linkedin } from 'lucide-react'
 import { PreloadLink } from '@/components/ui/preload-link'
 
 type FooterLink = {
@@ -18,10 +18,8 @@ type FooterSection = {
 }
 
 const socialLinks = [
-  { name: 'GitHub', href: '#', icon: Github },
-  { name: 'LinkedIn', href: '#', icon: Linkedin },
-  { name: 'Twitter', href: '#', icon: Twitter },
-  { name: 'Email', href: 'mailto:hello@example.com', icon: Mail },
+  { name: 'GitHub', href: 'https://github.com/KennyNova', icon: Github },
+  { name: 'LinkedIn', href: 'https://www.linkedin.com/in/navid-madani', icon: Linkedin },
 ]
 
 const footerLinks: FooterSection[] = [
@@ -31,15 +29,16 @@ const footerLinks: FooterSection[] = [
       { name: 'Home', href: '/' },
       { name: 'Projects', href: '/projects' },
       { name: 'Blog', href: '/blog' },
+      { name: 'Media', href: '/media' },
       { name: 'Quiz', href: '/quiz' },
     ],
   },
   {
-    title: 'Resources',
+    title: 'More',
     links: [
       { name: 'n8n Templates', href: '/templates', key: 'templates' },
       { name: 'Signatures', href: '/signatures' },
-      { name: 'Consultation', href: '/consultation' },
+      { name: 'Book a Call', href: '/consultation' },
     ],
   },
   {
@@ -65,16 +64,18 @@ export function Footer() {
           >
             <Link href="/" className="flex items-center space-x-2 mb-4">
               <div className="h-8 w-8 rounded-full bg-primary" />
-              <span className="font-bold text-lg">Portfolio</span>
+              <span className="font-bold text-lg">Navid Madani</span>
             </Link>
             <p className="text-sm text-muted-foreground mb-4">
-              A modern, interactive portfolio and blog website showcasing professional work, personal projects, and hobbies.
+              Software projects, n8n templates, homelab notes, and photo and video work.
             </p>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (
                 <motion.a
                   key={social.name}
                   href={social.href}
+                  target="_blank"
+                  rel="noreferrer"
                   className="text-muted-foreground hover:text-foreground transition-colors"
                   whileHover={{ scale: 1.2 }}
                   whileTap={{ scale: 0.9 }}
@@ -119,7 +120,7 @@ export function Footer() {
 
         <div className="border-t mt-12 pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Portfolio & Blog. All rights reserved.
+            © {new Date().getFullYear()} Navid Madani. All rights reserved.
           </p>
         </div>
       </div>

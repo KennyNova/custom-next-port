@@ -137,7 +137,7 @@ export default function TemplatesPage() {
       >
         <h1 className="text-4xl font-bold md:text-5xl">n8n Templates</h1>
         <p className="mx-auto max-w-3xl text-muted-foreground">
-          Search curated workflows, inspect their node graph, customize provider preferences, and download production-ready JSONs.
+          Search the workflows, preview each node graph, pick which providers to use, and download the JSON.
         </p>
       </motion.div>
 
@@ -194,7 +194,7 @@ export default function TemplatesPage() {
                   size="sm"
                   onClick={() => setNodeSize(size)}
                 >
-                  {size === 'all' ? 'All' : size === 'small' ? 'Small (1-5)' : size === 'medium' ? 'Medium (6-10)' : 'Large (10+)'}
+                  {size === 'all' ? 'All' : size === 'small' ? 'Small (1-5)' : size === 'medium' ? 'Medium (6-10)' : 'Large (11+)'}
                 </Button>
               ))}
             </div>
@@ -311,7 +311,7 @@ export default function TemplatesPage() {
         <div className="rounded-lg border border-dashed p-10 text-center">
           <h3 className="text-lg font-semibold">No templates match your filters</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Try clearing some filters or searching with broader terms.
+            Clear a filter or try a shorter search.
           </p>
         </div>
       )}

@@ -19,6 +19,16 @@ import type { BlogPost } from '@/types'
 import { MarkdownContent } from '@/components/ui/markdown-content'
 import { ReadingProgress } from '@/components/ui/reading-progress'
 import { FloatingActionBar, AuthorBio, RelatedArticles } from '@/components/ui/blog-enhancements'
+import { debugLog } from '@/lib/debug'
+
+type PostSummary = {
+  title: string
+  slug: string
+  excerpt: string
+  publishedAt: string
+  readingTime: number
+  tags: string[]
+}
 
 export default function BlogPostPage() {
   const params = useParams()
@@ -33,6 +43,38 @@ export default function BlogPostPage() {
   const [isLiked, setIsLiked] = useState(false)
   const [likes, setLikes] = useState(0)
   const [copiedLink, setCopiedLink] = useState(false)
+  const [neighbors, setNeighbors] = useState<{ newer?: PostSummary; older?: PostSummary; related: PostSummary[] }>({ related: [] })
+
+  // Previous/next and related posts come from the published post list.
+  useEffect(() => {
+    if (!params.slug) return
+    let cancelled = false
+    fetch('/api/blog?limit=100')
+      .then((res) => (res.ok ? res.json() : { posts: [] }))
+      .then((data) => {
+        if (cancelled) return
+        const posts: PostSummary[] = (data.posts || []).map((p: any) => ({
+          title: p.title,
+          slug: p.slug,
+          excerpt: p.excerpt ?? '',
+          publishedAt: p.publishedAt,
+          readingTime: p.readingTime ?? 0,
+          tags: p.tags ?? [],
+        }))
+        const index = posts.findIndex((p) => p.slug === params.slug)
+        if (index === -1) return
+        const current = posts[index]
+        const related = posts
+          .filter((p) => p.slug !== current.slug && p.tags.some((t) => current.tags.includes(t)))
+          .slice(0, 3)
+        // Posts are sorted newest first.
+        setNeighbors({ newer: posts[index - 1], older: posts[index + 1], related })
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [params.slug])
 
   const loadMetadata = useCallback(async () => {
     try {
@@ -81,7 +123,7 @@ export default function BlogPostPage() {
     if (cachedMetadata) {
       setMetadata(cachedMetadata)
       setLoadingMetadata(false)
-      console.log(`⚡ Using preloaded metadata for: ${params.slug}`)
+      debugLog(`⚡ Using preloaded metadata for: ${params.slug}`)
     }
 
     // 2. Load metadata if not cached
@@ -104,7 +146,7 @@ export default function BlogPostPage() {
     e.preventDefault()
     e.stopPropagation()
     // e.stopImmediatePropagation() - not available on React events
-    console.log('Like button clicked - preventing refresh')
+    debugLog('Like button clicked - preventing refresh')
     setIsLiked(!isLiked)
     setLikes(prev => isLiked ? prev - 1 : prev + 1)
     // Here you would typically make an API call to update the like count
@@ -115,7 +157,7 @@ export default function BlogPostPage() {
     e.preventDefault()
     e.stopPropagation()
     // e.stopImmediatePropagation() - not available on React events
-    console.log('Share button clicked - preventing refresh')
+    debugLog('Share button clicked - preventing refresh')
     try {
       await navigator.share({
         title: metadata?.title,
@@ -299,8 +341,8 @@ export default function BlogPostPage() {
               {/* Author Bio */}
               <AuthorBio />
 
-              {/* Related Articles - You can populate this with actual related articles */}
-              <RelatedArticles articles={[]} />
+              {/* Related Articles: other posts sharing a tag */}
+              <RelatedArticles articles={neighbors.related} />
 
               {/* Enhanced Footer */}
               <motion.footer
@@ -313,28 +355,46 @@ export default function BlogPostPage() {
                   <div className="space-y-4">
                     <h3 className="text-xl font-semibold">Enjoyed this article?</h3>
                     <p className="text-muted-foreground leading-relaxed">
-                      Follow me for more insights on web development, technology, and building amazing user experiences.
+                      I write about web development, automation, and the homelab I run.
                     </p>
                     <div className="flex gap-3">
-                      <Button variant="default" size="sm">
-                        Follow for More
+                      <Button variant="default" size="sm" asChild>
+                        <a href="https://www.linkedin.com/in/navid-madani" target="_blank" rel="noreferrer">
+                          Follow on LinkedIn
+                        </a>
                       </Button>
-                      <Button variant="outline" size="sm">
-                        Subscribe to Newsletter
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href="/blog">All posts</Link>
                       </Button>
                     </div>
                   </div>
                   <div className="space-y-4">
                     <h4 className="font-semibold">Navigation</h4>
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <Button variant="outline" size="sm" className="justify-start">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Previous Post
-                      </Button>
-                      <Button variant="outline" size="sm" className="justify-start">
-                        Next Post
-                        <ArrowLeft className="ml-2 h-4 w-4 rotate-180" />
-                      </Button>
+                      {neighbors.older && (
+                        <Button variant="outline" size="sm" className="justify-start" asChild>
+                          <Link href={`/blog/${neighbors.older.slug}`} title={neighbors.older.title}>
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Previous Post
+                          </Link>
+                        </Button>
+                      )}
+                      {neighbors.newer && (
+                        <Button variant="outline" size="sm" className="justify-start" asChild>
+                          <Link href={`/blog/${neighbors.newer.slug}`} title={neighbors.newer.title}>
+                            Next Post
+                            <ArrowLeft className="ml-2 h-4 w-4 rotate-180" />
+                          </Link>
+                        </Button>
+                      )}
+                      {!neighbors.older && !neighbors.newer && (
+                        <Button variant="outline" size="sm" className="justify-start" asChild>
+                          <Link href="/blog">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to the blog
+                          </Link>
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

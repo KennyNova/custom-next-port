@@ -1,6 +1,7 @@
 import { useRouter } from 'next/navigation'
 import { useCallback, useRef } from 'react'
 import type { BlogPost } from '@/types'
+import { debugLog } from '@/lib/debug'
 
 interface PreloadController {
   cancel: () => void
@@ -76,7 +77,7 @@ class PreloadManager {
     // Clear all tracking
     this.activePreloads.clear()
     this.preloadControllers.clear()
-    console.log('🛑 Cancelled all preloads')
+    debugLog('🛑 Cancelled all preloads')
   }
 
   isPreloading(href: string): boolean {
@@ -87,13 +88,13 @@ class PreloadManager {
   async preloadBlogMetadata(slug: string): Promise<BlogMetadata | null> {
     // Return cached if available
     if (this.metadataCache.has(slug)) {
-      console.log(`📋 Using cached metadata: ${slug}`)
+      debugLog(`📋 Using cached metadata: ${slug}`)
       return this.metadataCache.get(slug)!
     }
 
     // Return ongoing request if exists
     if (this.metadataRequests.has(slug)) {
-      console.log(`📋 Joining ongoing metadata request: ${slug}`)
+      debugLog(`📋 Joining ongoing metadata request: ${slug}`)
       return this.metadataRequests.get(slug)!
     }
 
@@ -116,7 +117,7 @@ class PreloadManager {
       const response = await fetch(`/api/blog/${slug}/metadata`)
       if (!response.ok) {
         if (response.status === 404) {
-          console.log(`📋 Blog metadata not found: ${slug}`)
+          debugLog(`📋 Blog metadata not found: ${slug}`)
           return null
         }
         throw new Error(`Failed to fetch metadata: ${response.status}`)
@@ -124,7 +125,7 @@ class PreloadManager {
       
       const metadata = await response.json()
       this.metadataCache.set(slug, metadata)
-      console.log(`🚀 Preloaded blog metadata: ${slug} (${JSON.stringify(metadata).length} bytes)`)
+      debugLog(`🚀 Preloaded blog metadata: ${slug} (${JSON.stringify(metadata).length} bytes)`)
       return metadata
     } catch (error) {
       console.error(`Failed to preload metadata for ${slug}:`, error)
@@ -136,13 +137,13 @@ class PreloadManager {
   async loadBlogContent(slug: string): Promise<BlogContent | null> {
     // Return cached if available
     if (this.contentCache.has(slug)) {
-      console.log(`📄 Using cached content: ${slug}`)
+      debugLog(`📄 Using cached content: ${slug}`)
       return this.contentCache.get(slug)!
     }
 
     // Return ongoing request if exists
     if (this.contentRequests.has(slug)) {
-      console.log(`📄 Joining ongoing content request: ${slug}`)
+      debugLog(`📄 Joining ongoing content request: ${slug}`)
       return this.contentRequests.get(slug)!
     }
 
@@ -165,7 +166,7 @@ class PreloadManager {
       const response = await fetch(`/api/blog/${slug}/content`)
       if (!response.ok) {
         if (response.status === 404) {
-          console.log(`📄 Blog content not found: ${slug}`)
+          debugLog(`📄 Blog content not found: ${slug}`)
           return null
         }
         throw new Error(`Failed to fetch content: ${response.status}`)
@@ -173,7 +174,7 @@ class PreloadManager {
       
       const content = await response.json()
       this.contentCache.set(slug, content)
-      console.log(`📄 Loaded blog content: ${slug} (${content.content?.length || 0} chars)`)
+      debugLog(`📄 Loaded blog content: ${slug} (${content.content?.length || 0} chars)`)
       return content
     } catch (error) {
       console.error(`Failed to load content for ${slug}:`, error)
@@ -196,7 +197,7 @@ class PreloadManager {
     this.contentCache.clear()
     this.metadataRequests.clear()
     this.contentRequests.clear()
-    console.log('🧹 Cleared blog cache')
+    debugLog('🧹 Cleared blog cache')
   }
 
   // Get cache stats

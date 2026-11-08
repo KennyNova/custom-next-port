@@ -290,7 +290,7 @@ export function ArticleSeries({
 export function AuthorBio({ 
   author = {
     name: "Navid Madani",
-    bio: "Full-stack developer passionate about creating amazing user experiences and sharing knowledge about web development, automation, and technology.",
+    bio: "Full-stack developer. I write about web development, automation, and the homelab I run.",
     avatar: "/avatar.jpg",
     social: {
       github: "KennyNova",

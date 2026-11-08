@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { PreloadLink } from '@/components/ui/preload-link'
-import { Menu, X, Home, FolderOpen, BookOpen, Brain, PenTool, Workflow } from 'lucide-react'
+import { Menu, X, Home, FolderOpen, BookOpen, Brain, PenTool, Workflow, PlayCircle } from 'lucide-react'
 import { useState, type ComponentType } from 'react'
 
 type NavigationItem = {
@@ -20,6 +20,7 @@ const navigation: NavigationItem[] = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Projects', href: '/projects', icon: FolderOpen },
   { name: 'Blog', href: '/blog', icon: BookOpen },
+  { name: 'Media', href: '/media', icon: PlayCircle },
   { name: 'Quiz', href: '/quiz', icon: Brain },
   { name: 'Signatures', href: '/signatures', icon: PenTool },
   { name: 'Templates', href: '/templates', key: 'templates', icon: Workflow },
@@ -40,7 +41,7 @@ export function Header() {
           >
             <PreloadLink href="/" className="flex items-center space-x-2">
               <div className="h-8 w-8 rounded-full bg-primary" />
-              <span className="font-bold text-lg">Portfolio</span>
+              <span className="font-bold text-lg">Navid Madani</span>
             </PreloadLink>
           </motion.div>
 
@@ -76,7 +77,7 @@ export function Header() {
           >
             <ThemeToggle />
             <Button asChild className="hidden md:inline-flex">
-              <Link href="/consultation">Book Consultation</Link>
+              <Link href="/consultation">Book a Call</Link>
             </Button>
             
             {/* Mobile menu button */}
@@ -227,7 +228,7 @@ export function Header() {
                         className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                       >
                         <Link href="/consultation" className="flex items-center justify-center space-x-2">
-                          <span>Book Consultation</span>
+                          <span>Book a Call</span>
                           <motion.div
                             animate={{ x: [0, 4, 0] }}
                             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}

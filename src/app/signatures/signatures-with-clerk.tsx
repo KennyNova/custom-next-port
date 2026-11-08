@@ -22,42 +22,19 @@ const GoogleIcon = ({ className }: { className?: string }) => (
 import { useState, useEffect, useCallback } from 'react'
 import { useUser, useAuth, SignInButton, SignOutButton } from '@clerk/nextjs'
 import { captureEvent } from '@/lib/posthog/client'
+import { debugLog } from '@/lib/debug'
 
-const mockSignatures = [
-  {
-    _id: '1' as any,
-    userId: 'mock-user-1',
-    name: 'John Doe',
-    message: 'Amazing work! Your portfolio inspired me to start my own coding journey.',
-    provider: 'github' as const,
-    avatarUrl: 'https://github.com/github.png',
-    profileUrl: 'https://github.com/johndoe',
-    useRandomIcon: false,
-    createdAt: new Date('2024-01-15')
-  },
-  {
-    _id: '2' as any,
-    userId: 'mock-user-2',
-    name: 'Sarah Wilson',
-    message: 'Love the clean design and smooth animations. Great job!',
-    provider: 'linkedin' as const,
-    avatarUrl: '',
-    profileUrl: 'https://linkedin.com/in/sarahwilson',
-    useRandomIcon: true,
-    createdAt: new Date('2024-01-14')
-  },
-  {
-    _id: '3' as any,
-    userId: 'mock-user-3',
-    name: 'Mike Chen',
-    message: 'The Gagguino project is incredible! Coffee and code - perfect combination.',
-    provider: 'google' as const,
-    avatarUrl: 'https://github.com/github.png',
-    profileUrl: '#',
-    useRandomIcon: false,
-    createdAt: new Date('2024-01-13')
-  }
-]
+type SignatureItem = {
+  _id: string
+  userId?: string
+  name: string
+  message: string
+  provider: 'github' | 'linkedin' | 'google' | 'clerk'
+  avatarUrl?: string
+  profileUrl?: string
+  useRandomIcon?: boolean
+  createdAt: Date
+}
 
 const providerIcons = {
   github: Github,
@@ -80,7 +57,7 @@ export default function SignaturesPage() {
   const [message, setMessage] = useState('')
   const [name, setName] = useState('')
   const [useRandomIcon, setUseRandomIcon] = useState(false)
-  const [signatures, setSignatures] = useState(mockSignatures)
+  const [signatures, setSignatures] = useState<SignatureItem[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [existingSignature, setExistingSignature] = useState<any>(null)
@@ -221,7 +198,7 @@ export default function SignaturesPage() {
         setCurrentPage(data.pagination?.page || page)
         setHasNextPage(data.pagination?.hasNext || false)
       } else {
-        console.log('Signatures API returned:', response.status)
+        debugLog('Signatures API returned:', response.status)
       }
     } catch (error) {
       console.error('Error loading signatures:', error)
@@ -264,9 +241,9 @@ export default function SignaturesPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <h1 className="text-4xl font-bold mb-4">Digital Signature Wall</h1>
+        <h1 className="text-4xl font-bold mb-4">Signature Wall</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Leave your mark! Sign the wall with your GitHub, LinkedIn, or Google account and share your thoughts.
+          Sign in with GitHub, LinkedIn, or Google and leave a note.
         </p>
       </motion.div>
 
@@ -303,7 +280,7 @@ export default function SignaturesPage() {
               <CardDescription>
                 {isSignedIn && user
                   ? `Signed in as ${user.fullName || user.username || user.emailAddresses[0]?.emailAddress}` 
-                  : 'Sign in with your preferred method and leave a message'
+                  : 'Sign in with GitHub, LinkedIn, or Google, then write your message.'
                 }
               </CardDescription>
             </CardHeader>
@@ -313,12 +290,12 @@ export default function SignaturesPage() {
                   <div className="flex justify-center">
                     <SignInButton mode="modal">
                       <Button className="w-full">
-                        Sign In to Leave Your Mark
+                        Sign in
                       </Button>
                     </SignInButton>
                   </div>
                   <p className="text-sm text-muted-foreground text-center">
-                    Sign in to leave your signature
+                    Your name and message are shown publicly on this page.
                   </p>
                 </>
               ) : (
@@ -336,7 +313,7 @@ export default function SignaturesPage() {
                     <Label htmlFor="message">Message</Label>
                     <Textarea
                       id="message"
-                      placeholder="Leave a message..."
+                      placeholder="Write a short note"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       rows={3}
@@ -531,6 +508,12 @@ export default function SignaturesPage() {
           )
         })}
       </motion.div>
+
+      {!isLoading && signatures.length === 0 && (
+        <p className="text-center text-muted-foreground py-12">
+          No signatures yet. Sign in above and leave the first one.
+        </p>
+      )}
 
       {/* Load More */}
       {hasNextPage && (
