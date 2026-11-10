@@ -1,775 +1,365 @@
-	'use client'
+'use client'
 
-import { useState, useEffect, useRef, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { ProjectGridSkeleton } from '@/components/ui/project-card-skeleton'
-import { VideoCard, VideoGridSkeleton } from '@/components/ui/video-card'
-import { VideoModal } from '@/components/ui/video-modal'
-import { usePreload } from '@/lib/hooks/use-preload'
-import { Github, ExternalLink, Code2, Home, Camera, Wrench, Loader2, Video, Cpu, MemoryStick, HardDrive, Server, Monitor } from 'lucide-react'
+import { useEffect, useState, type ComponentType, type ReactNode } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
-import type { Project } from '@/types'
-import { HomelabGrid } from '@/components/ui/homelab-grid'
-import { HomelabModal } from '@/components/ui/homelab-modal'
-import { InteractiveHomelabFlowchart } from '@/components/ui/interactive-homelab-flowchart'
-import { PhotoGrid, PhotoGridSkeleton } from '@/components/ui/photo-grid'
+import Script from 'next/script'
+import { ArrowRight, Camera, ExternalLink, Gamepad2, Github, LayoutGrid, Podcast, Server } from 'lucide-react'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { PhotoModal } from '@/components/ui/photo-modal'
-import { getHomelabTechnologies, getHomelabHardware, getHomelabNodes } from '@/lib/homelab-data'
+import { TabreezeShowcase } from '@/components/projects/tabreeze-showcase'
+import { ShowHubPipeline } from '@/components/projects/showhub-pipeline'
+import { SquarzleEmbed, SQUARZLE_URL } from '@/components/projects/squarzle-embed'
+import { HomelabExplorer } from '@/components/projects/homelab-explorer'
 import type { Photo } from '@/types'
+import type { LucideIcon } from 'lucide-react'
 
-const projectTypes = [
-  { id: 'all', name: 'All Projects', icon: Code2 },
-  { id: 'github', name: 'GitHub', icon: Github },
-  { id: 'homelab', name: 'Home Lab', icon: Home },
-  { id: 'photography', name: 'Photography', icon: Camera },
-  { id: 'videography', name: 'Videography', icon: Video },
-  // { id: 'other', name: 'Other Projects', icon: Wrench },
+type ProjectLink = { label: string; href: string; icon?: LucideIcon; primary?: boolean }
+
+type ProjectEntry = {
+  id: string
+  name: string
+  kind: string
+  icon: LucideIcon
+  summary: string
+  body: string[]
+  details: string[]
+  stack: string[]
+  links: ProjectLink[]
+  wideVisual?: boolean
+}
+
+const projects: ProjectEntry[] = [
+  {
+    id: 'tabreeze',
+    name: 'Tabreeze',
+    kind: 'Chrome and Edge extension',
+    icon: LayoutGrid,
+    summary: 'Your new tab, built out of tiles you size and place yourself. Free, with no account.',
+    body: [
+      'I open a new tab a hundred times a day, so I turned it into a dashboard I can actually arrange. The name is Tabriz, the city in northwestern Iran, mashed together with breeze.',
+    ],
+    details: [
+      'Free and open source, and there is nothing to sign up for',
+      'Your layout, tasks and settings are saved locally in your browser',
+      'Widgets for search, bookmarks, tasks, Google and Outlook calendars, weather, quotes, news, stocks and homelab status',
+    ],
+    stack: ['React', 'TypeScript', 'Tailwind CSS', 'Vite', 'Manifest V3'],
+    links: [
+      { label: 'Chrome Web Store', href: 'https://chromewebstore.google.com/detail/tabreeze/nicfglggmbdhllhfeciibfbjdicgbdfa', icon: ExternalLink, primary: true },
+      { label: 'tabreeze.app', href: 'https://tabreeze.app', icon: ExternalLink },
+      { label: 'Source', href: 'https://github.com/KennyNova/Tabriz', icon: Github },
+    ],
+    wideVisual: true,
+  },
+  {
+    id: 'showhub',
+    name: 'Show Hub',
+    kind: 'Podcast platform',
+    icon: Podcast,
+    summary: 'Connect a podcast feed and get episode pages, transcripts and an embeddable player.',
+    body: [
+      'Show Hub syncs a show from wherever it is published, transcribes each episode, and builds search-friendly pages on a showhubco.com subdomain or your own domain. Paid tiers add AI-drafted blog posts from the transcripts.',
+    ],
+    details: [
+      'Feed sync from the platforms a show already publishes on',
+      'Transcripts through AssemblyAI, with a self-hosted Whisper worker on my home server',
+      'An embeddable player, so the episodes can live on a site the show already has',
+    ],
+    stack: ['Next.js', 'Convex', 'Clerk', 'AssemblyAI', 'Claude', 'Cloudflare R2'],
+    links: [
+      { label: 'showhubco.com', href: 'https://showhubco.com', icon: ExternalLink, primary: true },
+    ],
+  },
+  {
+    id: 'squarzle',
+    name: 'Squarzle',
+    kind: 'Browser game',
+    icon: Gamepad2,
+    summary: 'A clicker game played on a seeded parquet grid.',
+    body: [
+      'Break a square and its neighbours open up. Some squares hold treasure that raises your click damage, auto-click rate, coins or luck. Each level has a gate that only opens after you clear enough squares on it, and portals can get you past one early.',
+    ],
+    details: [
+      'Maps are generated from a seed, so the same seed always gives the same board',
+      'Shop upgrades for click power, auto-clickers, coin multipliers and luck',
+      'Pan and zoom across the whole board',
+    ],
+    stack: ['Next.js', 'React', 'seedrandom', 'Tailwind CSS'],
+    links: [
+      { label: 'Play full screen', href: SQUARZLE_URL, icon: ExternalLink, primary: true },
+      { label: 'Source', href: 'https://github.com/KennyNova/squarzle-next', icon: Github },
+    ],
+  },
+  {
+    id: 'homelab',
+    name: 'Homelab',
+    kind: 'Self-hosted infrastructure',
+    icon: Server,
+    summary: 'One machine running Proxmox, with everything else in VMs on top.',
+    body: [
+      'Proxmox splits the box into VMs: CasaOS for Docker apps, Coolify for hosting my own sites, Home Assistant, a Windows VM and file storage. Media, dev tools, notes and network services all run as containers inside CasaOS.',
+    ],
+    details: [
+      'Debian 12 under every VM and container',
+      'ZFS mirror across the drives',
+      'The integrated GPU handles media transcoding',
+    ],
+    stack: ['Proxmox VE', 'CasaOS', 'Coolify', 'Home Assistant', 'Docker'],
+    links: [
+      { label: 'Full architecture', href: '/homelab', icon: ArrowRight, primary: true },
+    ],
+  },
+  {
+    id: 'photography',
+    name: 'Photography',
+    kind: 'Photos',
+    icon: Camera,
+    summary: 'Pictures I have taken, with the camera settings where I kept them.',
+    body: [
+      'Click any photo to open it full size with its camera, lens and exposure details.',
+    ],
+    details: [],
+    stack: [],
+    links: [],
+  },
 ]
 
-const orientationOptions = [
-  { id: 'all', name: 'All Orientations' },
-  { id: 'vertical', name: 'Vertical' },
-  { id: 'horizontal', name: 'Horizontal' },
-]
-
-// Project Card Component with Preloading
-function ProjectCard({ project, index, onVideoPlay }: { 
-  project: Project; 
-  index: number; 
-  onVideoPlay?: (project: Project) => void;
-}) {
-  const router = useRouter()
-  const { startPreload, cancelPreload, cancelAllPreloads } = usePreload()
-
-  const handleMouseEnter = () => {
-    if (project.type !== 'videography') {
-      startPreload(`/projects/${project.slug}`)
-    }
-  }
-
-  const handleMouseLeave = () => {
-    if (project.type !== 'videography') {
-      cancelPreload(`/projects/${project.slug}`)
-    }
-  }
-
-  const handleClick = () => {
-    cancelAllPreloads()
-    if (project.type === 'videography' && onVideoPlay) {
-      onVideoPlay(project)
-    } else {
-      router.push(`/projects/${project.slug}`)
-    }
-  }
+function ProjectLinks({ links }: { links: ProjectLink[] }) {
+  if (links.length === 0) return null
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      whileHover={{ y: -5 }}
-    >
-      <Card 
-        className="h-full hover:shadow-lg transition-shadow cursor-pointer" 
-        onClick={handleClick}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            {project.type === 'github' && <Github className="h-4 w-4" />}
-            {project.type === 'homelab' && <Home className="h-4 w-4" />}
-            {project.type === 'photography' && <Camera className="h-4 w-4" />}
-            {project.type === 'videography' && <Video className="h-4 w-4" />}
-            {project.type === 'other' && <Wrench className="h-4 w-4" />}
-            {project.title}
-          </CardTitle>
-          <CardDescription className="text-xs line-clamp-2">{project.description}</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="flex flex-wrap gap-2 mb-4">
-            {project.type === 'videography' && project.orientation && (
-              <span
-                className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-md"
-              >
-                {project.orientation === 'vertical' ? 'Vertical' : 'Horizontal'}
-              </span>
-            )}
-            {project.technologies.map((tech) => (
-              <span
-                key={tech}
-                className="px-2 py-1 bg-secondary text-secondary-foreground text-xs rounded-md"
-              >
-                {tech}
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            {project.links.github && (
-              <Button variant="outline" size="sm" asChild>
-                <Link href={project.links.github} target="_blank">
-                  <Github className="h-4 w-4 mr-2" />
-                  Code
-                </Link>
-              </Button>
-            )}
-            {project.links.live && (
-              <Button size="sm" asChild>
-                <Link href={project.links.live} target="_blank">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Live Demo
-                </Link>
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+    <div className="flex flex-wrap gap-3">
+      {links.map((link) => {
+        const external = link.href.startsWith('http')
+        const Icon = link.icon
+        return (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={buttonVariants({ variant: link.primary ? 'default' : 'outline', size: 'sm' })}
+            {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          >
+            {link.label}
+            {Icon && <Icon className="ml-2 h-4 w-4" />}
+          </Link>
+        )
+      })}
+    </div>
   )
 }
 
-function ProjectsPageContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [projects, setProjects] = useState<Project[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [selectedType, setSelectedType] = useState<string>('all')
-  const [selectedOrientation, setSelectedOrientation] = useState<'all' | 'vertical' | 'horizontal'>('all')
-  const [projectCounts, setProjectCounts] = useState<Record<string, number>>({})
-  const [showLeftBlur, setShowLeftBlur] = useState(false)
-  const [showRightBlur, setShowRightBlur] = useState(true)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  
-  // Video modal state
-  const [selectedVideoProject, setSelectedVideoProject] = useState<Project | null>(null)
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
-  const [initialVideoIndex, setInitialVideoIndex] = useState(0)
+function ProjectSection({ project, index, visual }: { project: ProjectEntry; index: number; visual: ReactNode }) {
+  const flipped = index % 2 === 1
+  const textSpan = project.wideVisual ? 'lg:col-span-4' : 'lg:col-span-5'
+  const visualSpan = project.wideVisual ? 'lg:col-span-8' : 'lg:col-span-7'
 
-  // Photo state
+  return (
+    <section id={project.id} className="scroll-mt-24 border-t py-16">
+      <div className="grid gap-10 lg:grid-cols-12 lg:items-start">
+        <div className={`space-y-5 ${textSpan} ${flipped ? 'lg:order-2' : ''}`}>
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-primary/10 p-2">
+              <project.icon className="h-5 w-5 text-primary" />
+            </div>
+            <span className="text-sm text-muted-foreground">{project.kind}</span>
+          </div>
+          <h2 className="text-3xl font-bold md:text-4xl">{project.name}</h2>
+          <p className="text-lg">{project.summary}</p>
+          {project.body.map((paragraph) => (
+            <p key={paragraph} className="text-muted-foreground">{paragraph}</p>
+          ))}
+          {project.details.length > 0 && (
+            <ul className="space-y-2 text-sm">
+              {project.details.map((detail) => (
+                <li key={detail} className="flex gap-3">
+                  <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary" />
+                  <span>{detail}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {project.stack.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {project.stack.map((tech) => (
+                <span key={tech} className="rounded-md bg-secondary px-2 py-1 text-xs text-secondary-foreground">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          )}
+          <ProjectLinks links={project.links} />
+        </div>
+        <div className={`${visualSpan} ${flipped ? 'lg:order-1' : ''}`}>{visual}</div>
+      </div>
+    </section>
+  )
+}
+
+// Set to a real show's Show Hub ID to swap the pipeline diagram for the live embed player.
+const SHOWHUB_EMBED_PODCAST_ID: string | null = null
+const SHOWHUB_CONTAINER = 'showhub-projects-embed'
+
+function ShowHubVisual() {
+  if (SHOWHUB_EMBED_PODCAST_ID) {
+    return (
+      <Card className="border-2">
+        <CardContent className="p-4 md:p-6">
+          <div id={SHOWHUB_CONTAINER} className="min-h-[240px]">
+            <div className="space-y-3">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          </div>
+          <Script
+            src="https://showhubco.com/embed.js?instance=projects"
+            strategy="afterInteractive"
+            data-podcast-id={SHOWHUB_EMBED_PODCAST_ID}
+            data-devplan="free"
+            data-style="list"
+            data-theme="auto"
+            data-max-episodes="3"
+            data-section="recent"
+            data-container={SHOWHUB_CONTAINER}
+          />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return <ShowHubPipeline />
+}
+
+const PHOTO_PREVIEW_COUNT = 6
+
+function PhotographyVisual() {
   const [photos, setPhotos] = useState<Photo[]>([])
-  const [photosLoading, setPhotosLoading] = useState(false)
-  const [photosError, setPhotosError] = useState<string | null>(null)
-  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
-  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [showAll, setShowAll] = useState(false)
+  const [modalIndex, setModalIndex] = useState<number | null>(null)
 
-  // Homelab modal state
-  const [homelabOpenSlug, setHomelabOpenSlug] = useState<string | null>(null)
-  const homelabTechnologies = getHomelabTechnologies()
-  const homelabSpecs = getHomelabHardware()
-  const homelabNodes = getHomelabNodes()
-  const activeHomelabTech = homelabOpenSlug ? (homelabTechnologies.find((t: any) => t.slug === homelabOpenSlug) || null) : null
-
-  // Fetch projects from API
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchPhotos = async () => {
       try {
-        setLoading(true)
-        setError(null)
-        
-        const response = await fetch('/api/projects')
-        if (!response.ok) {
-          throw new Error(`Failed to fetch projects: ${response.status}`)
-        }
-        
+        const response = await fetch('/api/photos?sort=order&limit=50')
+        if (!response.ok) throw new Error(`Failed to fetch photos: ${response.status}`)
         const data = await response.json()
-        setProjects(data.projects || [])
-        
-        // Calculate project counts by type
-        const counts = data.projects.reduce((acc: Record<string, number>, project: Project) => {
-          acc[project.type] = (acc[project.type] || 0) + 1
-          acc.all = (acc.all || 0) + 1
-          return acc
-        }, {})
-        
-        setProjectCounts(counts)
+        setPhotos(data.photos || [])
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch projects')
-        console.error('Error fetching projects:', err)
+        console.error('Error fetching photos:', err)
+        setError(true)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchProjects()
+    fetchPhotos()
   }, [])
 
-  // Handle scroll position to show/hide blur gradients
-  const handleScroll = () => {
-    const container = scrollContainerRef.current
-    if (!container) return
-
-    const { scrollLeft, scrollWidth, clientWidth } = container
-    const isAtStart = scrollLeft <= 5 // Small threshold for precision
-    const isAtEnd = scrollLeft >= scrollWidth - clientWidth - 5 // Small threshold for precision
-
-    setShowLeftBlur(!isAtStart)
-    setShowRightBlur(!isAtEnd)
-  }
-
-  // Set up scroll and resize listeners
-  useEffect(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
-
-    // Initial check
-    handleScroll()
-
-    container.addEventListener('scroll', handleScroll, { passive: true })
-
-    const handleResize = () => {
-      // Recompute after resize
-      handleScroll()
-    }
-    window.addEventListener('resize', handleResize)
-
-    return () => {
-      container.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('resize', handleResize)
-    }
-  }, [projects])
-
-  // Fetch photos when photography filter is selected
-  useEffect(() => {
-    const fetchPhotos = async () => {
-      if (selectedType !== 'photography') {
-        setPhotos([])
-        return
-      }
-
-      try {
-        setPhotosLoading(true)
-        setPhotosError(null)
-        
-        const response = await fetch('/api/photos?sort=order&limit=50')
-        if (!response.ok) {
-          throw new Error(`Failed to fetch photos: ${response.status}`)
-        }
-        
-        const data = await response.json()
-        setPhotos(data.photos || [])
-      } catch (err) {
-        setPhotosError(err instanceof Error ? err.message : 'Failed to fetch photos')
-        console.error('Error fetching photos:', err)
-      } finally {
-        setPhotosLoading(false)
-      }
-    }
-
-    fetchPhotos()
-  }, [selectedType])
-
-  // Handle URL-based video modal
-  useEffect(() => {
-    const videoSlug = searchParams.get('video')
-    const videoIndex = searchParams.get('index')
-    
-    if (videoSlug && projects.length > 0) {
-      const project = projects.find(p => p.slug === videoSlug && p.type === 'videography')
-      if (project) {
-        setSelectedVideoProject(project)
-        setInitialVideoIndex(videoIndex ? parseInt(videoIndex, 10) : 0)
-        setIsVideoModalOpen(true)
-      }
-    } else {
-      setIsVideoModalOpen(false)
-      setSelectedVideoProject(null)
-    }
-  }, [searchParams, projects])
-
-  // Video modal handlers
-  const handleVideoPlay = (project: Project, videoIndex: number = 0) => {
-    setSelectedVideoProject(project)
-    setInitialVideoIndex(videoIndex)
-    setIsVideoModalOpen(true)
-  }
-
-  const handleVideoModalClose = () => {
-    setIsVideoModalOpen(false)
-    setSelectedVideoProject(null)
-  }
-
-  // Photo modal handlers
-  const handlePhotoClick = (photo: Photo) => {
-    const photoIndex = photos.findIndex(p => p._id.toString() === photo._id.toString())
-    setSelectedPhotoIndex(photoIndex >= 0 ? photoIndex : 0)
-    setIsPhotoModalOpen(true)
-  }
-
-  const handlePhotoModalClose = () => {
-    setIsPhotoModalOpen(false)
-  }
-
-  // Filter projects based on selected type and orientation (when videography)
-  const filteredByType = selectedType === 'all' 
-    ? projects 
-    : projects.filter(project => project.type === selectedType)
-
-  const filteredProjects = selectedType === 'videography' && selectedOrientation !== 'all'
-    ? filteredByType.filter(project => project.orientation === selectedOrientation)
-    : filteredByType
-
-  const featuredProjects = filteredProjects.filter(project => project.featured)
-
-  if (error) {
+  if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Projects</h1>
-          <p className="text-red-500 mb-4">Error loading projects: {error}</p>
-          <Button onClick={() => window.location.reload()}>
-            Try Again
-          </Button>
-        </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {Array.from({ length: PHOTO_PREVIEW_COUNT }).map((_, i) => (
+          <Skeleton key={i} className="aspect-square rounded-lg" />
+        ))}
       </div>
     )
   }
 
+  if (error || photos.length === 0) {
+    return (
+      <Card className="border-2">
+        <CardContent className="flex flex-col items-center justify-center gap-3 p-12 text-center">
+          <Camera className="h-10 w-10 text-muted-foreground" />
+          <p className="text-muted-foreground">
+            {error ? 'Photos could not be loaded right now.' : 'No photos published yet.'}
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const visible = showAll ? photos : photos.slice(0, PHOTO_PREVIEW_COUNT)
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <motion.div
-        className="text-center mb-12"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        <h1 className="text-4xl font-bold mb-4">Projects</h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Code on GitHub, my homelab, and photo and video work. Pick a category below.
-        </p>
-      </motion.div>
-
-      {/* Project Types Carousel */}
-      <motion.section
-        className="mb-12"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-      >
-        <h2 className="text-2xl font-bold mb-6">Project Categories</h2>
-        
-        {/* Horizontal scrollable carousel with blur edges */}
-        <div className="relative">
-          {/* Left blur gradient */}
-          <div 
-            className={`absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background via-background/80 to-transparent z-10 pointer-events-none transition-opacity duration-300 ${
-              showLeftBlur ? 'opacity-100' : 'opacity-0'
-            }`} 
-          />
-          
-          {/* Right blur gradient */}
-          <div 
-            className={`absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background via-background/80 to-transparent z-10 pointer-events-none transition-opacity duration-300 ${
-              showRightBlur ? 'opacity-100' : 'opacity-0'
-            }`} 
-          />
-          
-          {/* Scrollable container with extra padding for hover animations */}
-          <div 
-            ref={scrollContainerRef}
-            className="overflow-x-auto scrollbar-hide py-2"
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {visible.map((photo, i) => (
+          <button
+            key={photo._id.toString()}
+            type="button"
+            onClick={() => setModalIndex(i)}
+            className="group relative aspect-square overflow-hidden rounded-lg border-2 hover:border-primary/40"
           >
-            <div className="flex gap-4 pb-2 min-w-max px-2">
-              {projectTypes.map((type, index) => (
-                <motion.div
-                  key={type.id}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  whileHover={{ y: -8, scale: 1.02 }}
-                  className="flex-shrink-0"
-                >
-                  <Card 
-                    className={`w-48 text-center cursor-pointer hover:shadow-lg transition-all duration-300 ${
-                      selectedType === type.id ? 'ring-2 ring-primary' : ''
-                    }`}
-                    onClick={() => {
-                      setSelectedType(type.id)
-                      if (type.id !== 'videography') {
-                        setSelectedOrientation('all')
-                      }
-                    }}
-                  >
-                    <CardHeader className="pb-4">
-                      <type.icon className="h-8 w-8 mx-auto text-primary mb-2" />
-                      <CardTitle className="text-lg">{type.name}</CardTitle>
-                      <CardDescription>
-                        
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-        
-        {/* Orientation filter for videography */}
-        {selectedType === 'videography' && (
-          <motion.div 
-            className="mt-6 flex flex-wrap gap-2"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {orientationOptions.map(option => (
-              <Button
-                key={option.id}
-                variant={selectedOrientation === (option.id as any) ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedOrientation(option.id as any)}
-              >
-                {option.name}
-              </Button>
-            ))}
-          </motion.div>
-        )}
-      </motion.section>
-
-      {/* Loading State */}
-      {loading && (
-        <motion.section
-          className="mb-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          {selectedType !== 'videography' && selectedType !== 'photography' && (
-            <>
-              <h2 className="text-2xl font-bold mb-6">Featured Projects</h2>
-              <ProjectGridSkeleton count={3} />
-            </>
-          )}
-          
-          <h2 className="text-2xl font-bold mb-6 mt-12">
-            {selectedType === 'videography' ? 'Video Projects' : 
-             selectedType === 'photography' ? 'Photography' : 'All Projects'}
-          </h2>
-          {selectedType === 'videography' ? (
-            <VideoGridSkeleton 
-              count={6} 
-              orientation={selectedOrientation === 'all' ? 'horizontal' : selectedOrientation}
+            <Image
+              src={photo.thumbnailUrl || photo.blobUrl}
+              alt={photo.alt}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             />
-          ) : selectedType === 'photography' ? (
-            <PhotoGridSkeleton count={8} />
-          ) : (
-            <ProjectGridSkeleton count={6} />
-          )}
-        </motion.section>
+          </button>
+        ))}
+      </div>
+      {photos.length > PHOTO_PREVIEW_COUNT && (
+        <Button variant="outline" size="sm" onClick={() => setShowAll((v) => !v)}>
+          {showAll ? 'Show fewer' : `Show all ${photos.length} photos`}
+        </Button>
       )}
-
-      {/* Featured Projects */}
-      {!loading && featuredProjects.length > 0 && selectedType !== 'videography' && selectedType !== 'homelab' && selectedType !== 'photography' && (
-        <motion.section
-          className="mb-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          <h2 className="text-2xl font-bold mb-6">Featured Projects</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {featuredProjects.map((project, index) => (
-              <ProjectCard 
-                key={project._id.toString()} 
-                project={project} 
-                index={index}
-                onVideoPlay={handleVideoPlay}
-              />
-            ))}
-          </div>
-        </motion.section>
-      )}
-
-      {/* All Projects */}
-      {!loading && (
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-        >
-          {selectedType === 'photography' ? (
-            <div className="space-y-8">
-              <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold">Photography</h2>
-                <p className="text-muted-foreground">Photos I&apos;ve shot. Click one to open it larger.</p>
-              </div>
-
-              {photosError ? (
-                <div className="text-center py-12">
-                  <p className="text-red-500 mb-4">Error loading photos: {photosError}</p>
-                  <Button onClick={() => window.location.reload()}>
-                    Try Again
-                  </Button>
-                </div>
-              ) : (
-                <PhotoGrid 
-                  photos={photos} 
-                  loading={photosLoading}
-                  onPhotoClick={handlePhotoClick}
-                />
-              )}
-            </div>
-          ) : selectedType === 'homelab' ? (
-            <div className="space-y-8">
-              <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold">Home Lab</h2>
-                <p className="text-muted-foreground">Hardware → Proxmox VE → CasaOS, Coolify, Home Assistant & More</p>
-              </div>
-
-              {/* Server Specifications */}
-              <section>
-                <h3 className="text-xl font-semibold mb-4">Server Specifications</h3>
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {/* CPU */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-red-500/10">
-                            <Cpu className="h-5 w-5 text-red-500" />
-                          </div>
-                          <h4 className="font-semibold text-red-500">Processor</h4>
-                        </div>
-                        <div className="space-y-1 pl-10">
-                          <p className="font-medium">{homelabSpecs.cpu}</p>
-                          <p className="text-sm text-muted-foreground">{homelabSpecs.cores}</p>
-                          <p className="text-xs text-muted-foreground">{homelabSpecs.baseClockPowerSpecStorage}</p>
-                        </div>
-                      </div>
-
-                      {/* Memory */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-blue-500/10">
-                            <MemoryStick className="h-5 w-5 text-blue-500" />
-                          </div>
-                          <h4 className="font-semibold text-blue-500">Memory</h4>
-                        </div>
-                        <div className="space-y-1 pl-10">
-                          <p className="font-medium">{homelabSpecs.memory}</p>
-                          <p className="text-sm text-muted-foreground">DDR4 DIMM</p>
-                          <p className="text-xs text-muted-foreground">ECC Support</p>
-                        </div>
-                      </div>
-
-                      {/* Storage */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-green-500/10">
-                            <HardDrive className="h-5 w-5 text-green-500" />
-                          </div>
-                          <h4 className="font-semibold text-green-500">Storage</h4>
-                        </div>
-                        <div className="space-y-1 pl-10">
-                          <p className="font-medium">{homelabSpecs.storage}</p>
-                          <p className="text-sm text-muted-foreground">NVMe + SATA</p>
-                          <p className="text-xs text-muted-foreground">ZFS RAID-1</p>
-                        </div>
-                      </div>
-
-                      {/* Motherboard */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-purple-500/10">
-                            <Server className="h-5 w-5 text-purple-500" />
-                          </div>
-                          <h4 className="font-semibold text-purple-500">Motherboard</h4>
-                        </div>
-                        <div className="space-y-1 pl-10">
-                          <p className="font-medium">{homelabSpecs.motherboard}</p>
-                          <p className="text-sm text-muted-foreground">AMD B550 Chipset</p>
-                          <p className="text-xs text-muted-foreground">PCIe 4.0 Support</p>
-                        </div>
-                      </div>
-
-                      {/* Graphics */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-orange-500/10">
-                            <Monitor className="h-5 w-5 text-orange-500" />
-                          </div>
-                          <h4 className="font-semibold text-orange-500">Graphics</h4>
-                        </div>
-                        <div className="space-y-1 pl-10">
-                          <p className="font-medium">{homelabSpecs.gpu}</p>
-                          <p className="text-sm text-muted-foreground">Hardware Acceleration</p>
-                          <p className="text-xs text-muted-foreground">Media Transcoding</p>
-                        </div>
-                      </div>
-
-                      {/* Operating System */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-slate-500/10">
-                            <Server className="h-5 w-5 text-slate-500" />
-                          </div>
-                          <h4 className="font-semibold text-slate-500">Base OS</h4>
-                        </div>
-                        <div className="space-y-1 pl-10">
-                          <p className="font-medium">Debian 12 (Bookworm)</p>
-                          <p className="text-sm text-muted-foreground">Stable Branch</p>
-                          <p className="text-xs text-muted-foreground">All VMs & Containers</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </section>
-
-              {/* Interactive Architecture Flowchart */}
-              <section>
-                <h3 className="text-xl font-semibold mb-4">Interactive Architecture</h3>
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="mb-4">
-                      <p className="text-sm text-muted-foreground">
-                        The whole homelab as a graph. Drag to pan, scroll to zoom, click a node for details.
-                      </p>
-                    </div>
-                    <InteractiveHomelabFlowchart
-                      nodes={homelabNodes}
-                    />
-                  </CardContent>
-                </Card>
-              </section>
-
-              {/* Quick Stats */}
-              <section>
-                <h3 className="text-xl font-semibold mb-4">Services Overview</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-blue-500">50+</div>
-                      <div className="text-sm text-muted-foreground">Docker Containers</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-green-500">5</div>
-                      <div className="text-sm text-muted-foreground">Core Services</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-purple-500">1</div>
-                      <div className="text-sm text-muted-foreground">Physical Server</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-orange-500">24/7</div>
-                      <div className="text-sm text-muted-foreground">Uptime</div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </section>
-
-              {/* Homelab Modal */}
-              <HomelabModal
-                technology={activeHomelabTech}
-                isOpen={Boolean(activeHomelabTech)}
-                onClose={() => setHomelabOpenSlug(null)}
-              />
-            </div>
-          ) : (
-            <>
-              <h2 className="text-2xl font-bold mb-6">
-                {selectedType === 'all' ? 'All Projects' : `${projectTypes.find(t => t.id === selectedType)?.name || 'Projects'}`}
-              </h2>
-              {filteredProjects.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">Nothing in this category yet.</p>
-                </div>
-              ) : selectedType === 'videography' ? (
-                <motion.div 
-                  className={`grid gap-4 ${
-                  selectedOrientation === 'vertical' 
-                    ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' 
-                    : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                }`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ staggerChildren: 0.05, duration: 0.3 }}
-                  layout
-                >
-                  {filteredProjects.map((project, index) => (
-                    <div key={project._id.toString()}>
-                      <VideoCard 
-                        project={project} 
-                        onPlay={handleVideoPlay} 
-                        index={index} 
-                      />
-                    </div>
-                  ))}
-                </motion.div>
-              ) : (
-                <motion.div 
-                  className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ staggerChildren: 0.05, duration: 0.3 }}
-                  layout
-                >
-                  {filteredProjects.map((project, index) => (
-                    <div key={project._id.toString()}>
-                      <ProjectCard 
-                        project={project} 
-                        index={index}
-                        onVideoPlay={handleVideoPlay}
-                      />
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </>
-          )}
-        </motion.section>
-      )}
-
-      {/* Video Modal */}
-      <VideoModal
-        project={selectedVideoProject}
-        isOpen={isVideoModalOpen}
-        onClose={handleVideoModalClose}
-        initialVideoIndex={initialVideoIndex}
-      />
-
-      {/* Photo Modal */}
       <PhotoModal
         photos={photos}
-        initialIndex={selectedPhotoIndex}
-        isOpen={isPhotoModalOpen}
-        onClose={handlePhotoModalClose}
-      />
-
-      {/* Homelab Modal duplication safeguard for SSR hydration order */}
-      <HomelabModal
-        technology={activeHomelabTech}
-        isOpen={Boolean(activeHomelabTech)}
-        onClose={() => setHomelabOpenSlug(null)}
+        initialIndex={modalIndex ?? 0}
+        isOpen={modalIndex !== null}
+        onClose={() => setModalIndex(null)}
       />
     </div>
   )
 }
 
+const visuals: Record<string, ComponentType> = {
+  tabreeze: TabreezeShowcase,
+  showhub: ShowHubVisual,
+  squarzle: SquarzleEmbed,
+  homelab: HomelabExplorer,
+  photography: PhotographyVisual,
+}
+
 export default function ProjectsPage() {
   return (
-    <Suspense fallback={
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Projects</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Code on GitHub, my homelab, and photo and video work. Pick a category below.
+    <div className="container mx-auto px-4 py-12">
+      <header className="grid gap-8 pb-12 lg:grid-cols-12 lg:items-end">
+        <div className="lg:col-span-7">
+          <h1 className="mb-4 text-4xl font-bold md:text-5xl">Projects</h1>
+          <p className="text-xl text-muted-foreground">
+            Things I have built and keep running: two products, a browser game, the home server I self-host on,
+            and the photos I take along the way.
           </p>
         </div>
-        <ProjectGridSkeleton count={6} />
-      </div>
-    }>
-      <ProjectsPageContent />
-    </Suspense>
+        <nav aria-label="Projects on this page" className="lg:col-span-5">
+          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2">
+            {projects.map((project) => (
+              <li key={project.id}>
+                <a
+                  href={`#${project.id}`}
+                  className="flex items-center gap-2 rounded-md border-2 px-3 py-2 text-sm font-medium text-foreground transition-[border-color,background-color] hover:border-primary/40 hover:bg-primary/5"
+                >
+                  <project.icon className="h-4 w-4 text-primary" />
+                  {project.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </header>
+
+      {projects.map((project, index) => {
+        const Visual = visuals[project.id]
+        return <ProjectSection key={project.id} project={project} index={index} visual={<Visual />} />
+      })}
+    </div>
   )
 }

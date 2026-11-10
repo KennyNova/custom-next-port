@@ -11,11 +11,13 @@ import Link from 'next/link'
 import WhispyBackground from '@/components/layout/whispy-background'
 import { ShowHubSection } from '@/components/showhub/showhub-section'
 import { featuredShowHubBlocks } from '@/config/showhub'
-import { ArrowRight, Code2, PenTool, Puzzle, Calendar, Rocket, Sparkles, Workflow } from 'lucide-react'
+import { ArrowRight, Code2, PenTool, Puzzle, Rocket, Sparkles, Workflow } from 'lucide-react'
 import { debugLog } from '@/lib/debug'
+import { useCtaCopy } from '@/lib/hooks/use-cta-copy'
 
 export default function HomePage() {
   const { theme } = useTheme()
+  const { text: ctaText } = useCtaCopy()
 
   // Get the appropriate gradient class for the current theme
   const getHeroGradientClass = () => {
@@ -139,16 +141,16 @@ export default function HomePage() {
             </Button>
           </Link>
 
-          {/* Secondary CTA Button - Book Consultation */}
-          <Link href="/consultation">
+          {/* Secondary CTA Button - Quiz-first */}
+          <Link href="/quiz">
             <Button 
               size="xl" 
               variant="outline"
               className="group font-semibold px-8 py-4 h-auto rounded-2xl"
             >
               <Sparkles className="mr-3 h-5 w-5 transition-transform group-hover:rotate-12" />
-              Book a Call
-              <Calendar className="ml-3 h-4 w-4 transition-transform group-hover:scale-110" />
+              {ctaText}
+              <ArrowRight className="ml-3 h-4 w-4 transition-transform group-hover:translate-x-1" />
               
               {/* Simple shine effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out"></div>
@@ -214,7 +216,7 @@ export default function HomePage() {
                 <Link href="/quiz">
                   <Button variant="info" className="w-full group">
                     <Puzzle className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
-                    Take Quiz
+                    Learn How I Can Help
                   </Button>
                 </Link>
               </CardContent>

@@ -4,7 +4,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { N8nNodeGraph } from '@/components/ui/n8n-node-graph'
@@ -128,7 +128,7 @@ export default function TemplatesPage() {
   }
 
   return (
-    <div className="container mx-auto space-y-8 px-4 py-8">
+    <div className="mx-auto w-full max-w-[1700px] space-y-8 px-4 py-8 sm:px-6 xl:px-8">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -259,47 +259,54 @@ export default function TemplatesPage() {
       )}
 
       {!isLoading && !error && (
-        <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <section className="grid gap-8 md:grid-cols-2">
           {filteredTemplates.map((template) => (
             <Card
               key={template.id}
-              className="group flex h-full cursor-pointer flex-col transition hover:-translate-y-1 hover:shadow-lg"
+              className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border-border/70 bg-card/80 transition hover:-translate-y-1 hover:shadow-xl"
               onClick={() => openTemplate(template)}
             >
-              <CardHeader className="space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="line-clamp-2 text-lg">{template.name}</CardTitle>
-                  <Badge variant="secondary">{template.nodeCount} nodes</Badge>
+              <CardContent className="flex h-full flex-col gap-5 p-5">
+                <div className="relative overflow-hidden rounded-xl border border-border/70 bg-gradient-to-br from-background via-muted/20 to-primary/10 p-3">
+                  <div className="aspect-square w-full">
+                    <N8nNodeGraph
+                      mode="thumbnail"
+                      nodes={template.nodes}
+                      connections={template.connections}
+                    />
+                  </div>
+                  <div className="pointer-events-none absolute inset-x-2 top-2 flex items-center justify-between gap-2 text-[11px] font-medium">
+                    <Badge variant="secondary" className="bg-background/85 backdrop-blur-sm">
+                      {template.nodeCount} nodes
+                    </Badge>
+                    <Badge variant="outline" className="border-primary/30 bg-background/70">
+                      {template.edgeCount} flows
+                    </Badge>
+                  </div>
                 </div>
-                <CardDescription className="line-clamp-1">
-                  {prettyCategory(template.category)}
-                </CardDescription>
-              </CardHeader>
 
-              <CardContent className="space-y-4">
-                <div className="h-[140px] w-full rounded-md border bg-muted/20 p-1">
-                  <N8nNodeGraph
-                    mode="thumbnail"
-                    nodes={template.nodes}
-                    connections={template.connections}
-                  />
+                <div className="space-y-1.5">
+                  <CardTitle className="line-clamp-2 text-xl leading-tight">{template.name}</CardTitle>
+                  <CardDescription className="line-clamp-2 text-sm">
+                    {prettyCategory(template.category)}
+                  </CardDescription>
                 </div>
 
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1.5">
                   {template.services.slice(0, 5).map((service) => (
-                    <Badge key={service} variant="outline" className="text-xs">
+                    <Badge key={service} variant="outline" className="text-xs sm:text-[11px]">
                       {service}
                     </Badge>
                   ))}
                   {template.services.length > 5 && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs sm:text-[11px]">
                       +{template.services.length - 5}
                     </Badge>
                   )}
                 </div>
 
-                <Button className="w-full" variant="outline">
-                  Open Workflow
+                <Button className="mt-auto h-10 w-full text-sm font-medium" variant="outline">
+                  Preview Workflow
                 </Button>
               </CardContent>
             </Card>

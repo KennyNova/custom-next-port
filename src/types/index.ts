@@ -26,6 +26,11 @@ export interface Project {
   slug: string;
   description: string;
   type: 'github' | 'homelab' | 'photography' | 'videography' | 'other';
+  content?: string; // Markdown (manual project post body)
+  excerpt?: string;
+  tags?: string[];
+  featuredImage?: string; // URL
+  isPublished?: boolean;
   images: string[]; // URLs for thumbnails/photos
   
   // Mux video fields

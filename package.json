@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@11.5.0",
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "next dev --turbo -p 3001",
     "build": "next build",
     "build:analyze": "ANALYZE=true next build",
     "check": "pnpm lint && pnpm type-check",

@@ -21,6 +21,11 @@ export const metadata: Metadata = {
   description: 'Navid Madani builds websites and automations and shoots photo and video. Projects, a self-hosted homelab, n8n templates, and a blog.',
   keywords: ['Navid Madani', 'web development', 'n8n templates', 'automation', 'homelab', 'photography', 'video production'],
   authors: [{ name: 'Navid Madani' }],
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
   openGraph: {
     title: 'Navid Madani | The Practical Cinematic Engineer',
     description: 'Websites, automations, photo and video. Projects, homelab notes, n8n templates, and a blog.',

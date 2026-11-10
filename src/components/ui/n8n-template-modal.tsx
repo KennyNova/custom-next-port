@@ -146,14 +146,14 @@ export function N8nTemplateModal({ template, isOpen, onClose }: N8nTemplateModal
               initial={{ y: 18, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 18, opacity: 0 }}
-              className="flex h-full w-full flex-col overflow-hidden bg-background shadow-2xl sm:h-[94vh] sm:max-w-6xl sm:rounded-lg"
+              className="flex h-full w-full flex-col overflow-hidden bg-background shadow-2xl sm:h-[94vh] sm:max-w-[1200px] sm:rounded-xl"
               onClick={(event) => event.stopPropagation()}
             >
               <div className="flex items-start justify-between gap-4 border-b p-4 sm:p-6">
                 <div>
                   <h2 className="text-2xl font-bold">{template.name}</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Category: {template.category.replace(/_/g, ' ')} • {template.nodeCount} nodes
+                    Category: {template.category.replace(/_/g, ' ')} • {template.nodeCount} nodes • {template.edgeCount} data paths
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {template.services.map((service) => (
@@ -168,17 +168,29 @@ export function N8nTemplateModal({ template, isOpen, onClose }: N8nTemplateModal
                 </Button>
               </div>
 
-              <div className="grid flex-1 grid-cols-1 gap-4 overflow-y-auto p-4 sm:grid-cols-[2fr_1fr] sm:p-6">
+              <div className="grid flex-1 grid-cols-1 gap-4 overflow-y-auto p-4 sm:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)] sm:p-6">
                 <div className="space-y-4">
-                  <Card>
-                    <CardContent className="p-3">
-                      <div className="h-[340px] w-full sm:h-[420px]">
+                  <Card className="border-border/70 bg-card/80">
+                    <CardContent className="space-y-3 p-3 sm:p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                          Workflow Flow Map
+                        </h3>
+                        <Badge variant="outline" className="border-primary/30 bg-background/70">
+                          {template.edgeCount} traced links
+                        </Badge>
+                      </div>
+                      <div className="h-[380px] w-full rounded-xl border border-border/70 bg-gradient-to-br from-background via-muted/20 to-primary/10 p-2 sm:h-[520px]">
                         <N8nNodeGraph
                           mode="full"
                           nodes={template.nodes}
                           connections={template.connections}
+                          className="h-full w-full"
                         />
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Labels use Service: Action so you can quickly identify major nodes. Flow zips animate through visible paths.
+                      </p>
                     </CardContent>
                   </Card>
                 </div>

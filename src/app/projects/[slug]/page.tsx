@@ -10,18 +10,13 @@ import {
   Github, 
   ExternalLink, 
   ArrowLeft, 
-  Star, 
-  GitFork, 
   Eye, 
   Video,
   Calendar,
   Code2,
-  Download,
   Share2,
   Heart,
   Zap,
-  Users,
-  FileText,
   Monitor,
   Smartphone,
   Tablet,
@@ -29,43 +24,23 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize,
-  Copy,
   Check,
   AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ProjectDetailSkeleton } from '@/components/ui/project-detail-skeleton'
-import { MuxVideoPlayer, MuxVideoPlayerSkeleton } from '@/components/ui/mux-video-player'
+import { MuxVideoPlayer } from '@/components/ui/mux-video-player'
 import { MuxService } from '@/lib/mux/services'
 import type { Project } from '@/types'
-
-interface GitHubStats {
-  stars: number
-  forks: number
-  watchers: number
-  language: string
-  size: number
-  openIssues: number
-  lastCommit: string
-  createdAt: string
-  updatedAt: string
-}
-
-interface ProjectPageData extends Project {
-  readme?: string
-  stats?: GitHubStats
-  languages?: Record<string, number>
-  commits?: number
-  contributors?: number
-}
+import { MarkdownContent } from '@/components/ui/markdown-content'
 
 export default function ProjectPage() {
   const params = useParams()
   const router = useRouter()
   const slug = params.slug as string
 
-  const [project, setProject] = useState<ProjectPageData | null>(null)
+  const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
@@ -79,50 +54,18 @@ export default function ProjectPage() {
       try {
         setLoading(true)
         setError(null)
-        
-        // First get the basic project data
-        const projectResponse = await fetch('/api/projects')
-        if (!projectResponse.ok) {
-          throw new Error(`Failed to fetch projects: ${projectResponse.status}`)
-        }
-        
-        const projectData = await projectResponse.json()
-        const foundProject = projectData.projects.find((p: Project) => p.slug === slug)
-        
-        if (!foundProject) {
+        const projectResponse = await fetch(`/api/projects/${slug}`)
+
+        if (projectResponse.status === 404) {
           throw new Error('Project not found')
         }
 
-        // If it's a GitHub project, fetch additional data
-        if (foundProject.type === 'github' && foundProject.links.github) {
-          const repoUrl = foundProject.links.github
-          const [, , , owner, repo] = repoUrl.split('/')
-          
-          try {
-            // Fetch README and stats in parallel
-            const [readmeRes, statsRes, languagesRes] = await Promise.all([
-              fetch(`/api/projects/${slug}/readme`),
-              fetch(`/api/projects/${slug}/stats`),
-              fetch(`/api/projects/${slug}/languages`)
-            ])
-
-            const readme = readmeRes.ok ? await readmeRes.text() : null
-            const stats = statsRes.ok ? await statsRes.json() : null
-            const languages = languagesRes.ok ? await languagesRes.json() : null
-
-            setProject({
-              ...foundProject,
-              readme,
-              stats,
-              languages
-            })
-          } catch (err) {
-            console.warn('Failed to fetch GitHub data:', err)
-            setProject(foundProject)
-          }
-        } else {
-          setProject(foundProject)
+        if (!projectResponse.ok) {
+          throw new Error(`Failed to fetch project: ${projectResponse.status}`)
         }
+
+        const projectData = await projectResponse.json()
+        setProject(projectData.project)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch project')
         console.error('Error fetching project:', err)
@@ -270,63 +213,6 @@ export default function ProjectPage() {
                 </Button>
               </div>
             </div>
-
-            {/* Stats Card */}
-            {project.stats && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
-              >
-                <Card className="w-full lg:w-80">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Github className="h-5 w-5" />
-                      Repository Stats
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 text-2xl font-bold">
-                          <Star className="h-5 w-5 text-yellow-500" />
-                          {project.stats.stars}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Stars</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 text-2xl font-bold">
-                          <GitFork className="h-5 w-5 text-blue-500" />
-                          {project.stats.forks}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Forks</div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Language:</span>
-                        <span className="font-medium">{project.stats.language}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Size:</span>
-                        <span className="font-medium">{Math.round(project.stats.size / 1024)} KB</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Issues:</span>
-                        <span className="font-medium">{project.stats.openIssues}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Created:</span>
-                        <span className="font-medium">
-                          {new Date(project.stats.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
           </div>
         </motion.div>
 
@@ -566,8 +452,8 @@ export default function ProjectPage() {
           </motion.div>
         )}
 
-        {/* README Section */}
-        {project.readme && (
+        {/* Project Post Content */}
+        {project.content && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -577,58 +463,12 @@ export default function ProjectPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Documentation
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="prose prose-neutral dark:prose-invert max-w-none">
-                  <div dangerouslySetInnerHTML={{ __html: project.readme }} />
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Languages Chart */}
-        {project.languages && Object.keys(project.languages).length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="mb-8"
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
                   <Code2 className="h-5 w-5" />
-                  Languages
+                  Project Post
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {Object.entries(project.languages)
-                    .sort(([,a], [,b]) => b - a)
-                    .slice(0, 8)
-                    .map(([language, percentage]) => (
-                      <div key={language} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="font-medium">{language}</span>
-                          <span className="text-muted-foreground">
-                            {percentage.toFixed(1)}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-muted rounded-full h-2">
-                          <motion.div
-                            className="h-2 rounded-full bg-primary"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${percentage}%` }}
-                            transition={{ delay: 0.7, duration: 0.8 }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                </div>
+                <MarkdownContent content={project.content} />
               </CardContent>
             </Card>
           </motion.div>

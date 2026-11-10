@@ -9,7 +9,6 @@ import {
   Calendar, 
   Clock, 
   Video, 
-  MessageSquare, 
   CheckCircle, 
   Star,
   Users,
@@ -25,32 +24,7 @@ import {
   Target,
   X
 } from 'lucide-react'
-import { captureEvent } from '@/lib/posthog/client'
-
-// Cal.com integration hook
-const useCalComBooking = () => {
-  const [isLoading, setIsLoading] = useState(false)
-
-  const openBooking = (eventType: string, source = 'consultation') => {
-    setIsLoading(true)
-
-    captureEvent('consultation_booking_started', {
-      source,
-      event_type: eventType,
-    })
-    
-    // Cal.com embed configuration
-    const calComUrl = process.env.NEXT_PUBLIC_CALCOM_BASE_URL || 'https://cal.com'
-    const bookingUrl = `${calComUrl}/${eventType}`
-    
-    // Open in a modal or new window
-    window.open(bookingUrl, '_blank', 'width=800,height=700,scrollbars=yes,resizable=yes')
-    
-    setIsLoading(false)
-  }
-
-  return { openBooking, isLoading }
-}
+import { useCtaCopy } from '@/lib/hooks/use-cta-copy'
 
 // Quiz popup component
 const QuizPopup = ({ isOpen, onClose, onStartQuiz }: {
@@ -209,25 +183,25 @@ const FloatingQuizIcon = ({ isVisible, onClick }: {
 }
 
 const consultationTypes = [
-  // Free consultation - always first
+  // Quiz-first strategy package
   {
     id: 'discovery-call',
-    title: 'Discovery Call',
-    duration: '30 minutes',
-    price: 'FREE',
+    title: 'Business Direction Plan',
+    duration: 'Quiz-based strategy',
+    price: 'Custom',
     originalPrice: null,
-    description: "A 30-minute call to talk through what you need and whether I'm the right fit.",
+    description: 'Start with a personalized quiz and get a focused action plan tailored to your goals.',
     features: [
-      'Project assessment and feasibility',
-      'Technology recommendations',
-      'A rough plan for the work',
-      'Timeline and budget discussion',
-      'Clear next steps'
+      'Personalized service matching',
+      'Priority and timeline guidance',
+      'Practical implementation roadmap',
+      'Budget-aware recommendations',
+      'Optional consultation request'
     ],
-    calEventType: 'discovery-call',
+    calEventType: 'business-direction-plan',
     popular: true,
     gradient: 'from-green-500 to-emerald-600',
-    icon: 'Calendar'
+    icon: 'Target'
   },
   
   // Web Development & Design Package
@@ -400,7 +374,7 @@ const socialProof = [
 ]
 
 export default function ConsultationPage() {
-  const { openBooking, isLoading } = useCalComBooking()
+  const { text: ctaText } = useCtaCopy()
   const [showQuizPopup, setShowQuizPopup] = useState(false)
   const [showQuizIcon, setShowQuizIcon] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
@@ -494,7 +468,7 @@ export default function ConsultationPage() {
           </h1>
           
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed px-4">
-            I build websites, shoot photo and video, and set up automations and AI tools for businesses. Start with a free 30-minute call, or book a package below.
+            Start with a quick quiz, get personalized recommendations, and request a consultation only if you want one.
           </p>
 
           {/* Quiz CTA Button */}
@@ -511,7 +485,7 @@ export default function ConsultationPage() {
                 className="text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 border-2 border-primary/30 hover:border-primary bg-background/50 backdrop-blur-sm max-w-[90vw] mx-auto"
               >
                 <HelpCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-                <span className="text-center">Not sure what you need? Take the quiz</span>
+                <span className="text-center">{ctaText}</span>
                 <Sparkles className="ml-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
               </Button>
             </Link>
@@ -573,6 +547,7 @@ export default function ConsultationPage() {
                   <div className="flex items-center justify-between mb-4">
                     <div className={`p-2 rounded-lg bg-gradient-to-r ${consultation.gradient}`}>
                       {consultation.icon === 'Calendar' && <Calendar className="h-5 w-5 text-white" />}
+                      {consultation.icon === 'Target' && <Target className="h-5 w-5 text-white" />}
                       {consultation.icon === 'Globe' && <Globe className="h-5 w-5 text-white" />}
                       {consultation.icon === 'Camera' && <Camera className="h-5 w-5 text-white" />}
                       {consultation.icon === 'Video' && <Video className="h-5 w-5 text-white" />}
@@ -592,11 +567,6 @@ export default function ConsultationPage() {
                     {consultation.originalPrice && (
                       <span className="text-lg text-muted-foreground line-through">{consultation.originalPrice}</span>
                     )}
-                    {consultation.price === 'FREE' && (
-                      <span className="text-sm bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
-                        No obligation
-                      </span>
-                    )}
                   </div>
                 </CardHeader>
                 
@@ -615,22 +585,18 @@ export default function ConsultationPage() {
                     )}
                   </ul>
                   
-                  <Button 
+                  <Button
+                    asChild
                     className={`w-full text-sm py-4 font-semibold ${
-                      consultation.popular 
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700' 
+                      consultation.popular
+                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700'
                         : ''
                     }`}
-                    onClick={() => openBooking(consultation.calEventType)}
-                    disabled={isLoading}
                   >
-                    {consultation.price === 'FREE' || consultation.price === 'Contact for quote' ? (
-                      <Calendar className="mr-2 h-4 w-4" />
-                    ) : (
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                    )}
-                    {isLoading ? 'Opening...' : consultation.price === 'Contact for quote' ? 'Request a quote' : 'Book now'}
-                    <ArrowRight className="ml-2 h-3 w-3" />
+                    <Link href="/quiz">
+                      {ctaText}
+                      <ArrowRight className="ml-2 h-3 w-3" />
+                    </Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -691,19 +657,21 @@ export default function ConsultationPage() {
         >
           <h2 className="text-3xl font-bold mb-4">Start With a Call</h2>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            The discovery call is free and takes 30 minutes. If you already know what you want, book a package above.
+            Start with the quiz and I will send practical next steps based on your goals and priorities.
           </p>
           <Button
+            asChild
             size="lg"
             className="text-sm sm:text-base md:text-lg px-4 sm:px-6 md:px-8 py-4 sm:py-5 md:py-6 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 max-w-[90vw] mx-auto"
-            onClick={() => openBooking('discovery-call')}
           >
-            <Calendar className="mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-            <span className="text-center">Book a free discovery call</span>
-            <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+            <Link href="/quiz">
+              <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <span className="text-center">{ctaText}</span>
+              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+            </Link>
           </Button>
           <p className="text-sm text-muted-foreground mt-4">
-            30 minutes. Free. No commitment.
+            Prefer a call? Request a consultation from the quiz results.
           </p>
         </motion.section>
       </div>

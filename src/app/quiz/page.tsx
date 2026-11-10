@@ -6,86 +6,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ChevronLeft, ChevronRight, CheckCircle, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { ChevronLeft, ChevronRight, CheckCircle, ArrowRight, ChevronDown, Mail, Phone } from 'lucide-react'
 import { captureEvent } from '@/lib/posthog/client'
+import { useCtaCopy } from '@/lib/hooks/use-cta-copy'
 
-// Cal.com integration hook with quiz results support
-const useCalComBooking = () => {
-  const [isLoading, setIsLoading] = useState(false)
-
-  const openBookingWithQuizResults = (
-    eventType: string, 
-    quizResults?: {
-      primaryService: string
-      servicePercentages: Array<{service: string, percentage: number}>
-      answers: Record<string, string | string[]>
-      summary?: string
-      details?: string
-      metadata?: string
-    }
-  ) => {
-    setIsLoading(true)
-    
-    // Cal.com embed configuration
-    const calComUrl = process.env.NEXT_PUBLIC_CALCOM_BASE_URL || 'https://cal.com'
-    let bookingUrl = `${calComUrl}/${eventType}`
-    
-    // Add quiz results as URL parameters if provided
-    if (quizResults) {
-      const params = new URLSearchParams()
-      
-      // Add primary service recommendation
-      params.append('primaryService', quizResults.primaryService)
-      
-      // Add service match percentages (top 3)
-      const topServices = quizResults.servicePercentages
-        .slice(0, 3)
-        .map(s => `${s.service}:${Math.round(s.percentage)}%`)
-        .join(',')
-      if (topServices) {
-        params.append('serviceMatches', topServices)
-      }
-      
-      // Add key quiz answers for context
-      const keyAnswers = {
-        challenge: quizResults.answers['1'] || '',
-        business: quizResults.answers['2'] || '',
-        budget: quizResults.answers['7'] || '',
-        timeline: quizResults.answers['8'] || ''
-      }
-      
-      Object.entries(keyAnswers).forEach(([key, value]) => {
-        if (value) {
-          params.append(key, Array.isArray(value) ? value.join(',') : value)
-        }
-      })
-      
-      // Add formatted summary data
-      if (quizResults.summary) {
-        params.append('summary', quizResults.summary)
-      }
-      if (quizResults.details) {
-        params.append('details', quizResults.details)
-      }
-      if (quizResults.metadata) {
-        params.append('metadata', quizResults.metadata)
-      }
-      
-      // Add quiz completion indicator
-      params.append('quizCompleted', 'true')
-      params.append('quizTimestamp', new Date().toISOString())
-      
-      bookingUrl += `?${params.toString()}`
-    }
-    
-    // Open in a modal or new window
-    window.open(bookingUrl, '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes')
-    
-    setIsLoading(false)
-  }
-
-  return { openBookingWithQuizResults, isLoading }
+type QuizStatus = 'in_progress' | 'completed'
+type QuizContact = {
+  email?: string
+  phone?: string
+  consultationRequested?: boolean
 }
+
+const QUIZ_SESSION_STORAGE_KEY = 'nm_quiz_session_id_v1'
+const QUIZ_DRAFT_STORAGE_KEY = 'nm_quiz_draft_v1'
 
 // Animated counter component
 const AnimatedCounter = ({ value, duration = 1000 }: { value: number; duration?: number }) => {
@@ -137,6 +71,13 @@ type Question = {
   type: 'single' | 'multiple'
   options: QuestionOption[]
   condition?: (answers: Record<string, string | string[]>) => boolean
+}
+
+function createSessionId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID()
+  }
+  return `quiz-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
 }
 
 const quizQuestions: Question[] = [
@@ -335,8 +276,8 @@ const quizResults = {
       "SEO optimization",
       "Performance optimization"
     ],
-    cta: "Talk about your website",
-    nextSteps: "Book a free discovery call. I'll follow up with a proposal."
+    cta: "Plan your website roadmap",
+    nextSteps: "Share your email or phone and I will send a tailored action plan for your website goals."
   },
   photo: {
     title: "Professional Photography",
@@ -350,8 +291,8 @@ const quizResults = {
       "Real estate photography",
       "Photos for social media"
     ],
-    cta: "Plan a shoot",
-    nextSteps: "Book a call to talk through what you need shot and how you'll use it."
+    cta: "Shape your visual strategy",
+    nextSteps: "Share your email or phone and I will send a tailored visual strategy for your business."
   },
   cinema: {
     title: "Cinematography & Video Production",
@@ -365,8 +306,8 @@ const quizResults = {
       "Event videography",
       "Commercials"
     ],
-    cta: "Plan a video",
-    nextSteps: "Book a call to go over the video, where it will run, and the budget."
+    cta: "Map your video direction",
+    nextSteps: "Share your email or phone and I will send a tailored production plan for your goals."
   },
   automation: {
     title: "Business Automation Solutions",
@@ -380,8 +321,8 @@ const quizResults = {
       "Social media automation",
       "Connecting your existing tools"
     ],
-    cta: "Talk about automation",
-    nextSteps: "Book a call and we'll go through which tasks are worth automating."
+    cta: "Automate your business",
+    nextSteps: "Share your email or phone and I will send automation opportunities tailored to your workflow."
   },
   ai: {
     title: "AI Solutions & Consulting",
@@ -395,8 +336,8 @@ const quizResults = {
       "Custom AI tools",
       "AI strategy consulting"
     ],
-    cta: "Talk about AI",
-    nextSteps: "Book a call and we'll look at where AI would help and where it wouldn't."
+    cta: "Explore AI for your business",
+    nextSteps: "Share your email or phone and I will send practical AI options that fit your business."
   },
   tech: {
     title: "Technology Consulting",
@@ -410,13 +351,13 @@ const quizResults = {
       "Stack cleanup",
       "Training and support"
     ],
-    cta: "Talk about your tech",
-    nextSteps: "Book a call and we'll work out what to change first."
+    cta: "Get tech guidance",
+    nextSteps: "Share your email or phone and I will send a practical roadmap for your technology decisions."
   }
 }
 
 export default function QuizPage() {
-  const { openBookingWithQuizResults, isLoading: calIsLoading } = useCalComBooking()
+  const { text: ctaText, id: ctaVariantId } = useCtaCopy()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({})
   const [showResults, setShowResults] = useState(false)
@@ -436,9 +377,19 @@ export default function QuizPage() {
     percentage: number
   }>>([])
   const [showBreakdown, setShowBreakdown] = useState(false)
+  const [sessionId, setSessionId] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
+  const [leadEmail, setLeadEmail] = useState('')
+  const [leadPhone, setLeadPhone] = useState('')
+  const [requestConsultation, setRequestConsultation] = useState(false)
+  const [leadStatusMessage, setLeadStatusMessage] = useState<string | null>(null)
+  const [leadSubmitInFlight, setLeadSubmitInFlight] = useState(false)
   const ctaAnchorRef = useRef<HTMLDivElement | null>(null)
   const [ctaStuck, setCtaStuck] = useState(false)
   const quizStartedRef = useRef(false)
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasHydratedDraftRef = useRef(false)
 
   const getQuestionById = (questionId: string) =>
     quizQuestions.find((question) => question.id === questionId)
@@ -479,6 +430,189 @@ export default function QuizPage() {
     questions_answered: Object.keys(answers).length,
   })
 
+  const getNormalizedContact = (): QuizContact | undefined => {
+    const email = leadEmail.trim()
+    const phone = leadPhone.trim()
+
+    if (!email && !phone && !requestConsultation) {
+      return undefined
+    }
+
+    return {
+      email: email || undefined,
+      phone: phone || undefined,
+      consultationRequested: requestConsultation || undefined,
+    }
+  }
+
+  const buildSubmissionPayload = (status: QuizStatus, reason: string, contactOverride?: QuizContact) => ({
+    sessionId,
+    status,
+    reason,
+    ctaVariantId,
+    answers,
+    currentQuestionId: currentQuestion?.id ?? null,
+    currentQuestionIndex,
+    totalQuestions: availableQuestions.length,
+    questionsAnswered: Object.keys(answers).length,
+    progressPercent: Math.round(overallProgress),
+    primaryService: showResults ? result : undefined,
+    servicePercentages: showResults
+      ? servicePercentages.map((item) => ({
+          service: item.service,
+          percentage: Math.round(item.percentage),
+        }))
+      : [],
+    contact: contactOverride ?? getNormalizedContact(),
+    submittedAt: new Date().toISOString(),
+  })
+
+  const saveSubmission = async (
+    status: QuizStatus,
+    reason: string,
+    options?: { keepalive?: boolean; contactOverride?: QuizContact }
+  ) => {
+    if (!sessionId || Object.keys(answers).length === 0) return
+
+    if (!options?.keepalive) {
+      setIsSaving(true)
+    }
+
+    try {
+      const response = await fetch('/api/quiz-submissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(buildSubmissionPayload(status, reason, options?.contactOverride)),
+        keepalive: options?.keepalive,
+      })
+
+      if (response.ok) {
+        setLastSavedAt(new Date().toISOString())
+      }
+    } catch (error) {
+      console.error('Quiz save failed:', error)
+    } finally {
+      if (!options?.keepalive) {
+        setIsSaving(false)
+      }
+    }
+  }
+
+  useEffect(() => {
+    const storedSessionId = window.localStorage.getItem(QUIZ_SESSION_STORAGE_KEY)
+    const resolvedSessionId = storedSessionId || createSessionId()
+    if (!storedSessionId) {
+      window.localStorage.setItem(QUIZ_SESSION_STORAGE_KEY, resolvedSessionId)
+    }
+    setSessionId(resolvedSessionId)
+
+    const rawDraft = window.localStorage.getItem(QUIZ_DRAFT_STORAGE_KEY)
+    if (rawDraft) {
+      try {
+        const parsed = JSON.parse(rawDraft) as {
+          answers?: Record<string, string | string[]>
+          currentQuestionIndex?: number
+          overallProgress?: number
+          showResults?: boolean
+          result?: keyof typeof quizResults
+          servicePercentages?: Array<{ service: keyof typeof quizResults; score: number; percentage: number }>
+          leadEmail?: string
+          leadPhone?: string
+          requestConsultation?: boolean
+        }
+
+        if (parsed.answers && typeof parsed.answers === 'object') {
+          setAnswers(parsed.answers)
+        }
+        if (typeof parsed.currentQuestionIndex === 'number') {
+          setCurrentQuestionIndex(parsed.currentQuestionIndex)
+        }
+        if (typeof parsed.overallProgress === 'number') {
+          setOverallProgress(parsed.overallProgress)
+        }
+        if (typeof parsed.showResults === 'boolean') {
+          setShowResults(parsed.showResults)
+        }
+        if (parsed.result) {
+          setResult(parsed.result)
+        }
+        if (Array.isArray(parsed.servicePercentages)) {
+          setServicePercentages(parsed.servicePercentages)
+        }
+        if (typeof parsed.leadEmail === 'string') {
+          setLeadEmail(parsed.leadEmail)
+        }
+        if (typeof parsed.leadPhone === 'string') {
+          setLeadPhone(parsed.leadPhone)
+        }
+        if (typeof parsed.requestConsultation === 'boolean') {
+          setRequestConsultation(parsed.requestConsultation)
+        }
+      } catch (error) {
+        console.warn('Unable to restore quiz draft:', error)
+      }
+    }
+
+    hasHydratedDraftRef.current = true
+  }, [])
+
+  useEffect(() => {
+    if (!hasHydratedDraftRef.current || !sessionId) return
+
+    const draftPayload = {
+      answers,
+      currentQuestionIndex,
+      overallProgress,
+      showResults,
+      result,
+      servicePercentages,
+      leadEmail,
+      leadPhone,
+      requestConsultation,
+    }
+
+    window.localStorage.setItem(QUIZ_DRAFT_STORAGE_KEY, JSON.stringify(draftPayload))
+  }, [
+    sessionId,
+    answers,
+    currentQuestionIndex,
+    overallProgress,
+    showResults,
+    result,
+    servicePercentages,
+    leadEmail,
+    leadPhone,
+    requestConsultation,
+  ])
+
+  useEffect(() => {
+    if (!hasHydratedDraftRef.current || !sessionId || Object.keys(answers).length === 0) return
+
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current)
+    }
+
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      void saveSubmission(showResults ? 'completed' : 'in_progress', 'autosave')
+    }, 900)
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, answers, currentQuestionIndex, overallProgress, showResults, result, ctaVariantId])
+
+  useEffect(() => {
+    if (availableQuestions.length === 0) return
+    if (currentQuestionIndex > availableQuestions.length - 1) {
+      setCurrentQuestionIndex(Math.max(0, availableQuestions.length - 1))
+    }
+  }, [currentQuestionIndex, availableQuestions.length])
+
   useEffect(() => {
     if (showResults || !currentQuestion) return
 
@@ -501,23 +635,25 @@ export default function QuizPage() {
   }, [currentQuestion?.id, showResults])
 
   useEffect(() => {
-    if (showResults) return
-
     const handleLeave = () => {
       if (Object.keys(answers).length === 0) return
 
-      captureEvent('quiz_abandoned', {
-        last_question_id: currentQuestion?.id,
-        last_question_index: currentQuestionIndex,
-        last_question_number: currentQuestionIndex + 1,
-        ...getQuizProgressMeta(),
-      })
+      if (!showResults) {
+        captureEvent('quiz_abandoned', {
+          last_question_id: currentQuestion?.id,
+          last_question_index: currentQuestionIndex,
+          last_question_number: currentQuestionIndex + 1,
+          ...getQuizProgressMeta(),
+        })
+      }
+
+      void saveSubmission(showResults ? 'completed' : 'in_progress', 'pagehide', { keepalive: true })
     }
 
     window.addEventListener('pagehide', handleLeave)
     return () => window.removeEventListener('pagehide', handleLeave)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showResults, currentQuestion?.id, currentQuestionIndex, answers, overallProgress, availableQuestions.length])
+  }, [showResults, currentQuestion?.id, currentQuestionIndex, answers, overallProgress, availableQuestions.length, sessionId])
 
   // Calculate progressive percentage based on available questions for this user
   const calculateProgressivePercentage = () => {
@@ -773,12 +909,19 @@ export default function QuizPage() {
         percentage: Math.round(item.percentage),
       })),
       questions_answered: Object.keys(answers).length,
+      session_id: sessionId,
+      cta_variant: ctaVariantId,
     })
     setShowResults(true)
+    void saveSubmission('completed', 'quiz_completed')
   }
 
   const resetQuiz = () => {
     captureEvent('quiz_restarted', getQuizProgressMeta())
+    const newSessionId = createSessionId()
+    window.localStorage.setItem(QUIZ_SESSION_STORAGE_KEY, newSessionId)
+    window.localStorage.removeItem(QUIZ_DRAFT_STORAGE_KEY)
+    setSessionId(newSessionId)
     quizStartedRef.current = false
     setCurrentQuestionIndex(0)
     setAnswers({})
@@ -794,76 +937,44 @@ export default function QuizPage() {
     })
     setServicePercentages([])
     setShowBreakdown(false)
+    setLeadEmail('')
+    setLeadPhone('')
+    setRequestConsultation(false)
+    setLeadStatusMessage(null)
   }
 
-  // Helper function to format quiz answers for Cal.com
-  const formatQuizAnswersForCal = () => {
-    const serviceNames: Record<string, string> = {
-      web: 'Web Development',
-      photo: 'Photography', 
-      cinema: 'Video Production',
-      automation: 'Automation',
-      ai: 'AI Solutions',
-      tech: 'Tech Consulting'
+  const handleLeadSubmit = async () => {
+    const email = leadEmail.trim()
+    const phone = leadPhone.trim()
+    const hasContact = Boolean(email || phone)
+
+    if (!hasContact) {
+      setLeadStatusMessage('Please add an email or phone number first.')
+      return
     }
 
-    const answerLabels: Record<string, string> = {
-      '1': 'Primary Challenge',
-      '2': 'Business Type',
-      '3': 'Website Situation',
-      '4': 'Visual Content',
-      '5': 'Time-consuming Tasks',
-      '6': 'Tech Frustrations',
-      '7': 'Budget Range',
-      '8': 'Timeline'
+    const contactOverride: QuizContact = {
+      email: email || undefined,
+      phone: phone || undefined,
+      consultationRequested: requestConsultation || undefined,
     }
 
-    // Create a summary of quiz results
-    const topRecommendations = servicePercentages
-      .slice(0, 3)
-      .map(sp => `${serviceNames[sp.service]}: ${Math.round(sp.percentage)}%`)
-      .join(' | ')
+    setLeadSubmitInFlight(true)
+    setLeadStatusMessage(null)
 
-    // Format key answers
-    const keyAnswers = Object.entries(answers)
-      .filter(([key]) => ['1', '2', '7', '8'].includes(key))
-      .map(([key, value]) => {
-        const label = answerLabels[key]
-        const answer = Array.isArray(value) ? value.join(', ') : value
-        return `${label}: ${answer}`
-      })
-      .join(' | ')
-
-    return {
-      recommendedServices: topRecommendations,
-      keyAnswers,
-      totalQuestions: Object.keys(answers).length,
-      completedAt: new Date().toLocaleString()
-    }
-  }
-
-  const handleBookQuizConsultation = () => {
-    const formattedData = formatQuizAnswersForCal()
-    
-    const quizResultsData = {
-      primaryService: result,
-      servicePercentages: servicePercentages.map(sp => ({
-        service: sp.service,
-        percentage: sp.percentage
-      })),
-      answers,
-      // Add formatted summary for Cal.com
-      summary: formattedData.recommendedServices,
-      details: formattedData.keyAnswers,
-      metadata: `Completed ${formattedData.totalQuestions} questions on ${formattedData.completedAt}`
-    }
-    
-    captureEvent('consultation_booking_started', {
-      source: 'quiz',
-      event_type: 'quiz',
-      primary_service: quizResultsData.primaryService,
+    captureEvent('quiz_lead_submitted', {
+      session_id: sessionId,
+      cta_variant: ctaVariantId,
+      has_email: Boolean(email),
+      has_phone: Boolean(phone),
+      consultation_requested: requestConsultation,
+      primary_service: result,
     })
-    openBookingWithQuizResults('quiz', quizResultsData)
+
+    await saveSubmission('completed', 'lead_submit', { contactOverride })
+
+    setLeadSubmitInFlight(false)
+    setLeadStatusMessage('Thanks! I saved your results and will follow up soon.')
   }
 
   if (showResults) {
@@ -1002,8 +1113,15 @@ export default function QuizPage() {
                 <div className="bg-muted/50 p-4 rounded-lg">
                   <h4 className="font-semibold mb-2">Next step</h4>
                   <p className="text-sm text-muted-foreground">
-                    Book a call to talk through {servicePercentages.length > 1 ? 'these services' : 'this service'}. Your quiz answers are sent along with the booking.
+                    {quizResults[result].nextSteps}
                   </p>
+                  {(isSaving || lastSavedAt) && (
+                    <p className="text-xs text-muted-foreground mt-3">
+                      {isSaving
+                        ? 'Saving your progress...'
+                        : `Last saved: ${new Date(lastSavedAt as string).toLocaleTimeString()}`}
+                    </p>
+                  )}
                 </div>
                 
                 <div ref={ctaAnchorRef} className="h-0" />
@@ -1014,22 +1132,60 @@ export default function QuizPage() {
                   transition={{ duration: 0.3 }}
                 >
                   <div className={`flex flex-col gap-4 rounded-xl border bg-background/95 supports-[backdrop-filter]:bg-background/60 backdrop-blur p-4 ${ctaStuck ? 'shadow-lg ring-1 ring-border' : 'shadow-sm'}`}>
-                    {/* Primary CTA - Quiz-based Consultation */}
-                    <Button
-                      onClick={handleBookQuizConsultation}
-                      disabled={calIsLoading}
-                      size="lg"
-                      className="relative w-full overflow-hidden group bg-gradient-to-r from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-teal-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 hover:-translate-y-0.5 ring-1 ring-emerald-400/40 dark:ring-emerald-300/30 hover:ring-emerald-400/70 dark:hover:ring-emerald-300/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background after:absolute after:inset-0 after:-translate-x-full after:bg-gradient-to-r after:from-transparent after:via-white/30 after:to-transparent group-hover:after:translate-x-full after:transition-transform after:duration-700"
-                    >
-                      {calIsLoading ? (
-                        'Opening booking...'
-                      ) : (
-                        <>
-                          Book a call with these results
-                          <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-0.5" />
-                        </>
+                    <div className="space-y-3">
+                      <h4 className="font-semibold">Get your tailored plan</h4>
+                      <p className="text-xs text-muted-foreground">
+                        Leave an email or phone and I will follow up with your quiz-based recommendations.
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="relative">
+                          <Mail className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            type="email"
+                            value={leadEmail}
+                            onChange={(event) => setLeadEmail(event.target.value)}
+                            placeholder="Email address"
+                            className="pl-9"
+                          />
+                        </div>
+                        <div className="relative">
+                          <Phone className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            type="tel"
+                            value={leadPhone}
+                            onChange={(event) => setLeadPhone(event.target.value)}
+                            placeholder="Phone number"
+                            className="pl-9"
+                          />
+                        </div>
+                      </div>
+                      <label className="flex items-center gap-3 text-sm text-muted-foreground">
+                        <Checkbox
+                          id="request-consultation"
+                          checked={requestConsultation}
+                          onCheckedChange={(checked) => setRequestConsultation(Boolean(checked))}
+                        />
+                        <span>I would like to request a consultation call.</span>
+                      </label>
+                      <Button
+                        onClick={handleLeadSubmit}
+                        disabled={leadSubmitInFlight}
+                        size="lg"
+                        className="relative w-full overflow-hidden group bg-gradient-to-r from-emerald-500 to-green-600 dark:from-emerald-600 dark:to-teal-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 hover:-translate-y-0.5 ring-1 ring-emerald-400/40 dark:ring-emerald-300/30 hover:ring-emerald-400/70 dark:hover:ring-emerald-300/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background after:absolute after:inset-0 after:-translate-x-full after:bg-gradient-to-r after:from-transparent after:via-white/30 after:to-transparent group-hover:after:translate-x-full after:transition-transform after:duration-700"
+                      >
+                        {leadSubmitInFlight ? (
+                          'Saving your request...'
+                        ) : (
+                          <>
+                            {ctaText}
+                            <ArrowRight className="h-4 w-4 ml-2 transition-transform group-hover:translate-x-0.5" />
+                          </>
+                        )}
+                      </Button>
+                      {leadStatusMessage && (
+                        <p className="text-xs text-center text-muted-foreground">{leadStatusMessage}</p>
                       )}
-                    </Button>
+                    </div>
                     {/* Secondary actions */}
                     <div className="flex gap-4 justify-center">
                       <Button variant="outline" size="sm" onClick={prevQuestion}>

@@ -3,9 +3,10 @@
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { BrandLogo } from '@/components/ui/brand-logo'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { PreloadLink } from '@/components/ui/preload-link'
-import { Menu, X, Home, FolderOpen, BookOpen, Brain, PenTool, Workflow, PlayCircle } from 'lucide-react'
+import { Menu, X, Home, FolderOpen, BookOpen, PenTool, Workflow, PlayCircle } from 'lucide-react'
 import { useState, type ComponentType } from 'react'
 
 type NavigationItem = {
@@ -21,7 +22,6 @@ const navigation: NavigationItem[] = [
   { name: 'Projects', href: '/projects', icon: FolderOpen },
   { name: 'Blog', href: '/blog', icon: BookOpen },
   { name: 'Media', href: '/media', icon: PlayCircle },
-  { name: 'Quiz', href: '/quiz', icon: Brain },
   { name: 'Signatures', href: '/signatures', icon: PenTool },
   { name: 'Templates', href: '/templates', key: 'templates', icon: Workflow },
 ]
@@ -40,7 +40,7 @@ export function Header() {
             transition={{ duration: 0.5 }}
           >
             <PreloadLink href="/" className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-primary" />
+              <BrandLogo />
               <span className="font-bold text-lg">Navid Madani</span>
             </PreloadLink>
           </motion.div>
@@ -76,8 +76,12 @@ export function Header() {
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <ThemeToggle />
-            <Button asChild className="hidden md:inline-flex">
-              <Link href="/consultation">Book a Call</Link>
+            <Button
+              asChild
+              variant="outline"
+              className="hidden md:inline-flex rounded-full border-2 border-primary/60 bg-background px-4 font-semibold text-foreground shadow-sm hover:bg-primary hover:text-primary-foreground"
+            >
+              <Link href="/quiz">Need help?</Link>
             </Button>
             
             {/* Mobile menu button */}
@@ -212,7 +216,7 @@ export function Header() {
                       )
                     })}
                     
-                    {/* Consultation button with enhanced styling */}
+                    {/* Primary quiz CTA button */}
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -227,8 +231,8 @@ export function Header() {
                         asChild 
                         className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                       >
-                        <Link href="/consultation" className="flex items-center justify-center space-x-2">
-                          <span>Book a Call</span>
+                        <Link href="/quiz" className="flex items-center justify-center space-x-2">
+                          <span>Need help?</span>
                           <motion.div
                             animate={{ x: [0, 4, 0] }}
                             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}

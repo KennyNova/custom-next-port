@@ -30,6 +30,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/projects/(.*)',
   '/api/photos',
   '/api/photos/(.*)',
+  '/api/quiz-submissions',
   '/api/tabreeze-feedback',
   '/api/webhook/(.*)',
   '/showhub-smoke',

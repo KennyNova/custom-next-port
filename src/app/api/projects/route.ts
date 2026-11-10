@@ -2,136 +2,51 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, isDatabaseAvailable } from '@/lib/db/mongodb'
 import type { Project } from '@/types'
 
-// GitHub repository interface
-interface GitHubRepo {
-  id: number
-  name: string
-  full_name: string
-  description: string | null
-  html_url: string
-  homepage: string | null
-  language: string | null
-  topics: string[]
-  stargazers_count: number
-  forks_count: number
-  created_at: string
-  updated_at: string
-  pushed_at: string
-}
-
-async function fetchGitHubProjects(): Promise<Project[]> {
-  const token = process.env.GITHUB_TOKEN
-  if (!token) {
-    console.warn('GITHUB_TOKEN not configured, skipping GitHub projects')
-    return []
-  }
-
-  try {
-    const response = await fetch('https://api.github.com/user/repos?sort=updated&per_page=100', {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'Portfolio-App'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.status}`)
-    }
-
-    const repos: GitHubRepo[] = await response.json()
-
-    // Convert GitHub repos to Project format
-    const githubProjects: Project[] = repos
-      .filter(repo => !repo.name.includes('fork') && repo.description) // Filter out forks and repos without descriptions
-      .map((repo, index) => ({
-        _id: `github-${repo.id}` as any,
-        title: repo.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        slug: repo.name,
-        description: repo.description || 'No description available',
-        type: 'github' as const,
-        images: [],
-        technologies: repo.language ? [repo.language, ...repo.topics] : repo.topics,
-        links: {
-          github: repo.html_url,
-          live: repo.homepage || undefined,
-        },
-        featured: repo.stargazers_count > 0 || repo.forks_count > 0, // Feature repos with stars or forks
-        order: index,
-        createdAt: new Date(repo.created_at),
-        updatedAt: new Date(repo.updated_at),
-      }))
-
-    return githubProjects
-  } catch (error) {
-    console.error('Error fetching GitHub projects:', error)
-    return []
-  }
-}
-
 export async function GET(request: NextRequest) {
   try {
+    if (!isDatabaseAvailable()) {
+      return NextResponse.json({
+        projects: [],
+        message: 'Database not configured - no manual projects available'
+      })
+    }
+
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type')
     const featured = searchParams.get('featured')
     const orientation = searchParams.get('orientation') // 'vertical' | 'horizontal'
-    const includeGithub = searchParams.get('includeGithub') !== 'false'
-    
-    let allProjects: Project[] = []
-    
-    // Fetch GitHub projects if requested
-    if (includeGithub && (type === 'github' || type === null)) {
-      const githubProjects = await fetchGitHubProjects()
-      allProjects = [...allProjects, ...githubProjects]
-    }
-    
-    // Fetch database projects if not exclusively requesting GitHub and database is available
-    if (type !== 'github' && isDatabaseAvailable()) {
-      const db = await getDatabase()
-      const collection = db.collection<Project>('projects')
-      
-      // Build query for database projects
-      const query: any = {}
-      if (type) {
-        query.type = type
-      }
-      if (featured === 'true') {
-        query.featured = true
-      }
-      if (orientation) {
-        query.orientation = orientation
-      }
-      
-      // Get projects sorted by order and creation date
-      const dbProjects = await collection
-        .find(query)
-        .sort({ order: 1, createdAt: -1 })
-        .toArray()
-      
-      allProjects = [...allProjects, ...dbProjects]
-    }
-    
-    // Apply filtering if needed
-    let filteredProjects = allProjects
+    const publishedOnly = searchParams.get('published') !== 'false'
+
+    const db = await getDatabase()
+    const collection = db.collection<Project>('projects')
+
+    const query: Record<string, unknown> = {}
     if (type) {
-      filteredProjects = allProjects.filter(project => project.type === type)
+      query.type = type
     }
     if (featured === 'true') {
-      filteredProjects = filteredProjects.filter(project => project.featured)
+      query.featured = true
     }
     if (orientation) {
-      filteredProjects = filteredProjects.filter(project => project.orientation === orientation)
+      query.orientation = orientation
     }
-    
-    // Sort by featured first, then by order, then by creation date
-    filteredProjects.sort((a, b) => {
+    if (publishedOnly) {
+      query.$or = [{ isPublished: true }, { isPublished: { $exists: false } }]
+    }
+
+    const projects = await collection
+      .find(query)
+      .sort({ order: 1, createdAt: -1 })
+      .toArray()
+
+    projects.sort((a, b) => {
       if (a.featured && !b.featured) return -1
       if (!a.featured && b.featured) return 1
       if (a.order !== b.order) return a.order - b.order
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     })
-    
-    return NextResponse.json({ projects: filteredProjects })
+
+    return NextResponse.json({ projects })
   } catch (error) {
     console.error('Error fetching projects:', error)
     return NextResponse.json(
@@ -154,31 +69,54 @@ export async function POST(request: NextRequest) {
     const { 
       title, 
       description, 
-      type, 
+      type = 'other',
+      content,
+      excerpt,
+      tags,
+      featuredImage,
       images, 
       technologies, 
       links, 
       featured = false,
       order = 0,
-      orientation
+      orientation,
+      isPublished = true,
+      slug: customSlug
     } = body
     
-    if (!title || !description || !type) {
+    if (!title || !description) {
       return NextResponse.json(
-        { error: 'Title, description, and type are required' },
+        { error: 'Title and description are required' },
         { status: 400 }
       )
     }
     
     const db = await getDatabase()
     const collection = db.collection<Omit<Project, '_id'>>('projects')
+
+    const baseSlug = (customSlug || title)
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+
+    let slug = baseSlug
+    let counter = 1
+    while (await collection.findOne({ slug })) {
+      counter += 1
+      slug = `${baseSlug}-${counter}`
+    }
     
     const now = new Date()
     const newProject = {
       title,
-      slug: title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-'),
+      slug,
       description,
       type: type as Project['type'],
+      content: content || '',
+      excerpt: excerpt || (content ? String(content).substring(0, 200).trim() : description),
+      tags: Array.isArray(tags) ? tags : [],
+      featuredImage: featuredImage || '',
+      isPublished,
       images: images || [],
       technologies: technologies || [],
       links: links || {},
@@ -191,7 +129,7 @@ export async function POST(request: NextRequest) {
     
     const result = await collection.insertOne(newProject)
     
-    return NextResponse.json({ id: result.insertedId }, { status: 201 })
+    return NextResponse.json({ id: result.insertedId, slug }, { status: 201 })
   } catch (error) {
     console.error('Error creating project:', error)
     return NextResponse.json(

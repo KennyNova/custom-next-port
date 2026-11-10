@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Github, Linkedin } from 'lucide-react'
 import { PreloadLink } from '@/components/ui/preload-link'
+import { BrandLogo } from '@/components/ui/brand-logo'
 
 type FooterLink = {
   name: string
@@ -30,7 +31,6 @@ const footerLinks: FooterSection[] = [
       { name: 'Projects', href: '/projects' },
       { name: 'Blog', href: '/blog' },
       { name: 'Media', href: '/media' },
-      { name: 'Quiz', href: '/quiz' },
     ],
   },
   {
@@ -38,7 +38,7 @@ const footerLinks: FooterSection[] = [
     links: [
       { name: 'n8n Templates', href: '/templates', key: 'templates' },
       { name: 'Signatures', href: '/signatures' },
-      { name: 'Book a Call', href: '/consultation' },
+      { name: 'Learn How I Can Help', href: '/quiz' },
     ],
   },
   {
@@ -63,7 +63,7 @@ export function Footer() {
             viewport={{ once: true }}
           >
             <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="h-8 w-8 rounded-full bg-primary" />
+              <BrandLogo />
               <span className="font-bold text-lg">Navid Madani</span>
             </Link>
             <p className="text-sm text-muted-foreground mb-4">

@@ -206,7 +206,7 @@ export default async function TemplateLearnPage({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-xl">
             <Wrench className="h-5 w-5 text-primary" />
-            Need help setting this up?
+            Want this built for your stack?
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm text-muted-foreground">
@@ -216,8 +216,8 @@ export default async function TemplateLearnPage({
           </p>
           <div className="flex flex-wrap gap-3">
             <Button asChild>
-              <Link href="/consultation">
-                Hire me for setup
+              <Link href="/quiz">
+                Learn how I can help you
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
