@@ -61,13 +61,26 @@ export const showHubConfig: {
   intro: 'Episodes and clips I’ve published, loaded live from Show Hub.',
   blocks: [
     {
+      id: 'playlist',
+      title: 'Playlist',
+      contentId: 'kd7cs02220hswb3hr4pn5rgmnd8c1nh9',
+      section: 'playlist',
+      maxEpisodes: 5,
+      featured: true,
+      attributes: {
+        'data-controls': 'full',
+        'data-show-thumbnails': 'true',
+        'data-show-chapter': 'true',
+        'data-look': 'theme',
+      },
+    },
+    {
       id: 'latest',
       title: 'Latest episodes',
       contentId: 'kd75wbfmwvbwzvphfm6973568n8bmm36',
       section: 'recent',
       style: 'list',
       maxEpisodes: 3,
-      featured: true,
     },
     {
       id: 'player',
