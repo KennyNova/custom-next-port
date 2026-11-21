@@ -4,7 +4,7 @@ import { useEffect, useState, type ComponentType, type ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import Script from 'next/script'
-import { ArrowRight, Camera, ExternalLink, Gamepad2, Github, LayoutGrid, Podcast, Server } from 'lucide-react'
+import { ArrowRight, AudioWaveform, Camera, ExternalLink, Gamepad2, Github, LayoutGrid, Podcast, Server } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -12,6 +12,7 @@ import { PhotoModal } from '@/components/ui/photo-modal'
 import { TabreezeShowcase } from '@/components/projects/tabreeze-showcase'
 import { ShowHubPipeline } from '@/components/projects/showhub-pipeline'
 import { SquarzleEmbed, SQUARZLE_URL } from '@/components/projects/squarzle-embed'
+import { ResonanceEmbed, RESONANCE_URL } from '@/components/projects/resonance-embed'
 import { HomelabExplorer } from '@/components/projects/homelab-explorer'
 import type { Photo } from '@/types'
 import type { LucideIcon } from 'lucide-react'
@@ -92,6 +93,26 @@ const projects: ProjectEntry[] = [
       { label: 'Play full screen', href: SQUARZLE_URL, icon: ExternalLink, primary: true },
       { label: 'Source', href: 'https://github.com/KennyNova/squarzle-next', icon: Github },
     ],
+  },
+  {
+    id: 'resonance',
+    name: 'Resonance',
+    kind: 'Audio visualizer',
+    icon: AudioWaveform,
+    summary: 'Five GPU simulations that react to whatever music is playing.',
+    body: [
+      'It is a Windows app that listens to everything coming out of my speakers and feeds it into a raymarched ocean, a particle storm, a sheet of living metal, sand on a vibrating plate and a reaction-diffusion coral. The version on this page runs in the browser, so it listens to a tab, a mic, a file or its own little synth instead.',
+    ],
+    details: [
+      'Every simulation is a hand-written WebGL2 shader, finished with bloom, film grain and a paper texture',
+      'The colours come from a palette editor modelled on Coolors, and it imports coolors.co links',
+      'The desktop app captures system audio through a small WASAPI helper I wrote in C#',
+    ],
+    stack: ['WebGL2', 'GLSL', 'Web Audio', 'Electron', 'C#'],
+    links: [
+      { label: 'Open full screen', href: `${RESONANCE_URL}?viz=alloy`, icon: ExternalLink, primary: true },
+    ],
+    wideVisual: true,
   },
   {
     id: 'homelab',
@@ -324,6 +345,7 @@ const visuals: Record<string, ComponentType> = {
   tabreeze: TabreezeShowcase,
   showhub: ShowHubVisual,
   squarzle: SquarzleEmbed,
+  resonance: ResonanceEmbed,
   homelab: HomelabExplorer,
   photography: PhotographyVisual,
 }
@@ -335,8 +357,8 @@ export default function ProjectsPage() {
         <div className="lg:col-span-7">
           <h1 className="mb-4 text-4xl font-bold md:text-5xl">Projects</h1>
           <p className="text-xl text-muted-foreground">
-            Things I have built and keep running: two products, a browser game, the home server I self-host on,
-            and the photos I take along the way.
+            Things I have built and keep running: two products, a browser game, a music visualizer, the home
+            server I self-host on, and the photos I take along the way.
           </p>
         </div>
         <nav aria-label="Projects on this page" className="lg:col-span-5">

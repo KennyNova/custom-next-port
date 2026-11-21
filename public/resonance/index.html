@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:">
+  <title>Resonance</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="stage"></canvas>
+
+  <div class="topbar">
+    <nav id="viz-tabs" aria-label="Visualizers"></nav>
+    <div class="actions">
+      <button id="btn-source" class="source-btn" title="Audio source"></button>
+      <button id="btn-palette" class="palette-btn" title="Palette (P)"></button>
+      <button id="btn-settings" class="icon-btn" title="Settings (S)"></button>
+      <button id="btn-full" class="icon-btn" title="Fullscreen (F)"></button>
+    </div>
+  </div>
+
+  <div id="source-menu" class="menu" hidden></div>
+  <aside id="settings" class="panel"></aside>
+  <section id="palette" class="drawer"></section>
+
+  <div id="welcome" class="welcome" hidden>
+    <h1>Resonance</h1>
+    <p>Pick something to listen to. You can change it any time from the source button, top right.</p>
+    <div class="welcome-grid">
+      <button data-src="system"><b>System audio</b><span>Whatever is playing on this computer</span></button>
+      <button data-src="device"><b>Input device</b><span>Microphone, line-in, Stereo Mix, virtual cables</span></button>
+      <button data-src="file"><b>Audio file</b><span>Open one, or drop it onto the window</span></button>
+      <button data-src="demo"><b>Demo synth</b><span>A built-in generative loop</span></button>
+    </div>
+  </div>
+
+  <div id="fps" hidden></div>
+  <div id="toasts"></div>
+  <input id="file-input" type="file" accept="audio/*" hidden>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
