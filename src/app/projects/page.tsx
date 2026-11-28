@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type ComponentType, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import Script from 'next/script'
@@ -17,6 +17,7 @@ import { HomelabExplorer } from '@/components/projects/homelab-explorer'
 import { DiamondFinderPreview, DIAMOND_FINDER_URL } from '@/components/projects/diamond-finder-preview'
 import { MidiDeckScreenshot } from '@/components/projects/midi-deck-screenshot'
 import { StemSeparatorSplit } from '@/components/projects/stem-separator-split'
+import { ProjectNav } from '@/components/projects/project-nav'
 import type { Photo } from '@/types'
 import type { LucideIcon } from 'lucide-react'
 
@@ -28,6 +29,7 @@ type ProjectEntry = {
   kind: string
   icon: LucideIcon
   summary: string
+  preview: string
   body: string[]
   details: string[]
   stack: string[]
@@ -38,6 +40,7 @@ type ProjectEntry = {
 const projects: ProjectEntry[] = [
   {
     id: 'tabreeze',
+    preview: '/projects/tabreeze/arrange.jpg',
     name: 'Tabreeze',
     kind: 'Chrome and Edge extension',
     icon: LayoutGrid,
@@ -60,6 +63,7 @@ const projects: ProjectEntry[] = [
   },
   {
     id: 'showhub',
+    preview: '/projects/showhub/preview.jpg',
     name: 'Show Hub',
     kind: 'Podcast platform',
     icon: Podcast,
@@ -79,6 +83,7 @@ const projects: ProjectEntry[] = [
   },
   {
     id: 'diamond-finder',
+    preview: '/projects/diamond-finder/finder.jpg',
     name: 'Masina Diamond Finder',
     kind: 'Client project',
     icon: Gem,
@@ -99,6 +104,7 @@ const projects: ProjectEntry[] = [
   },
   {
     id: 'squarzle',
+    preview: '/projects/squarzle-board.jpg',
     name: 'Squarzle',
     kind: 'Browser game',
     icon: Gamepad2,
@@ -119,6 +125,7 @@ const projects: ProjectEntry[] = [
   },
   {
     id: 'resonance',
+    preview: '/projects/resonance/alloy.jpg',
     name: 'Resonance',
     kind: 'Audio visualizer',
     icon: AudioWaveform,
@@ -139,6 +146,7 @@ const projects: ProjectEntry[] = [
   },
   {
     id: 'midi-deck',
+    preview: '/projects/midi-deck/app.jpg',
     name: 'Midi Deck',
     kind: 'Windows app',
     icon: Piano,
@@ -158,6 +166,7 @@ const projects: ProjectEntry[] = [
   },
   {
     id: 'stem-separator',
+    preview: '/projects/stem-separator/preview.jpg',
     name: 'Easy Stem Separator',
     kind: 'Local AI tool',
     icon: Layers,
@@ -177,6 +186,7 @@ const projects: ProjectEntry[] = [
   },
   {
     id: 'homelab',
+    preview: '/projects/homelab/preview.jpg',
     name: 'Homelab',
     kind: 'Self-hosted infrastructure',
     icon: Server,
@@ -196,6 +206,7 @@ const projects: ProjectEntry[] = [
   },
   {
     id: 'photography',
+    preview: 'https://jhsetiu7cagygjm1.public.blob.vercel-storage.com/gallery/1757279151393-amwbj6.webp',
     name: 'Photography',
     kind: 'Photos',
     icon: Camera,
@@ -317,6 +328,23 @@ function ShowHubVisual() {
 
 const PHOTO_PREVIEW_COUNT = 6
 
+// Shared by the gallery and the nav's random photo preview, so the page asks for the photos once.
+let photosRequest: Promise<Photo[]> | null = null
+
+function loadPhotos() {
+  photosRequest ??= fetch('/api/photos?sort=order&limit=50')
+    .then(async (response) => {
+      if (!response.ok) throw new Error(`Failed to fetch photos: ${response.status}`)
+      const data = await response.json()
+      return (data.photos || []) as Photo[]
+    })
+    .catch((err) => {
+      photosRequest = null
+      throw err
+    })
+  return photosRequest
+}
+
 function PhotographyVisual() {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
@@ -327,10 +355,7 @@ function PhotographyVisual() {
   useEffect(() => {
     const fetchPhotos = async () => {
       try {
-        const response = await fetch('/api/photos?sort=order&limit=50')
-        if (!response.ok) throw new Error(`Failed to fetch photos: ${response.status}`)
-        const data = await response.json()
-        setPhotos(data.photos || [])
+        setPhotos(await loadPhotos())
       } catch (err) {
         console.error('Error fetching photos:', err)
         setError(true)
@@ -415,6 +440,19 @@ const visuals: Record<string, ComponentType> = {
 }
 
 export default function ProjectsPage() {
+  const [photoPool, setPhotoPool] = useState<string[]>([])
+
+  useEffect(() => {
+    loadPhotos()
+      .then((photos) => setPhotoPool(photos.map((photo) => photo.thumbnailUrl || photo.blobUrl)))
+      .catch(() => {}) // The gallery reports the failure; the nav keeps its fixed photo.
+  }, [])
+
+  const navItems = useMemo(
+    () => projects.map((project) => (project.id === 'photography' && photoPool.length > 0 ? { ...project, previewPool: photoPool } : project)),
+    [photoPool]
+  )
+
   return (
     <div className="container mx-auto px-4 py-12">
       <header className="grid gap-8 pb-12 lg:grid-cols-12 lg:items-end">
@@ -425,21 +463,9 @@ export default function ProjectsPage() {
             three music tools, the home server I self-host on, and the photos I take along the way.
           </p>
         </div>
-        <nav aria-label="Projects on this page" className="lg:col-span-5">
-          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2">
-            {projects.map((project) => (
-              <li key={project.id}>
-                <a
-                  href={`#${project.id}`}
-                  className="flex items-center gap-2 rounded-md border-2 px-3 py-2 text-sm font-medium text-foreground transition-[border-color,background-color] hover:border-primary/40 hover:bg-primary/5"
-                >
-                  <project.icon className="h-4 w-4 text-primary" />
-                  {project.name}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <div className="lg:col-span-5">
+          <ProjectNav items={navItems} />
+        </div>
       </header>
 
       {projects.map((project, index) => {
