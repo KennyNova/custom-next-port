@@ -4,7 +4,7 @@ import { useEffect, useState, type ComponentType, type ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import Script from 'next/script'
-import { ArrowRight, AudioWaveform, Camera, ExternalLink, Gamepad2, Github, LayoutGrid, Podcast, Server } from 'lucide-react'
+import { ArrowRight, AudioWaveform, Camera, ExternalLink, Gamepad2, Gem, Github, Layers, LayoutGrid, Piano, Podcast, Server } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -14,6 +14,9 @@ import { ShowHubPipeline } from '@/components/projects/showhub-pipeline'
 import { SquarzleEmbed, SQUARZLE_URL } from '@/components/projects/squarzle-embed'
 import { ResonanceEmbed, RESONANCE_URL } from '@/components/projects/resonance-embed'
 import { HomelabExplorer } from '@/components/projects/homelab-explorer'
+import { DiamondFinderPreview, DIAMOND_FINDER_URL } from '@/components/projects/diamond-finder-preview'
+import { MidiDeckPads } from '@/components/projects/midi-deck-pads'
+import { StemSeparatorSplit } from '@/components/projects/stem-separator-split'
 import type { Photo } from '@/types'
 import type { LucideIcon } from 'lucide-react'
 
@@ -75,6 +78,26 @@ const projects: ProjectEntry[] = [
     ],
   },
   {
+    id: 'diamond-finder',
+    name: 'Masina Diamond Finder',
+    kind: 'Client project',
+    icon: Gem,
+    summary: 'A search tool for more than 23,000 certified diamonds, built into a jeweler’s Shopify store.',
+    body: [
+      'Masina Diamonds is a jeweler in Atlanta. Their loose-diamond search used to run on a third-party app. I replaced it with a service of my own that stays in sync with their supplier’s inventory, plus a finder in their theme that searches natural, lab-grown and fancy color stones.',
+    ],
+    details: [
+      'Shape, carat and price filters with histograms of the stock, plus quick picks like best value and 1 ct+ eye-clean',
+      'The server filters and sorts, so the first page of lab-grown stones is about 1.5 KB instead of a 460 KB download',
+      'Every stone gets its own server-rendered page, with a sitemap and a Google Merchant Center feed so it can show up in search and Shopping',
+    ],
+    stack: ['Node.js', 'Shopify', 'Liquid', 'JavaScript', 'Cloudflare'],
+    links: [
+      { label: 'Open the finder', href: DIAMOND_FINDER_URL, icon: ExternalLink, primary: true },
+    ],
+    wideVisual: true,
+  },
+  {
     id: 'squarzle',
     name: 'Squarzle',
     kind: 'Browser game',
@@ -113,6 +136,42 @@ const projects: ProjectEntry[] = [
       { label: 'Open full screen', href: `${RESONANCE_URL}?viz=alloy`, icon: ExternalLink, primary: true },
     ],
     wideVisual: true,
+  },
+  {
+    id: 'midi-deck',
+    name: 'Midi Deck',
+    kind: 'Desktop app, in progress',
+    icon: Piano,
+    summary: 'Turns any MIDI controller into a board of programmable hotkeys.',
+    body: [
+      'Plug in a keyboard or pad controller, press a pad in learn mode, and bind it to whatever you want your computer to do. I started it in 2021 and am finishing it now with saved profiles, a tray icon and a proper Windows build.',
+    ],
+    details: [
+      'Learn mode: hit a pad or turn a knob, then pick what it does',
+      'Pads send keyboard shortcuts, media keys, app launches or typed text',
+      'Knobs and faders can drive volume or repeat a key as they turn',
+    ],
+    stack: ['Electron', 'Next.js', 'React', 'Tailwind CSS', 'MIDI'],
+    links: [],
+  },
+  {
+    id: 'stem-separator',
+    name: 'Easy Stem Separator',
+    kind: 'Local AI tool',
+    icon: Layers,
+    summary: 'Drop in a song and get the vocals, drums, bass and other parts back as separate tracks.',
+    body: [
+      'It is a small web app around Meta’s Demucs models that runs on my own machine. I set it up to use an AMD Radeon card on Windows through ROCm, and swapped the model names for presets that say what you get.',
+    ],
+    details: [
+      'Presets for vocals and instrumental, 4 stems, or 6 stems with guitar and piano',
+      'Uses the GPU when it can: ROCm or CUDA, then DirectML, then Apple Silicon, then CPU',
+      'Exports 24-bit WAVs and a zip of the whole set',
+    ],
+    stack: ['Python', 'PyTorch', 'Demucs', 'Gradio', 'ROCm'],
+    links: [
+      { label: 'Source', href: 'https://github.com/KennyNova/stem-separator', icon: Github, primary: true },
+    ],
   },
   {
     id: 'homelab',
@@ -346,6 +405,9 @@ const visuals: Record<string, ComponentType> = {
   showhub: ShowHubVisual,
   squarzle: SquarzleEmbed,
   resonance: ResonanceEmbed,
+  'diamond-finder': DiamondFinderPreview,
+  'midi-deck': MidiDeckPads,
+  'stem-separator': StemSeparatorSplit,
   homelab: HomelabExplorer,
   photography: PhotographyVisual,
 }
@@ -357,8 +419,8 @@ export default function ProjectsPage() {
         <div className="lg:col-span-7">
           <h1 className="mb-4 text-4xl font-bold md:text-5xl">Projects</h1>
           <p className="text-xl text-muted-foreground">
-            Things I have built and keep running: two products, a browser game, a music visualizer, the home
-            server I self-host on, and the photos I take along the way.
+            Things I have built and keep running: two products, a diamond search for a client, a browser game,
+            three music tools, the home server I self-host on, and the photos I take along the way.
           </p>
         </div>
         <nav aria-label="Projects on this page" className="lg:col-span-5">
