@@ -21,7 +21,6 @@ const GoogleIcon = ({ className }: { className?: string }) => (
 )
 import { useState, useEffect, useCallback } from 'react'
 import { useUser, useAuth, SignInButton, SignOutButton } from '@clerk/nextjs'
-import { captureEvent } from '@/lib/posthog/client'
 import { debugLog } from '@/lib/debug'
 
 type SignatureItem = {
@@ -106,10 +105,6 @@ export default function SignaturesPage() {
       })
 
       if (response.ok) {
-        captureEvent(isEditMode ? 'signature_updated' : 'signature_submitted', {
-          provider: user.externalAccounts?.[0]?.provider || 'clerk',
-          message_length: message.trim().length,
-        })
         // Successfully submitted, refresh the signatures list
         await loadSignatures()
         await checkExistingSignature() // Refresh existing signature data

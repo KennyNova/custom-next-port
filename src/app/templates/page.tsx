@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input'
 import { N8nNodeGraph } from '@/components/ui/n8n-node-graph'
 import { N8nTemplateModal } from '@/components/ui/n8n-template-modal'
 import type { N8nTemplateIndexData, N8nTemplateIndexItem } from '@/types'
-import { captureEvent } from '@/lib/posthog/client'
 import { Filter, Loader2, Search, Sparkles, Workflow } from 'lucide-react'
 
 type NodeSize = 'all' | 'small' | 'medium' | 'large'
@@ -116,13 +115,6 @@ export default function TemplatesPage() {
   }
 
   function openTemplate(template: N8nTemplateIndexItem) {
-    captureEvent('template_opened', {
-      template_id: template.id,
-      template_name: template.name,
-      category: template.category,
-      node_count: template.nodeCount,
-      has_ai: template.hasAI,
-    })
     setActiveTemplate(template)
     setIsModalOpen(true)
   }

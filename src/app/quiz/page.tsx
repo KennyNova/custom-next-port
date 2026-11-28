@@ -8,7 +8,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { ChevronLeft, ChevronRight, CheckCircle, ArrowRight, ChevronDown, Mail, Phone } from 'lucide-react'
-import { captureEvent } from '@/lib/posthog/client'
 import { useCtaCopy } from '@/lib/hooks/use-cta-copy'
 
 type QuizStatus = 'in_progress' | 'completed'
@@ -387,15 +386,8 @@ export default function QuizPage() {
   const [leadSubmitInFlight, setLeadSubmitInFlight] = useState(false)
   const ctaAnchorRef = useRef<HTMLDivElement | null>(null)
   const [ctaStuck, setCtaStuck] = useState(false)
-  const quizStartedRef = useRef(false)
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasHydratedDraftRef = useRef(false)
-
-  const getQuestionById = (questionId: string) =>
-    quizQuestions.find((question) => question.id === questionId)
-
-  const getOptionText = (question: Question, value: string) =>
-    question.options.find((option) => option.value === value)?.text ?? value
 
   useEffect(() => {
     if (!showResults) return
@@ -423,12 +415,6 @@ export default function QuizPage() {
 
   const availableQuestions = getAvailableQuestions()
   const currentQuestion = availableQuestions[currentQuestionIndex]
-
-  const getQuizProgressMeta = () => ({
-    total_questions: availableQuestions.length,
-    progress_percent: Math.round(overallProgress),
-    questions_answered: Object.keys(answers).length,
-  })
 
   const getNormalizedContact = (): QuizContact | undefined => {
     const email = leadEmail.trim()
@@ -614,38 +600,8 @@ export default function QuizPage() {
   }, [currentQuestionIndex, availableQuestions.length])
 
   useEffect(() => {
-    if (showResults || !currentQuestion) return
-
-    if (!quizStartedRef.current) {
-      quizStartedRef.current = true
-      captureEvent('quiz_started', {
-        total_questions: availableQuestions.length,
-      })
-    }
-
-    captureEvent('quiz_question_viewed', {
-      question_id: currentQuestion.id,
-      question_text: currentQuestion.text,
-      question_index: currentQuestionIndex,
-      question_number: currentQuestionIndex + 1,
-      question_type: currentQuestion.type,
-      ...getQuizProgressMeta(),
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentQuestion?.id, showResults])
-
-  useEffect(() => {
     const handleLeave = () => {
       if (Object.keys(answers).length === 0) return
-
-      if (!showResults) {
-        captureEvent('quiz_abandoned', {
-          last_question_id: currentQuestion?.id,
-          last_question_index: currentQuestionIndex,
-          last_question_number: currentQuestionIndex + 1,
-          ...getQuizProgressMeta(),
-        })
-      }
 
       void saveSubmission(showResults ? 'completed' : 'in_progress', 'pagehide', { keepalive: true })
     }
@@ -678,45 +634,10 @@ export default function QuizPage() {
   }
 
   const handleAnswer = (questionId: string, answer: string | string[]) => {
-    const question = getQuestionById(questionId)
-    if (question && typeof answer === 'string') {
-      captureEvent('quiz_answer_selected', {
-        question_id: questionId,
-        question_text: question.text,
-        question_index: currentQuestionIndex,
-        question_number: currentQuestionIndex + 1,
-        question_type: question.type,
-        answer_value: answer,
-        answer_text: getOptionText(question, answer),
-        selection_action: 'selected',
-        ...getQuizProgressMeta(),
-      })
-    }
-
     setAnswers(prev => ({ ...prev, [questionId]: answer }))
   }
 
   const handleMultipleAnswer = (questionId: string, value: string, checked: boolean) => {
-    const question = getQuestionById(questionId)
-    const currentAnswers = (answers[questionId] as string[]) || []
-
-    if (question) {
-      captureEvent('quiz_answer_selected', {
-        question_id: questionId,
-        question_text: question.text,
-        question_index: currentQuestionIndex,
-        question_number: currentQuestionIndex + 1,
-        question_type: question.type,
-        answer_value: value,
-        answer_text: getOptionText(question, value),
-        selection_action: checked ? 'selected' : 'deselected',
-        selected_count: checked
-          ? currentAnswers.length + 1
-          : Math.max(0, currentAnswers.length - 1),
-        ...getQuizProgressMeta(),
-      })
-    }
-
     setAnswers(prev => {
       const prevAnswers = (prev[questionId] as string[]) || []
       if (checked) {
@@ -729,24 +650,6 @@ export default function QuizPage() {
 
   const nextQuestion = () => {
     if (!currentQuestion) return
-
-    const currentAnswer = answers[currentQuestion.id]
-    captureEvent('quiz_question_submitted', {
-      question_id: currentQuestion.id,
-      question_text: currentQuestion.text,
-      question_index: currentQuestionIndex,
-      question_number: currentQuestionIndex + 1,
-      question_type: currentQuestion.type,
-      is_final_question: currentQuestionIndex === availableQuestions.length - 1,
-      answer_values: currentAnswer,
-      answer_text:
-        currentQuestion.type === 'single' && typeof currentAnswer === 'string'
-          ? getOptionText(currentQuestion, currentAnswer)
-          : Array.isArray(currentAnswer)
-            ? currentAnswer.map((value) => getOptionText(currentQuestion, value))
-            : undefined,
-      ...getQuizProgressMeta(),
-    })
 
     if (currentQuestionIndex < availableQuestions.length - 1) {
       const nextIndex = currentQuestionIndex + 1
@@ -773,12 +676,6 @@ export default function QuizPage() {
 
   const prevQuestion = () => {
     if (showResults) {
-      captureEvent('quiz_question_back', {
-        from_question_id: 'results',
-        from_question_index: availableQuestions.length,
-        to_question_index: availableQuestions.length - 1,
-        ...getQuizProgressMeta(),
-      })
       // If we're showing results, go back to the last question
       setShowResults(false)
       setServicePercentages([])
@@ -789,12 +686,6 @@ export default function QuizPage() {
       // Restore progress to 95% (before completion)
       setOverallProgress(95)
     } else if (currentQuestionIndex > 0) {
-      captureEvent('quiz_question_back', {
-        from_question_id: currentQuestion?.id,
-        from_question_index: currentQuestionIndex,
-        to_question_index: currentQuestionIndex - 1,
-        ...getQuizProgressMeta(),
-      })
       const prevIndex = currentQuestionIndex - 1
       setCurrentQuestionIndex(prevIndex)
       // Keep progress monotonic; do not decrease when navigating backward
@@ -902,27 +793,15 @@ export default function QuizPage() {
     // Create blended result based on top scoring services
     const primaryService = servicePercentages[0]?.service || 'web'
     setResult(primaryService)
-    captureEvent('quiz_completed', {
-      primary_service: primaryService,
-      top_services: servicePercentages.slice(0, 3).map((item) => ({
-        service: item.service,
-        percentage: Math.round(item.percentage),
-      })),
-      questions_answered: Object.keys(answers).length,
-      session_id: sessionId,
-      cta_variant: ctaVariantId,
-    })
     setShowResults(true)
     void saveSubmission('completed', 'quiz_completed')
   }
 
   const resetQuiz = () => {
-    captureEvent('quiz_restarted', getQuizProgressMeta())
     const newSessionId = createSessionId()
     window.localStorage.setItem(QUIZ_SESSION_STORAGE_KEY, newSessionId)
     window.localStorage.removeItem(QUIZ_DRAFT_STORAGE_KEY)
     setSessionId(newSessionId)
-    quizStartedRef.current = false
     setCurrentQuestionIndex(0)
     setAnswers({})
     setShowResults(false)
@@ -961,15 +840,6 @@ export default function QuizPage() {
 
     setLeadSubmitInFlight(true)
     setLeadStatusMessage(null)
-
-    captureEvent('quiz_lead_submitted', {
-      session_id: sessionId,
-      cta_variant: ctaVariantId,
-      has_email: Boolean(email),
-      has_phone: Boolean(phone),
-      consultation_requested: requestConsultation,
-      primary_service: result,
-    })
 
     await saveSubmission('completed', 'lead_submit', { contactOverride })
 

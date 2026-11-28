@@ -3,27 +3,7 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 })
 
-const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com'
-const posthogAssetsHost = posthogHost.replace('.i.posthog.com', '-assets.i.posthog.com')
-
 const nextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: '/ingest/static/:path*',
-        destination: `${posthogAssetsHost}/static/:path*`,
-      },
-      {
-        source: '/ingest/array/:path*',
-        destination: `${posthogAssetsHost}/array/:path*`,
-      },
-      {
-        source: '/ingest/:path*',
-        destination: `${posthogHost}/:path*`,
-      },
-    ]
-  },
-  skipTrailingSlashRedirect: true,
   images: {
     domains: ['github.com', 'avatars.githubusercontent.com', 'lh3.googleusercontent.com', 'image.mux.com'],
     remotePatterns: [

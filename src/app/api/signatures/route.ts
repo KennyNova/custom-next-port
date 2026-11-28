@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, isDatabaseAvailable } from '@/lib/db/mongodb'
 import { getAuthUserId } from '@/lib/clerk-auth.server'
-import { captureServerEvent, getDistinctIdFromRequest } from '@/lib/posthog/server'
 import type { Signature } from '@/types'
 
 // Force dynamic rendering for this route since POST and DELETE methods use auth headers
@@ -131,15 +130,6 @@ export async function POST(request: NextRequest) {
     
     const result = await collection.insertOne(newSignature)
 
-    await captureServerEvent(
-      getDistinctIdFromRequest(request) || clerkUserId,
-      'signature_created',
-      {
-        provider,
-        source: 'api',
-      }
-    )
-    
     return NextResponse.json({ id: result.insertedId }, { status: 201 })
   } catch (error) {
     console.error('Error creating signature:', error)

@@ -16,7 +16,6 @@ import {
   type N8nPreferenceKey,
 } from '@/lib/n8n-swap-rules'
 import type { N8nTemplateIndexItem, N8nWorkflowTemplate } from '@/types'
-import { captureEvent } from '@/lib/posthog/client'
 import { Download, Loader2, X } from 'lucide-react'
 
 const STORAGE_KEY = 'n8n-template-preferences'
@@ -119,13 +118,6 @@ export function N8nTemplateModal({ template, isOpen, onClose }: N8nTemplateModal
 
   function handleDownload() {
     if (!transformedTemplate || !template) return
-    captureEvent('template_downloaded', {
-      template_id: template.id,
-      template_name: template.name,
-      category: template.category,
-      node_count: template.nodeCount,
-      preference_count: Object.keys(preferences).length,
-    })
     downloadJson(`${template.id}.json`, transformedTemplate)
   }
 

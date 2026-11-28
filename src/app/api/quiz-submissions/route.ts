@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { getDatabase, isDatabaseAvailable } from '@/lib/db/mongodb'
-import { captureServerEvent, getDistinctIdFromRequest } from '@/lib/posthog/server'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -275,21 +274,6 @@ export async function POST(request: NextRequest) {
       $set: setPayload,
     },
     { upsert: true }
-  )
-
-  await captureServerEvent(
-    getDistinctIdFromRequest(request) || payload.sessionId,
-    'quiz_submission_saved',
-    {
-      status: payload.status,
-      reason: payload.reason || 'autosave',
-      cta_variant: payload.ctaVariantId,
-      has_email: Boolean(payload.contact?.email),
-      has_phone: Boolean(payload.contact?.phone),
-      consultation_requested: Boolean(payload.contact?.consultationRequested),
-      questions_answered: payload.questionsAnswered ?? Object.keys(payload.answers).length,
-      progress_percent: payload.progressPercent ?? null,
-    }
   )
 
   return NextResponse.json({
