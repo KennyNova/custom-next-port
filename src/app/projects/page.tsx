@@ -15,7 +15,7 @@ import { SquarzleEmbed, SQUARZLE_URL } from '@/components/projects/squarzle-embe
 import { ResonanceEmbed, RESONANCE_URL } from '@/components/projects/resonance-embed'
 import { HomelabExplorer } from '@/components/projects/homelab-explorer'
 import { DiamondFinderPreview, DIAMOND_FINDER_URL } from '@/components/projects/diamond-finder-preview'
-import { MidiDeckPads } from '@/components/projects/midi-deck-pads'
+import { MidiDeckScreenshot } from '@/components/projects/midi-deck-screenshot'
 import { StemSeparatorSplit } from '@/components/projects/stem-separator-split'
 import type { Photo } from '@/types'
 import type { LucideIcon } from 'lucide-react'
@@ -140,19 +140,21 @@ const projects: ProjectEntry[] = [
   {
     id: 'midi-deck',
     name: 'Midi Deck',
-    kind: 'Desktop app, in progress',
+    kind: 'Windows app',
     icon: Piano,
-    summary: 'Turns any MIDI controller into a board of programmable hotkeys.',
+    summary: 'Turns any MIDI keyboard, pad controller or knob box into programmable hotkeys.',
     body: [
-      'Plug in a keyboard or pad controller, press a pad in learn mode, and bind it to whatever you want your computer to do. I started it in 2021 and am finishing it now with saved profiles, a tray icon and a proper Windows build.',
+      'Press Learn, touch a pad or turn a knob, then bind it to what you want your computer to do. It runs from the system tray, so the bindings keep working with the window closed. I started it in 2021 and came back to finish it.',
     ],
     details: [
-      'Learn mode: hit a pad or turn a knob, then pick what it does',
-      'Pads send keyboard shortcuts, media keys, app launches or typed text',
-      'Knobs and faders can drive volume or repeat a key as they turn',
+      'Pads and keys send keyboard shortcuts, media keys or typed text, or open an app, file or URL',
+      'Faders can set the system volume, and knobs can repeat a key once per notch, endless encoders included',
+      'Bindings live in profiles you can switch from the tray and export as JSON',
+      'Keystrokes go through a small C# SendInput helper, so there are no native Node modules to build',
     ],
-    stack: ['Electron', 'Next.js', 'React', 'Tailwind CSS', 'MIDI'],
+    stack: ['Electron', 'Next.js', 'React', 'Web MIDI', 'C#'],
     links: [],
+    wideVisual: true,
   },
   {
     id: 'stem-separator',
@@ -406,7 +408,7 @@ const visuals: Record<string, ComponentType> = {
   squarzle: SquarzleEmbed,
   resonance: ResonanceEmbed,
   'diamond-finder': DiamondFinderPreview,
-  'midi-deck': MidiDeckPads,
+  'midi-deck': MidiDeckScreenshot,
   'stem-separator': StemSeparatorSplit,
   homelab: HomelabExplorer,
   photography: PhotographyVisual,
