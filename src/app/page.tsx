@@ -102,10 +102,9 @@ export default function HomePage() {
             The Practical Cinematic Engineer
           </h1>
         </div>
-        <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto animate-scale-in">
-          I build software and automations, and I shoot photo and video.
+        <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-scale-in">
+          I write software, wire up automations, and shoot photo and video.
         </p>
-        <p className="text-lg italic md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto animate-scale-in">Projects, writing, and n8n templates below.</p>
         
         
         {theme === 'coffee' && (
